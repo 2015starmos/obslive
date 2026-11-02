@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebCall 連線導播台</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>window.Peer || document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>')</script>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1f232c; --line:#2b303b;
+  --text:#e8eaf0; --dim:#8b93a3; --accent:#3d8bfd; --live:#e5383b; --pvw:#2fb344; --warn:#f2a20c;
+  --r:10px; --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--font)}
+button,select,input{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:#4a5263}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.danger{background:transparent;border-color:#5a2a2c;color:#ff8a8c}
+button.on-live{background:var(--live);border-color:var(--live);color:#fff;font-weight:700}
+button.on-pvw{background:var(--pvw);border-color:var(--pvw);color:#fff;font-weight:700}
+button.small{padding:4px 9px;font-size:12px}
+select,input[type=text]{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+label{color:var(--dim);font-size:12px;display:block;margin-bottom:4px}
+.hidden{display:none!important}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.dim{color:var(--dim)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--dim);margin-right:6px}
+.dot.ok{background:var(--pvw)} .dot.bad{background:var(--live)} .dot.wait{background:var(--warn)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000c;border:1px solid var(--line);padding:8px 16px;border-radius:20px;opacity:0;transition:.2s;pointer-events:none;z-index:99}
+#toast.show{opacity:1}
+
+/* 首頁 */
+.home{max-width:560px;margin:8vh auto;padding:0 16px}
+.home h1{font-size:28px;margin:0 0 4px}
+.home .card{margin-top:14px}
+
+/* 導播台 */
+.host{display:grid;grid-template-columns:1fr 320px;gap:14px;padding:14px;min-height:100%}
+.host header{grid-column:1/-1;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.host header h1{font-size:18px;margin:0}
+.room{font-size:20px;font-weight:700;letter-spacing:2px;background:var(--panel2);padding:2px 10px;border-radius:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-content:start}
+.empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--dim);border:1px dashed var(--line);border-radius:var(--r)}
+.guest{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);overflow:hidden}
+.guest.live{border-color:var(--live)} .guest.pvw{border-color:var(--pvw)}
+.vwrap{position:relative;background:#000;aspect-ratio:16/9}
+.vwrap video{width:100%;height:100%;object-fit:contain;display:block}
+.badge{position:absolute;top:6px;left:6px;background:#000a;padding:1px 8px;border-radius:4px;font-size:12px}
+.badge.r{left:auto;right:6px}
+.meter{position:absolute;right:6px;bottom:6px;top:30px;width:6px;background:#0008;border-radius:3px;overflow:hidden}
+.meter i{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,var(--pvw),var(--warn) 75%,var(--live));height:0}
+.gbody{padding:10px;display:grid;gap:8px}
+.gname{font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.side{display:grid;gap:12px;align-content:start}
+.slots{display:grid;gap:6px}
+.slot{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;background:var(--panel2);border-radius:8px;padding:6px 8px}
+.slot b{font-size:16px;text-align:center}
+.slot .who{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h3{font-weight:700;margin:0 0 8px;font-size:14px}
+
+/* 來賓 */
+.guestpage{max-width:960px;margin:0 auto;padding:16px;display:grid;gap:14px}
+.selfwrap{position:relative;background:#000;border-radius:var(--r);overflow:hidden;aspect-ratio:16/9;border:4px solid transparent;transition:border-color .15s}
+.selfwrap.live{border-color:var(--live)} .selfwrap.pvw{border-color:var(--pvw)}
+.selfwrap video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.tally{position:absolute;top:10px;left:10px;padding:4px 14px;border-radius:6px;font-weight:800;font-size:16px;letter-spacing:1px}
+.tally.live{background:var(--live)} .tally.pvw{background:var(--pvw)} .tally.off{background:#000a;color:var(--dim);font-weight:500}
+.retwrap{position:absolute;right:10px;bottom:10px;width:28%;aspect-ratio:16/9;background:#111;border-radius:6px;overflow:hidden;border:1px solid #fff3}
+.retwrap video{width:100%;height:100%;object-fit:contain}
+#gmsg{background:var(--warn);color:#111;font-weight:700;font-size:18px;padding:10px 14px;border-radius:var(--r)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+
+/* 輸出 */
+body.out{background:transparent;overflow:hidden}
+body.out video{position:fixed;inset:0;width:100vw;height:100vh;background:transparent}
+#outdbg{position:fixed;left:8px;bottom:8px;font:12px monospace;color:#0f0;background:#000a;padding:4px 8px;border-radius:4px}
+#clickaudio{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000c;color:#fff;font-size:22px;cursor:pointer}
+
+@media (max-width:820px){.host{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+/* ===================== 設定 =====================
+ * 連線靠 PeerJS 的免費訊號伺服器（0.peerjs.com）配對，影音走 WebRTC 點對點。
+ * 若來賓在手機 4G / 公司防火牆後面連不上，請到下面 ICE_SERVERS 加入 TURN 伺服器
+ * （例如 Cloudflare Calls TURN、Metered 免費方案），帳密填進去即可。
+ */
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  // { urls: 'turn:你的TURN主機:3478', username: '帳號', credential: '密碼' },
+];
+const PEER_OPTS = { config: { iceServers: ICE_SERVERS }, debug: 1 };
+const PREFIX = 'webcall-tw-';          // 避免跟別人的房間撞名
+const SLOT_COUNT = 8;
+const QUALITY = {
+  '480':  { w: 854,  h: 480,  kbps: 1200 },
+  '720':  { w: 1280, h: 720,  kbps: 2500 },
+  '1080': { w: 1920, h: 1080, kbps: 4500 },
+};
+
+/* ===================== 共用 ===================== */
+const Q = new URLSearchParams(location.search);
+const $ = (s, el = document) => el.querySelector(s);
+const app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
+const roomCode = () => rnd(6).toUpperCase();
+const hostIdOf = room => PREFIX + room.toLowerCase() + '-host';
+const baseUrl = () => location.origin + location.pathname;
+function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 1800); }
+async function copy(t){ try { await navigator.clipboard.writeText(t); toast('已複製'); } catch { prompt('複製這段：', t); } }
+function store(k, v){ try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch {} }
+
+let AC;
+function audioCtx(){ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; }
+function attachMeter(stream, barEl){
+  if (!stream.getAudioTracks().length) return () => {};
+  const ac = audioCtx(), src = ac.createMediaStreamSource(stream), an = ac.createAnalyser();
+  an.fftSize = 512; src.connect(an);
+  const buf = new Float32Array(an.fftSize); let alive = true;
+  (function loop(){
+    if (!alive) return;
+    an.getFloatTimeDomainData(buf);
+    let peak = 0; for (const v of buf) peak = Math.max(peak, Math.abs(v));
+    const db = 20 * Math.log10(peak || 1e-6);           // -60 ~ 0 dB
+    barEl.style.height = Math.max(0, Math.min(100, (db + 60) / 60 * 100)) + '%';
+    requestAnimationFrame(loop);
+  })();
+  return () => { alive = false; try { src.disconnect(); } catch {} };
+}
+function setBitrate(pc, kbps){
+  if (!pc) return;
+  pc.getSenders().forEach(s => {
+    if (s.track?.kind !== 'video') return;
+    const p = s.getParameters(); if (!p.encodings?.length) p.encodings = [{}];
+    p.encodings[0].maxBitrate = kbps * 1000;
+    p.degradationPreference = 'maintain-framerate';
+    s.setParameters(p).catch(() => {});
+  });
+}
+function placeholderStream(){
+  const c = Object.assign(document.createElement('canvas'), { width: 320, height: 180 });
+  const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, 320, 180);
+  const v = c.captureStream(1).getVideoTracks()[0];
+  const ac = audioCtx(), dst = ac.createMediaStreamDestination(), o = ac.createOscillator(), gn = ac.createGain();
+  gn.gain.value = 0; o.connect(gn).connect(dst); o.start();
+  return new MediaStream([v, dst.stream.getAudioTracks()[0]]);
+}
+function peerErrText(e){
+  return ({ 'unavailable-id': '房間代碼已被使用（可能另一個分頁開著同一個導播台）',
+            'peer-unavailable': '找不到導播台，確認導播台頁面有開著',
+            'network': '連不到訊號伺服器，檢查網路',
+            'browser-incompatible': '瀏覽器不支援 WebRTC' })[e.type] || (e.type || e.message);
+}
+
+/* ===================== 路由 ===================== */
+if (!window.Peer) {
+  app.innerHTML = '<div class="home"><h1>載入失敗</h1><p class="dim">PeerJS 函式庫沒有載入，請確認網路可連到 cdnjs.cloudflare.com 或 unpkg.com。</p></div>';
+} else {
+  const mode = Q.get('mode');
+  if (mode === 'host') Host();
+  else if (mode === 'guest') Guest();
+  else if (mode === 'out') Output();
+  else Home();
+}
+
+/* ===================== 首頁 ===================== */
+function Home(){
+  const last = store('wc_room') || '';
+  app.innerHTML = `
+  <div class="home">
+    <h1>WebCall 連線導播台</h1>
+    <p class="dim">瀏覽器版的遠端連線系統：來賓用手機或電腦開網址就能連進來，每位來賓都有一個乾淨的輸出網址，貼進 OBS 的「瀏覽器來源」就能用。</p>
+    <div class="panel card">
+      <div class="h3">我是導播</div>
+      <div class="row">
+        <input type="text" id="hr" placeholder="房間代碼（空白自動產生）" value="${esc(last)}" style="flex:1;text-transform:uppercase">
+        <button class="primary" id="hgo">開啟導播台</button>
+      </div>
+    </div>
+    <div class="panel card">
+      <div class="h3">我是來賓</div>
+      <div class="row">
+        <input type="text" id="gr" placeholder="導播給你的房間代碼" style="flex:1;text-transform:uppercase">
+        <button id="ggo">加入連線</button>
+      </div>
+    </div>
+  </div>`;
+  $('#hgo').onclick = () => { const r = ($('#hr').value.trim() || roomCode()).toUpperCase().replace(/[^A-Z0-9]/g, ''); location.search = `?mode=host&room=${r}`; };
+  $('#ggo').onclick = () => { const r = $('#gr').value.trim().toUpperCase(); if (r) location.search = `?mode=guest&room=${r}`; };
+}
+
+/* ===================== 導播台 ===================== */
+function Host(){
+  const room = (Q.get('room') || roomCode()).toUpperCase();
+  store('wc_room', room);
+  history.replaceState(null, '', `?mode=host&room=${room}`);
+  const guestUrl = `${baseUrl()}?mode=guest&room=${room}`;
+  const outUrl = slot => `${baseUrl()}?mode=out&room=${room}&slot=${slot}`;
+
+  const guests = new Map();   // peerId -> {name, conn, call, stream, slot, tally, el, stopMeter, listen}
+  const outputs = new Set();  // {conn, slot, call}
+  let peer, returnStream = placeholderStream(), returnSrcStream = null;
+
+  app.innerHTML = `
+  <div class="host">
+    <header>
+      <h1>連線導播台</h1>
+      <span class="room mono">${room}</span>
+      <span id="pst"><span class="dot wait"></span>連線訊號伺服器中…</span>
+      <span style="flex:1"></span>
+      <button class="primary" id="cpg">複製來賓連結</button>
+    </header>
+    <main class="grid" id="glist"><div class="empty">等待來賓加入…<br><br>把「來賓連結」用 LINE 傳給受訪者，對方用手機或電腦打開、允許相機與麥克風就會出現在這裡。</div></main>
+    <aside class="side">
+      <div class="panel">
+        <div class="h3">輸出（給 OBS）</div>
+        <div class="slots" id="slots"></div>
+        <p class="dim" style="font-size:12px;margin:8px 0 0">OBS 新增「瀏覽器來源」→ 貼上輸出網址 → 寬高設 1920×1080 → 勾選「透過 OBS 控制音訊」。換人只要在來賓卡片改輸出編號，OBS 不用動。</p>
+      </div>
+      <div class="panel">
+        <div class="h3">回傳給來賓（Return feed）</div>
+        <label>來賓會聽到 / 看到</label>
+        <select id="retsel" style="width:100%">
+          <option value="none">不回傳</option>
+          <option value="mic">導播麥克風（Talkback）</option>
+          <option value="cam">導播鏡頭＋麥克風</option>
+          <option value="screen">分享畫面（可選 OBS 投影視窗＋系統聲音）</option>
+        </select>
+        <div class="row" style="margin-top:8px">
+          <select id="retmic" style="flex:1"></select>
+        </div>
+        <p class="dim" style="font-size:12px;margin:8px 0 0">提醒來賓戴耳機，避免回音。</p>
+      </div>
+      <div class="panel">
+        <div class="h3">全體廣播</div>
+        <div class="row"><input type="text" id="bc" placeholder="例：30 秒後上線" style="flex:1"><button id="bcgo">送出</button></div>
+      </div>
+    </aside>
+  </div>`;
+
+  $('#cpg').onclick = () => copy(guestUrl);
+  $('#bcgo').onclick = () => { const t = $('#bc').value.trim(); guests.forEach(g => g.conn?.open && g.conn.send({ type: 'msg', text: t })); toast(t ? '已廣播' : '已清除訊息'); };
+
+  /* --- 輸出槽 --- */
+  function renderSlots(){
+    $('#slots').innerHTML = Array.from({ length: SLOT_COUNT }, (_, i) => {
+      const s = i + 1, g = [...guests.values()].find(x => x.slot === s);
+      const n = [...outputs].filter(o => o.slot === s).length;
+      return `<div class="slot"><b>${s}</b>
+        <span class="who ${g ? '' : 'dim'}">${g ? esc(g.name) : '（空）'} <span class="dim" style="font-size:12px">${n ? `· ${n} 個輸出在線` : ''}</span></span>
+        <button class="small" data-out="${s}">複製網址</button></div>`;
+    }).join('');
+    $('#slots').querySelectorAll('[data-out]').forEach(b => b.onclick = () => copy(outUrl(b.dataset.out)));
+  }
+  renderSlots();
+
+  function feedOutput(o){
+    try { o.call?.close(); } catch {}
+    o.call = null;
+    const g = [...guests.values()].find(x => x.slot === o.slot && x.stream);
+    if (!o.conn.open) return;
+    if (!g) { o.conn.send({ type: 'empty' }); return; }
+    o.conn.send({ type: 'source', name: g.name });
+    o.call = peer.call(o.conn.peer, g.stream, { metadata: { role: 'feed' } });
+    o.call.on('error', () => {});
+    setTimeout(() => setBitrate(o.call?.peerConnection, 8000), 1500); // 本機轉送給 OBS，給高一點
+  }
+  const refreshSlot = slot => outputs.forEach(o => o.slot === slot && feedOutput(o));
+
+  /* --- 回傳來源 --- */
+  async function fillMics(){
+    const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+    const mics = devs.filter(d => d.kind === 'audioinput');
+    $('#retmic').innerHTML = mics.map(d => `<option value="${d.deviceId}">${esc(d.label || '麥克風')}</option>`).join('') || '<option value="">預設麥克風</option>';
+  }
+  fillMics();
+  async function setReturn(){
+    const kind = $('#retsel').value, mic = $('#retmic').value;
+    returnSrcStream?.getTracks().forEach(t => t.stop()); returnSrcStream = null;
+    try {
+      const a = { deviceId: mic ? { exact: mic } : undefined, echoCancellation: true, noiseSuppression: true };
+      if (kind === 'mic') returnSrcStream = await navigator.mediaDevices.getUserMedia({ audio: a });
+      if (kind === 'cam') returnSrcStream = await navigator.mediaDevices.getUserMedia({ audio: a, video: { width: 640, height: 360 } });
+      if (kind === 'screen') returnSrcStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: true });
+    } catch (e) { toast('無法取得來源：' + e.message); $('#retsel').value = 'none'; }
+    fillMics();
+    const ph = returnStream;
+    guests.forEach(g => g.call?.peerConnection?.getSenders().forEach(s => {
+      const k = s.track?.kind; if (!k) return;
+      const t = returnSrcStream?.getTracks().find(x => x.kind === k) || ph.getTracks().find(x => x.kind === k);
+      if (t) s.replaceTrack(t).catch(() => {});
+    }));
+    toast('回傳已切換');
+  }
+  $('#retsel').onchange = setReturn; $('#retmic').onchange = () => $('#retsel').value !== 'none' && setReturn();
+  const currentReturn = () => {
+    const tracks = ['audio', 'video'].map(k => returnSrcStream?.getTracks().find(t => t.kind === k) || returnStream.getTracks().find(t => t.kind === k));
+    return new MediaStream(tracks);
+  };
+
+  /* --- 來賓卡片 --- */
+  function guestCard(id){
+    const g = guests.get(id);
+    const el = document.createElement('div');
+    el.className = 'guest';
+    el.innerHTML = `
+      <div class="vwrap"><video autoplay playsinline muted></video>
+        <span class="badge" data-k="res">連線中…</span><span class="badge r" data-k="tag"></span>
+        <div class="meter"><i></i></div></div>
+      <div class="gbody">
+        <div class="gname"><span data-k="name"></span>
+          <select data-k="slot" title="輸出編號"><option value="0">不輸出</option>${Array.from({ length: SLOT_COUNT }, (_, i) => `<option value="${i + 1}">輸出 ${i + 1}</option>`).join('')}</select></div>
+        <div class="row">
+          <button class="small" data-t="live">ON AIR</button>
+          <button class="small" data-t="pvw">準備</button>
+          <button class="small" data-t="off">待命</button>
+          <span style="flex:1"></span>
+          <button class="small" data-k="listen">🔈 監聽</button>
+        </div>
+        <div class="row"><input type="text" data-k="msg" placeholder="傳訊息給來賓" style="flex:1"><button class="small" data-k="send">送</button></div>
+        <div class="row"><button class="small" data-k="cpout">複製輸出網址</button><span style="flex:1"></span><button class="small danger" data-k="kick">中斷</button></div>
+      </div>`;
+    const k = n => el.querySelector(`[data-k="${n}"]`);
+    k('name').textContent = g.name;
+    k('slot').value = g.slot;
+    k('slot').onchange = e => {
+      const ns = +e.target.value, old = g.slot;
+      if (ns) guests.forEach(o => { if (o !== g && o.slot === ns) { o.slot = 0; o.el && (o.el.querySelector('[data-k="slot"]').value = 0); } });
+      g.slot = ns; if (old) refreshSlot(old); if (ns) refreshSlot(ns); renderSlots(); updateTag(g);
+    };
+    el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => setTally(g, b.dataset.t));
+    k('listen').onclick = () => { g.listen = !g.listen; el.querySelector('video').muted = !g.listen; k('listen').textContent = g.listen ? '🔊 監聽中' : '🔈 監聽'; if (g.listen) audioCtx(); };
+    const send = () => { g.conn?.open && g.conn.send({ type: 'msg', text: k('msg').value.trim() }); k('msg').value = ''; toast('已送出'); };
+    k('send').onclick = send; k('msg').onkeydown = e => e.key === 'Enter' && send();
+    k('cpout').onclick = () => g.slot ? copy(outUrl(g.slot)) : toast('先選一個輸出編號');
+    k('kick').onclick = () => { g.conn?.send({ type: 'kick' }); setTimeout(() => removeGuest(id), 300); };
+    g.el = el;
+    const list = $('#glist'); list.querySelector('.empty')?.remove(); list.appendChild(el);
+    setTally(g, g.tally || 'off');
+  }
+  function updateTag(g){ if (g.el) g.el.querySelector('[data-k="tag"]').textContent = g.slot ? `輸出 ${g.slot}` : ''; }
+  function setTally(g, t){
+    g.tally = t;
+    g.el.classList.toggle('live', t === 'live'); g.el.classList.toggle('pvw', t === 'pvw');
+    g.el.querySelectorAll('[data-t]').forEach(b => b.className = 'small' + (b.dataset.t === t ? (t === 'live' ? ' on-live' : t === 'pvw' ? ' on-pvw' : '') : ''));
+    g.conn?.open && g.conn.send({ type: 'tally', state: t });
+  }
+  function removeGuest(id){
+    const g = guests.get(id); if (!g) return;
+    guests.delete(id); g.stopMeter?.();
+    try { g.call?.close(); } catch {} try { g.conn?.close(); } catch {}
+    g.el?.remove();
+    if (g.slot) refreshSlot(g.slot);
+    renderSlots();
+    if (!guests.size) $('#glist').innerHTML = '<div class="empty">等待來賓加入…</div>';
+  }
+  function showStream(g){
+    const v = g.el.querySelector('video'); v.srcObject = g.stream; v.play().catch(() => {});
+    g.stopMeter?.(); g.stopMeter = attachMeter(g.stream, g.el.querySelector('.meter i'));
+    const res = g.el.querySelector('[data-k="res"]');
+    clearInterval(g.resT);
+    g.resT = setInterval(() => { if (!guests.has(g.id)) return clearInterval(g.resT); res.textContent = v.videoWidth ? `${v.videoWidth}×${v.videoHeight}` : '無畫面'; }, 1000);
+  }
+
+  /* --- PeerJS --- */
+  function start(){
+    peer = new Peer(hostIdOf(room), PEER_OPTS);
+    peer.on('open', () => $('#pst').innerHTML = '<span class="dot ok"></span>上線中，可以讓來賓加入');
+    peer.on('disconnected', () => { $('#pst').innerHTML = '<span class="dot wait"></span>訊號伺服器斷線，重連中…（已連上的來賓不受影響）'; setTimeout(() => !peer.destroyed && peer.reconnect(), 2000); });
+    peer.on('error', e => {
+      $('#pst').innerHTML = `<span class="dot bad"></span>${esc(peerErrText(e))}`;
+      if (e.type === 'unavailable-id') { peer.destroy(); setTimeout(start, 4000); }
+    });
+    peer.on('connection', conn => {
+      const md = conn.metadata || {};
+      if (md.role === 'out') {
+        const o = { conn, slot: +md.slot || 1, call: null };
+        conn.on('open', () => { outputs.add(o); feedOutput(o); renderSlots(); });
+        conn.on('data', d => { if (d?.type === 'refresh') feedOutput(o); });
+        conn.on('close', () => { try { o.call?.close(); } catch {} outputs.delete(o); renderSlots(); });
+        return;
+      }
+      // 來賓
+      const id = conn.peer;
+      let g = guests.get(id);
+      if (!g) { g = { id, name: (md.name || '來賓').slice(0, 30), slot: 0, tally: 'off' }; guests.set(id, g); guestCard(id); }
+      g.conn = conn;
+      conn.on('open', () => { setTally(g, g.tally); renderSlots(); });
+      conn.on('data', d => {
+        if (d?.type === 'name') { g.name = String(d.name).slice(0, 30); g.el.querySelector('[data-k="name"]').textContent = g.name; renderSlots(); }
+      });
+      conn.on('close', () => removeGuest(id));
+    });
+    peer.on('call', call => {
+      if (call.metadata?.role !== 'guest') return;
+      const g = guests.get(call.peer);
+      if (!g) { call.close(); return; }
+      g.call = call;
+      call.answer(currentReturn());
+      call.on('stream', s => {
+        g.stream = s; showStream(g);
+        if (g.slot) refreshSlot(g.slot);
+      });
+      call.on('close', () => { if (guests.get(call.peer)?.call === call) removeGuest(call.peer); });
+      call.on('error', () => {});
+    });
+  }
+  start();
+  window.addEventListener('beforeunload', () => peer?.destroy());
+}
+
+/* ===================== 來賓 ===================== */
+function Guest(){
+  const room = (Q.get('room') || '').toUpperCase();
+  if (!room) return Home();
+  let stream, peer, conn, call, joined = false, retryT;
+
+  app.innerHTML = `
+  <div class="guestpage">
+    <div class="row"><b style="font-size:18px">連線受訪</b><span class="dim">房間 <span class="mono">${esc(room)}</span></span><span style="flex:1"></span><span id="gst"><span class="dot"></span>尚未連線</span></div>
+    <div id="gmsg" class="hidden"></div>
+    <div class="selfwrap" id="sw">
+      <video id="self" autoplay playsinline muted></video>
+      <span class="tally off hidden" id="tally">待命</span>
+      <div class="retwrap hidden" id="rw"><video id="ret" autoplay playsinline></video></div>
+    </div>
+    <div class="panel">
+      <div class="form">
+        <div><label>你的名字（導播看得到）</label><input type="text" id="nm" style="width:100%" value="${esc(store('wc_name') || '')}" placeholder="例：王小明 / 台中現場"></div>
+        <div><label>鏡頭</label><select id="cam" style="width:100%"></select></div>
+        <div><label>麥克風</label><select id="mic" style="width:100%"></select></div>
+        <div><label>畫質</label><select id="q" style="width:100%"><option value="480">480p（網路差）</option><option value="720" selected>720p（建議）</option><option value="1080">1080p（網路好）</option></select></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="join">加入連線</button>
+        <button id="mute" class="hidden">🎤 靜音</button>
+        <button id="vmute" class="hidden">📷 關鏡頭</button>
+        <button id="flip" class="hidden">🔄 切換前後鏡頭</button>
+        <span style="flex:1"></span>
+        <button class="danger hidden" id="leave">離開</button>
+      </div>
+      <p class="dim" style="font-size:12px;margin:10px 0 0">請戴耳機，避免導播的聲音被你的麥克風收進去。手機請橫拿、保持螢幕亮著。</p>
+    </div>
+  </div>`;
+
+  const st = (cls, t) => $('#gst').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`;
+  let facing = 'user';
+
+  async function listDevices(){
+    const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+    const fill = (sel, kind, cur) => {
+      sel.innerHTML = devs.filter(d => d.kind === kind).map((d, i) => `<option value="${d.deviceId}">${esc(d.label || (kind === 'videoinput' ? '鏡頭 ' : '麥克風 ') + (i + 1))}</option>`).join('');
+      if (cur) sel.value = cur;
+    };
+    fill($('#cam'), 'videoinput', stream?.getVideoTracks()[0]?.getSettings().deviceId);
+    fill($('#mic'), 'audioinput', stream?.getAudioTracks()[0]?.getSettings().deviceId);
+  }
+  async function getMedia(useFacing){
+    const q = QUALITY[$('#q').value];
+    const cam = $('#cam').value, mic = $('#mic').value;
+    const video = { width: { ideal: q.w }, height: { ideal: q.h }, frameRate: { ideal: 30 } };
+    if (useFacing) video.facingMode = facing; else if (cam) video.deviceId = { exact: cam };
+    const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+    if (mic) audio.deviceId = { exact: mic };
+    const s = await navigator.mediaDevices.getUserMedia({ video, audio });
+    stream?.getTracks().forEach(t => t.stop());
+    stream = s; $('#self').srcObject = s;
+    $('#self').style.transform = facing === 'environment' ? 'none' : 'scaleX(-1)';
+    if (call?.peerConnection) {
+      call.peerConnection.getSenders().forEach(snd => {
+        const t = s.getTracks().find(x => x.kind === snd.track?.kind);
+        if (t) snd.replaceTrack(t).catch(() => {});
+      });
+      setBitrate(call.peerConnection, q.kbps);
+    }
+    syncMuteButtons();
+    listDevices();
+  }
+  async function preview(){
+    try { await getMedia(); st('', '預覽中，按「加入連線」'); }
+    catch (e) { st('bad', '無法開啟相機/麥克風：' + e.message); }
+  }
+  $('#cam').onchange = $('#mic').onchange = $('#q').onchange = () => getMedia().catch(e => toast(e.message));
+  $('#flip').onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; getMedia(true).catch(e => toast(e.message)); };
+  function syncMuteButtons(){
+    const a = stream?.getAudioTracks()[0], v = stream?.getVideoTracks()[0];
+    $('#mute').textContent = a && !a.enabled ? '🔇 已靜音' : '🎤 靜音';
+    $('#vmute').textContent = v && !v.enabled ? '🚫 鏡頭已關' : '📷 關鏡頭';
+  }
+  $('#mute').onclick = () => { const a = stream?.getAudioTracks()[0]; if (a) a.enabled = !a.enabled; syncMuteButtons(); };
+  $('#vmute').onclick = () => { const v = stream?.getVideoTracks()[0]; if (v) v.enabled = !v.enabled; syncMuteButtons(); };
+
+  function showTally(s){
+    const t = $('#tally'); t.classList.remove('hidden', 'live', 'pvw', 'off');
+    t.classList.add(s); t.textContent = s === 'live' ? '● ON AIR' : s === 'pvw' ? '準備上線' : '待命';
+    $('#sw').classList.toggle('live', s === 'live'); $('#sw').classList.toggle('pvw', s === 'pvw');
+    if (s === 'live' && navigator.vibrate) navigator.vibrate(200);
+  }
+
+  function connect(){
+    clearTimeout(retryT);
+    if (!joined) return;
+    st('wait', '連線中…');
+    if (!peer || peer.destroyed) {
+      peer = new Peer(PREFIX + room.toLowerCase() + '-g-' + rnd(8), PEER_OPTS);
+      peer.on('open', dial);
+      peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
+      peer.on('error', e => { st('bad', peerErrText(e) + '，3 秒後重試'); if (e.type === 'peer-unavailable' || e.type === 'network') retry(); });
+    } else if (peer.open) dial();
+  }
+  function retry(){ clearTimeout(retryT); retryT = setTimeout(connect, 3000); }
+  function dial(){
+    const hid = hostIdOf(room), name = $('#nm').value.trim() || '來賓';
+    try { conn?.close(); } catch {} try { call?.close(); } catch {}
+    conn = peer.connect(hid, { metadata: { role: 'guest', name }, reliable: true });
+    conn.on('open', () => {
+      call = peer.call(hid, stream, { metadata: { role: 'guest', name } });
+      call.on('stream', s => { const r = $('#ret'); r.srcObject = s; r.play().catch(() => {}); $('#rw').classList.toggle('hidden', !s.getVideoTracks().some(t => t.readyState === 'live')); });
+      call.on('error', () => {});
+      setTimeout(() => setBitrate(call?.peerConnection, QUALITY[$('#q').value].kbps), 1500);
+      st('ok', '已連上導播台');
+    });
+    conn.on('data', d => {
+      if (d?.type === 'tally') showTally(d.state);
+      if (d?.type === 'msg') { const m = $('#gmsg'); m.textContent = d.text; m.classList.toggle('hidden', !d.text); }
+      if (d?.type === 'kick') { joined = false; leave('導播已結束連線'); }
+    });
+    conn.on('close', () => { if (joined) { st('wait', '與導播台中斷，重新連線中…'); $('#tally').classList.add('hidden'); retry(); } });
+    conn.on('error', () => joined && retry());
+  }
+  function leave(msg){
+    joined = false; clearTimeout(retryT);
+    try { conn?.close(); } catch {} try { call?.close(); } catch {} try { peer?.destroy(); } catch {}
+    peer = null;
+    ['#mute', '#vmute', '#flip', '#leave'].forEach(s => $(s).classList.add('hidden'));
+    $('#join').classList.remove('hidden'); $('#tally').classList.add('hidden'); $('#rw').classList.add('hidden');
+    $('#sw').classList.remove('live', 'pvw');
+    st('', msg || '已離開');
+  }
+  $('#join').onclick = async () => {
+    const nm = $('#nm').value.trim(); if (!nm) { $('#nm').focus(); return toast('先填名字'); }
+    store('wc_name', nm);
+    if (!stream) { try { await getMedia(); } catch (e) { return st('bad', '無法開啟相機/麥克風：' + e.message); } }
+    audioCtx();
+    joined = true;
+    $('#join').classList.add('hidden');
+    ['#mute', '#vmute', '#leave'].forEach(s => $(s).classList.remove('hidden'));
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) $('#flip').classList.remove('hidden');
+    connect();
+  };
+  $('#nm').onchange = () => conn?.open && conn.send({ type: 'name', name: $('#nm').value.trim() });
+  $('#leave').onclick = () => leave();
+  // 手機切回前景時檢查
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && joined && !conn?.open) connect(); });
+  window.addEventListener('beforeunload', () => peer?.destroy());
+  preview();
+}
+
+/* ===================== 輸出（OBS 瀏覽器來源） ===================== */
+function Output(){
+  const room = (Q.get('room') || '').toUpperCase(), slot = +Q.get('slot') || 1;
+  const debug = Q.get('debug') === '1', fit = Q.get('fit') === 'cover' ? 'cover' : 'contain';
+  const bg = Q.get('bg');      // 例：&bg=000000 給黑底，預設透明
+  document.body.className = 'out';
+  if (bg) document.body.style.background = '#' + bg.replace(/[^0-9a-f]/gi, '');
+  app.innerHTML = `<video id="ov" autoplay playsinline style="object-fit:${fit}"></video>${debug ? '<div id="outdbg"></div>' : ''}`;
+  const v = $('#ov');
+  if (Q.get('mute') === '1') v.muted = true;
+  const log = t => { if (debug) $('#outdbg').textContent = `房間 ${room} · 輸出 ${slot} · ${t}`; };
+  let peer, conn, retryT;
+
+  function play(){
+    v.play().catch(() => {
+      if ($('#clickaudio')) return;
+      const c = document.createElement('div'); c.id = 'clickaudio'; c.textContent = '點一下啟用聲音（OBS 內不會出現這個）';
+      c.onclick = () => { c.remove(); v.play(); }; document.body.appendChild(c);
+    });
+  }
+  function retry(){ clearTimeout(retryT); retryT = setTimeout(dial, 3000); }
+  function dial(){
+    clearTimeout(retryT);
+    if (!peer?.open) return;
+    try { conn?.close(); } catch {}
+    log('連線導播台中…');
+    conn = peer.connect(hostIdOf(room), { metadata: { role: 'out', slot }, reliable: true });
+    conn.on('open', () => log('已連上，等待來賓'));
+    conn.on('data', d => {
+      if (d?.type === 'empty') { v.srcObject = null; log('此輸出目前沒有指派來賓'); }
+      if (d?.type === 'source') log('來源：' + d.name);
+    });
+    conn.on('close', () => { v.srcObject = null; log('導播台離線，重試中…'); retry(); });
+    conn.on('error', retry);
+  }
+  peer = new Peer(PREFIX + room.toLowerCase() + '-o-' + rnd(8), PEER_OPTS);
+  peer.on('open', dial);
+  peer.on('call', call => {
+    call.answer();
+    call.on('stream', s => { v.srcObject = s; play(); });
+    call.on('close', () => { if (v.srcObject === call.remoteStream) v.srcObject = null; });
+  });
+  peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
+  peer.on('error', e => { log(peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
+  // 畫面凍結偵測：連續 5 秒沒有新影格就要求重送
+  let lastT = 0, still = 0;
+  setInterval(() => {
+    if (!v.srcObject || !conn?.open) return;
+    if (v.currentTime === lastT) { if (++still >= 5) { conn.send({ type: 'refresh' }); still = 0; } }
+    else still = 0;
+    lastT = v.currentTime;
+  }, 1000);
+}
+</script>
+</body>
+</html>
