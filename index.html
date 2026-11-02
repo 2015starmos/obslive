@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d10">
-<title>WebCall 專業導播台 - 快捷鍵與遠端音量版</title>
+<title>WebCall 專業導播台 - 獨立模組專業旗艦版</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
@@ -41,6 +41,13 @@ svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke
 .btn.sm.icon{width:28px}
 .btn.on{background:#1d2c46;border-color:var(--accent);color:#cfe0ff}
 .btn.off{background:#3a1518;border-color:var(--live);color:#ff9b9b}
+
+/* 專業導播大發光按鈕 */
+.cue-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;background:var(--s2);border:2px solid var(--line2);border-radius:8px;cursor:pointer;font-weight:700;font-family:var(--mono);font-size:13px;letter-spacing:.05em;color:var(--dim);transition:all .15s}
+.cue-btn:hover{border-color:var(--dim);color:var(--text)}
+.cue-btn.active-talk{background:#2e1a47;border-color:var(--ic);color:#e9d5ff;box-shadow:0 0 16px rgba(167,139,250,0.4);animation:pulse-ic 1.2s infinite}
+@keyframes pulse-ic{50%{box-shadow:0 0 24px rgba(167,139,250,0.7)}}
+
 .field{background:var(--s1);border:1px solid var(--line2);border-radius:6px;height:34px;padding:0 10px;min-width:0;outline:none;transition:border-color .12s}
 .field:focus{border-color:var(--accent)}
 select.field{padding-right:28px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a93a3' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
@@ -81,7 +88,7 @@ input[type="range"]{accent-color:var(--accent);cursor:pointer}
 .clock{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.04em;min-width:92px;text-align:right}
 .body{display:grid;grid-template-columns:1fr 340px;min-height:0}
 .multiview{overflow:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;align-content:start;align-items:start}
-.sidebar{border-left:1px solid var(--line);background:var(--s1);overflow:auto}
+.sidebar{border-left:1px solid var(--line);background:var(--s1);overflow:auto;display:flex;flex-direction:column}
 .sect{padding:14px;border-bottom:1px solid var(--line)}
 .sect h3{margin:0 0 10px;font-size:10.5px;letter-spacing:.1em;color:var(--mute);font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .bus{display:grid;gap:4px}
@@ -93,6 +100,16 @@ input[type="range"]{accent-color:var(--accent);cursor:pointer}
 .bus .s .w small{color:var(--mute);font-size:11px;margin-left:6px}
 .bus .s .w.e{color:var(--mute)}
 .note{font-size:11.5px;color:var(--mute);margin:10px 0 0;line-height:1.55}
+
+/* 獨立導播快捷列 (Toolbar) */
+.toolbar-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px;background:var(--s2);border-bottom:1px solid var(--line)}
+.tab-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:8px 4px;color:var(--dim);cursor:pointer;font-size:11px;font-weight:600;transition:all .12s}
+.tab-btn:hover{color:var(--text);background:#2a303b}
+.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* 獨立彈出面板容器 */
+.panel-container{padding:14px;background:var(--s1);border-bottom:1px solid var(--line);display:grid;gap:10px}
+.panel-container.hidden{display:none}
 
 /* 來賓畫面瓦片 */
 .tile{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .12s,box-shadow .12s}
@@ -258,7 +275,7 @@ const ICONS = {
   cam: '<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
   camoff: '<path d="M2 2l20 20M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5 0h4a2 2 0 0 1 2 2v3.3l1 1L23 7v10"/>',
   flip: '<path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.5 9A9 9 0 0 0 5.6 5.6L1 10m22 4l-4.6 4.4A9 9 0 0 1 3.5 15"/>',
-  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
   end: '<path d="M10.7 13.3a16 16 0 0 0 3.4 2.6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.8 2v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L9 10.8" transform="rotate(135 12 12)"/>',
   phones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
   send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>',
@@ -271,7 +288,9 @@ const ICONS = {
   talk: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   screen: '<rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />',
   sparkle: '<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/>',
-  zoom: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>'
+  zoom: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>',
+  message: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  sound: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>'
 };
 const ic = n => `<svg class="i" viewBox="0 0 24 24">${ICONS[n] || ''}</svg>`;
 const brand = () => '<div class="brand"><span class="mark"><i></i></span>WEBCALL</div>';
@@ -380,7 +399,7 @@ function Home(){
   <div class="home"><div class="box">
     ${brand()}
     <h1>WebCall 專業導播台</h1>
-    <p>支援鍵盤快捷鍵、遠端音量控制、自動排版與獨立發話系統。</p>
+    <p>支援獨立快捷分頁、專業發光發話按鈕、下拉選單與各路聲音監聽矩陣。</p>
     <div class="card">
       <span class="lbl">導播端</span>
       <div class="row"><input class="field" id="hr" placeholder="房間代碼（留空自動產生）" value="${esc(last)}" maxlength="12"><button class="btn primary" id="hgo">開啟導播台</button></div>
@@ -391,7 +410,7 @@ function Home(){
     </div>
   </div></div>`;
   $('#hgo').onclick = () => { const r = ($('#hr').value.trim() || roomCode()).toUpperCase().replace(/[^A-Z0-9]/g, ''); location.search = `?mode=host&room=${r}`; };
-  $('#ggo').onclick = () => { const r = $('#gr').value.trim().toUpperCase(); if (r) location.search = `?mode=guest&room=${r}`; };
+  $('#ggo').onclick = () => { const r = $('#gr'].value.trim().toUpperCase(); if (r) location.search = `?mode=guest&room=${r}`; };
   onEnter($('#gr'), () => $('#ggo').click()); onEnter($('#hr'), () => $('#hgo').click());
 }
 
@@ -425,34 +444,29 @@ function Host(){
     <div class="body">
       <main class="multiview" id="mv"></main>
       <aside class="sidebar">
-        <div class="sect">
-          <h3>OUTPUT BUS <span class="mono" id="busn"></span></h3>
-          <div class="bus" id="bus"></div>
-          <p class="note">快捷鍵說明：按數字鍵 1~8 切換對應來賓的 ON AIR 狀態。</p>
+        <!-- 導播專屬快捷分頁列 (Tabs) -->
+        <div class="toolbar-tabs">
+          <button class="tab-btn active" data-panel="intercom">${ic('talk')}對講機</button>
+          <button class="tab-btn" data-panel="msg">${ic('message')}訊息廣播</button>
+          <button class="tab-btn" data-panel="audio">${ic('sound')}聲音監聽</button>
         </div>
-        
-        <!-- ① 獨立對講發話控制區 -->
-        <div class="sect">
-          <h3>INTERCOM 獨立發話系統</h3>
-          <span class="lbl">發話對象選擇</span>
-          <select class="field" id="icTarget" style="width:100%; margin-bottom:8px">
+
+        <!-- Panel 1: 獨立對講發話面板 -->
+        <div class="panel-container" id="panel-intercom">
+          <h3>INTERCOM 獨立對講系統</h3>
+          <span class="lbl">發話對象 (下拉選擇)</span>
+          <select class="field" id="icTarget" style="width:100%; margin-bottom:6px">
             <option value="all">📢 全體群發 (All-Call)</option>
           </select>
-          <span class="lbl">導播專屬麥克風</span>
+          <span class="lbl">導播麥克風選擇</span>
           <select class="field" id="icmic" style="width:100%; margin-bottom:8px"></select>
-          <button class="btn primary" id="icToggleBtn" style="width:100%">${ic('talk')}開啟對講發話</button>
+          <button class="cue-btn" id="icToggleBtn">${ic('talk')}<span>點擊開啟對講發話</span></button>
         </div>
 
-        <!-- ② 獨立各路聲音監聽與音量控制 -->
-        <div class="sect">
-          <h3>各路聲音監聽與遠端音量</h3>
-          <div id="audioMonitorList" style="display:grid; gap:8px"></div>
-        </div>
-
-        <!-- ③ 獨立訊息發送區塊 -->
-        <div class="sect">
-          <h3>獨立訊息發送面板</h3>
-          <span class="lbl">接收對象</span>
+        <!-- Panel 2: 獨立訊息面板 -->
+        <div class="panel-container hidden" id="panel-msg">
+          <h3>訊息發送面板</h3>
+          <span class="lbl">接收對象 (下拉選擇)</span>
           <select class="field" id="msgTarget" style="width:100%; margin-bottom:6px">
             <option value="all">📢 發送給全體來賓</option>
           </select>
@@ -460,7 +474,18 @@ function Host(){
             <input class="field" id="bc" placeholder="輸入公告訊息…" style="flex:1">
             <button class="btn icon" id="bcgo" title="送出">${ic('send')}</button>
           </div>
-          <button class="btn ghost sm" id="bcclr" style="margin-top:6px; width:100%">清除所有來賓訊息</button>
+          <button class="btn ghost sm" id="bcclr" style="margin-top:4px; width:100%">清除所有來賓訊息</button>
+        </div>
+
+        <!-- Panel 3: 獨立各路聲音監聽與音量面板 -->
+        <div class="panel-container hidden" id="panel-audio">
+          <h3>各路聲音監聽與遠端音量</h3>
+          <div id="audioMonitorList" style="display:grid; gap:8px; max-height:300px; overflow-y:auto"></div>
+        </div>
+
+        <div class="sect" style="margin-top:auto">
+          <h3>OUTPUT BUS <span class="mono" id="busn"></span></h3>
+          <div class="bus" id="bus"></div>
         </div>
 
         <div class="sect">
@@ -479,6 +504,16 @@ function Host(){
       </aside>
     </div>
   </div>`;
+
+  // 側邊欄分頁切換邏輯
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel-container').forEach(p => p.classList.add('hidden'));
+      btn.classList.add('active');
+      $(`#panel-${btn.dataset.panel}`).classList.remove('hidden');
+    };
+  });
 
   const tick = () => {
     $('#clk').textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
@@ -701,8 +736,9 @@ function Host(){
       if (!(await ensureIcMic())) return;
       audioCtx();
       isMasterIntercomActive = true;
-      $('#icToggleBtn').classList.add('on');
-      $('#icToggleBtn').textContent = '🔴 正在對講發話中 (點擊關閉)';
+      const btn = $('#icToggleBtn');
+      btn.classList.add('active-talk');
+      btn.innerHTML = `${ic('talk')}<span>🔴 正在對講發話中 (點擊關閉)</span>`;
 
       if (target === 'all') {
         guests.forEach(g => {
@@ -728,8 +764,9 @@ function Host(){
       }
     } else {
       isMasterIntercomActive = false;
-      $('#icToggleBtn').classList.remove('on');
-      $('#icToggleBtn').textContent = '開啟對講發話';
+      const btn = $('#icToggleBtn');
+      btn.classList.remove('active-talk');
+      btn.innerHTML = `${ic('talk')}<span>點擊開啟對講發話</span>`;
 
       guests.forEach(g => {
         if (g.ic) {
@@ -1175,7 +1212,7 @@ function Guest(){
         r.onresize = upd; setTimeout(upd, 1500);
       });
       call.on('error', () => {});
-      setTimeout(() => setBitrate(call?.peerConnection, QUALITY[$('#q').value].kbps), 1500);
+      setTimeout(() => setBitrate(call?.peerConnection, QUALITY[$('#q'].value].kbps), 1500);
       startStats();
       st('ok', '已連線');
       $('#tally').classList.remove('hidden');
