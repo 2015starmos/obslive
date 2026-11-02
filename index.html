@@ -58,12 +58,10 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .brand .mark{width:22px;height:22px;border-radius:5px;background:var(--live);display:grid;place-items:center}
 .brand .mark i{width:8px;height:8px;border-radius:50%;background:#fff}
 
-/* 對齊線 */
 .guides{position:absolute;pointer-events:none;z-index:1}
 .guides svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 0 1px #000c)}
 .guides svg *{vector-effect:non-scaling-stroke}
 
-/* ---------- 首頁 ---------- */
 .home{min-height:100%;display:grid;place-items:center;padding:24px}
 .home .box{width:100%;max-width:440px}
 .home h1{font-size:24px;margin:22px 0 6px;font-weight:700}
@@ -72,7 +70,6 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .home .card .row{display:flex;gap:8px}
 .home .card .field{flex:1;text-transform:uppercase;font-family:var(--mono);letter-spacing:.1em}
 
-/* ---------- 導播台 ---------- */
 .host{display:grid;grid-template-rows:52px 1fr;height:100%}
 .topbar{display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--s1);border-bottom:1px solid var(--line)}
 .topbar .sep{width:1px;height:22px;background:var(--line)}
@@ -95,7 +92,6 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .bus .s .w{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bus .s .w small{color:var(--mute);font-size:11px;margin-left:6px}
 .bus .s .w.e{color:var(--mute)}
-.note{font-size:11.5px;color:var(--mute);margin:10px 0 0;line-height:1.55}
 
 .tile{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .12s,box-shadow .12s}
 .tile.live{border-color:var(--live);box-shadow:0 0 0 1px var(--live),0 0 18px #ff3b3b33}
@@ -112,7 +108,6 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .tag.live{background:var(--live);color:#fff} .tag.pvw{background:var(--pvw);color:#04140a}
 .tag.out{background:var(--accent);color:#fff} .tag.icm{background:var(--ic);color:#160a33}
 .tag.warn{background:#000c;color:#ff9b9b;border:1px solid #ff9b9b66} .tag.call{background:var(--warn);color:#1a1200}
-.tv .tr{position:absolute;bottom:52px;right:18px;z-index:2}
 .vu{position:absolute;top:8px;bottom:8px;right:7px;width:5px;background:#ffffff14;border-radius:3px;overflow:hidden;z-index:2}
 .vu i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(to top,var(--pvw) 0 65%,var(--warn) 65% 85%,var(--live) 85%);transition:height .05s linear}
 .lower{position:absolute;left:0;right:0;bottom:0;padding:22px 18px 7px 10px;background:linear-gradient(transparent,#000d);z-index:2}
@@ -152,7 +147,6 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
   .kpi,.clock,.topbar .sep{display:none}
 }
 
-/* ---------- 來賓（全螢幕、手機優先） ---------- */
 .gp{position:fixed;inset:0;background:#000;overflow:hidden}
 .stage{position:absolute;inset:0;transition:top .2s,bottom .2s}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
@@ -201,7 +195,6 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 @media (min-width:700px) and (orientation:landscape){ .sheet{left:auto;right:16px;bottom:16px;border-radius:14px;width:400px;border:1px solid var(--line2)} }
 @media (orientation:landscape) and (max-height:500px){ .ret{bottom:auto;top:calc(54px + var(--sat));width:min(26vw,200px)} .gnotes{right:calc(26vw + 24px)} }
 
-/* ---------- 輸出 ---------- */
 body.out{background:transparent;overflow:hidden}
 body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 #outdbg{position:fixed;left:8px;bottom:8px;font:12px var(--mono);color:#7CFC9A;background:#000b;padding:4px 8px;border-radius:4px}
@@ -213,18 +206,13 @@ body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 <div id="toast"></div>
 
 <script>
-/* ===================== 設定 =====================
- * 配對用 PeerJS 免費訊號伺服器（0.peerjs.com），影音走 WebRTC 點對點。
- * 來賓在 4G / 公司防火牆後連不上時，在 ICE_SERVERS 加一組 TURN 伺服器。
- */
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  // { urls: 'turn:你的TURN主機:3478', username: '帳號', credential: '密碼' },
 ];
 const PEER_OPTS = { config: { iceServers: ICE_SERVERS }, debug: 1 };
-const CONN_OPTS = { reliable: true, serialization: 'json' };   // JSON 最穩，中文訊息不會出問題
+const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw-';
 const SLOT_COUNT = 8;
 const QUALITY = {
@@ -234,7 +222,6 @@ const QUALITY = {
 };
 const GUIDE_NAMES = ['對齊線：關', '十字線', '三分線', '十字＋三分＋安全框'];
 
-/* ===================== 共用 ===================== */
 const Q = new URLSearchParams(location.search);
 const $ = (s, el = document) => el.querySelector(s);
 const app = $('#app');
@@ -247,7 +234,6 @@ const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navig
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2200); }
 async function copy(t, msg){ try { await navigator.clipboard.writeText(t); toast(msg || '已複製'); } catch { prompt('複製這段：', t); } }
 function store(k, v){ try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch {} }
-// Enter 送出，但打注音選字時按的 Enter 不算
 const onEnter = (el, fn) => el.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); fn(); } });
 
 const ICONS = {
@@ -256,7 +242,7 @@ const ICONS = {
   cam: '<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
   camoff: '<path d="M2 2l20 20M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5 0h4a2 2 0 0 1 2 2v3.3l1 1L23 7v10"/>',
   flip: '<path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.5 9A9 9 0 0 0 5.6 5.6L1 10m22 4l-4.6 4.4A9 9 0 0 1 3.5 15"/>',
-  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>',
   end: '<path d="M10.7 13.3a16 16 0 0 0 3.4 2.6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.8 2v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L9 10.8" transform="rotate(135 12 12)"/>',
   phones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
   send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>',
@@ -276,7 +262,6 @@ function qr(el, text, size = 168){
   new QRCode(el, { text, width: size, height: size, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
 }
 
-/* --- 對齊線 --- */
 function guidesSVG(mode){
   if (!mode) return '';
   const L = (x1, y1, x2, y2, o = .6, w = 1) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-opacity="${o}" stroke-width="${w}"/>`;
@@ -286,7 +271,6 @@ function guidesSVG(mode){
   if (mode === 3) s += '<rect x="3.5" y="3.5" width="93" height="93" stroke-opacity=".55" stroke-dasharray="6 4"/><rect x="5" y="5" width="90" height="90" stroke="#ffd34d" stroke-opacity=".85"/>';
   return `<svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" stroke="#fff" stroke-width="1">${s}</svg>`;
 }
-// 把對齊線貼齊影像實際顯示的範圍（扣掉黑邊）
 function fitGuides(box, video, ov){
   const cw = box.clientWidth, ch = box.clientHeight, vw = video.videoWidth || 16, vh = video.videoHeight || 9;
   const k = Math.min(cw / vw, ch / vh), w = vw * k, h = vh * k;
@@ -361,9 +345,8 @@ function peerErrText(e){
             'browser-incompatible': '此瀏覽器不支援 WebRTC' })[e.type] || (e.type || e.message);
 }
 
-/* ===================== 路由 ===================== */
 if (!window.Peer) {
-  app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 函式庫沒有載入，請確認網路可連到 cdnjs.cloudflare.com 或 unpkg.com。</p></div></div>`;
+  app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 函式庫沒有載入，請確認網路連線。</p></div></div>`;
 } else {
   const mode = Q.get('mode');
   if (mode === 'host') Host();
@@ -372,7 +355,6 @@ if (!window.Peer) {
   else Home();
 }
 
-/* ===================== 首頁 ===================== */
 function Home(){
   const last = store('wc_room') || '';
   app.innerHTML = `
@@ -394,7 +376,6 @@ function Home(){
   onEnter($('#gr'), () => $('#ggo').click()); onEnter($('#hr'), () => $('#hgo').click());
 }
 
-/* ===================== 導播台 ===================== */
 function Host(){
   const room = (Q.get('room') || roomCode()).toUpperCase();
   store('wc_room', room);
@@ -404,7 +385,7 @@ function Host(){
 
   const guests = new Map();
   const outputs = new Set();
-  const pending = new Map();           // 訊息送達確認
+  const pending = new Map();
   let peer, returnStream = placeholderStream(), returnSrcStream = null, icStream = null;
 
   app.innerHTML = `
@@ -428,13 +409,13 @@ function Host(){
         <div class="sect">
           <h3>OUTPUT BUS <span class="mono" id="busn"></span></h3>
           <div class="bus" id="bus"></div>
-          <p class="note">OBS → 新增「瀏覽器來源」→ 貼上輸出網址 → 1920×1080 → 勾選「透過 OBS 控制音訊」。換人只要改來賓的輸出編號，OBS 不用動。</p>
+          <p class="note">OBS → 新增「瀏覽器來源」→ 貼上輸出網址 → 1920×1080 → 勾選「透過 OBS 控制音訊」。</p>
         </div>
         <div class="sect">
           <h3>INTERCOM</h3>
           <span class="lbl">導播通話麥克風</span>
           <select class="field" id="icmic" style="width:100%"></select>
-          <p class="note">按來賓畫面下的 <b>INTERCOM</b>：你跟該來賓私下對講，這段時間<b>來賓的聲音不會送到輸出</b>（畫面照常輸出），只有你聽得到。再按一次結束，來賓聲音恢復播出。請戴耳機。</p>
+          <p class="note">按來賓畫面下的 <b>INTERCOM</b> 即可與該來賓私下對講，此時來賓聲音會暫停輸出。</p>
         </div>
         <div class="sect">
           <h3>RETURN FEED</h3>
@@ -443,13 +424,12 @@ function Host(){
             <option value="none">不回傳</option>
             <option value="mic">導播麥克風（全體 Talkback）</option>
             <option value="cam">導播鏡頭＋麥克風</option>
-            <option value="screen">分享畫面（OBS 投影視窗＋系統聲音）</option>
+            <option value="screen">分享畫面</option>
           </select>
-          <p class="note">請來賓戴耳機，避免回授。</p>
         </div>
         <div class="sect">
           <h3>BROADCAST</h3>
-          <div style="display:flex;gap:6px"><input class="field" id="bc" placeholder="傳給所有來賓，例：30 秒後上線" style="flex:1"><button class="btn icon" id="bcgo" title="送出">${ic('send')}</button></div>
+          <div style="display:flex;gap:6px"><input class="field" id="bc" placeholder="傳給所有來賓" style="flex:1"><button class="btn icon" id="bcgo" title="送出">${ic('send')}</button></div>
           <button class="btn ghost sm" id="bcclr" style="margin-top:6px">清除所有來賓畫面上的訊息</button>
         </div>
       </aside>
@@ -461,29 +441,27 @@ function Host(){
     $('#acw').classList.toggle('hidden', !(guests.size && (!AC || AC.state !== 'running')));
   };
   tick(); setInterval(tick, 1000);
-  // 瀏覽器規定要點一下才能啟動音訊；輸出聲音和 Intercom 都靠它
   document.addEventListener('pointerdown', () => audioCtx(), { capture: true });
   $('#acw').onclick = () => { audioCtx(); tick(); };
   $('#roomc').onclick = () => copy(room, '已複製房間代碼');
   $('#inv').onclick = invite;
 
-  /* --- 訊息（含送達確認） --- */
   function sendMsg(g, text, quiet){
-    if (!g.conn?.open) { if (!quiet) toast(`「${g.name}」目前沒有連線，訊息未送出`); setLast(g, text, 'no'); return false; }
+    if (!g.conn?.open) { if (!quiet) toast(`「${g.name}」目前沒有連線`); setLast(g, text, 'no'); return false; }
     const id = rnd(8);
     g.conn.send({ type: 'msg', text, id });
     setLast(g, text, 'wait');
-    pending.set(id, { g, text, t: setTimeout(() => { pending.delete(id); setLast(g, text, 'no'); if (!quiet) toast(`訊息未送達「${g.name}」，請再試一次`); }, 5000) });
+    pending.set(id, { g, text, t: setTimeout(() => { pending.delete(id); setLast(g, text, 'no'); if (!quiet) toast(`訊息未送達「${g.name}」`); }, 5000) });
     return true;
   }
   function setLast(g, text, s){
     const el = g.el?.querySelector('[data-k="last"]'); if (!el) return;
-    if (!text) { el.innerHTML = s === 'ok' ? '<span class="ok">✓ 已清除來賓畫面上的訊息</span>' : ''; return; }
+    if (!text) { el.innerHTML = s === 'ok' ? '<span class="ok">✓ 已清除訊息</span>' : ''; return; }
     el.innerHTML = `<b>最後訊息：</b>${esc(text)} ${s === 'ok' ? '<span class="ok">✓ 已送達</span>' : s === 'no' ? '<span class="no">✗ 未送達</span>' : '<span>傳送中…</span>'}`;
   }
   const broadcast = t => {
     let n = 0; guests.forEach(g => sendMsg(g, t, true) && n++);
-    toast(n ? (t ? `已廣播給 ${n} 位來賓` : '已清除所有來賓的訊息') : '目前沒有來賓連線');
+    toast(n ? (t ? `已廣播給 ${n} 位來賓` : '已清除訊息') : '目前沒有來賓連線');
   };
   $('#bcgo').onclick = () => { broadcast($('#bc').value.trim()); $('#bc').value = ''; };
   onEnter($('#bc'), () => $('#bcgo').click());
@@ -495,7 +473,7 @@ function Host(){
       <h2>邀請來賓</h2>
       <div class="qr" id="iqr"></div>
       <div class="linkbox"><input class="field" readonly value="${esc(guestUrl)}"><button class="btn primary" id="icp">${ic('copy')}複製</button></div>
-      <p class="note" style="margin:0;justify-self:start">用手機掃描，或把連結用 LINE 傳給來賓。房間代碼：<b class="mono">${room}</b></p>
+      <p class="note" style="margin:0;justify-self:start">房間代碼：<b class="mono">${room}</b></p>
       <button class="btn ghost" id="icl" style="justify-self:end">關閉</button></div>`;
     document.body.appendChild(m);
     qr($('#iqr', m), guestUrl, 200);
@@ -507,20 +485,19 @@ function Host(){
     $('#mv').innerHTML = `<div class="emptyv">
       <div class="qr" id="eqr"></div>
       <div><h2>等待來賓連線</h2>房間 <b class="mono">${room}</b>
-        <ol><li>來賓用手機掃描左邊 QR Code（或按右上「邀請來賓」複製連結）</li>
-        <li>允許相機與麥克風、輸入名字後按「加入連線」</li>
-        <li>來賓會出現在這裡，選擇輸出編號就會送到 OBS</li></ol></div></div>`;
+        <ol><li>來賓掃描左邊 QR Code 或使用連結加入</li>
+        <li>允許相機與麥克風並輸入名字</li>
+        <li>選擇輸出編號就會送到 OBS</li></ol></div></div>`;
     qr($('#eqr'), guestUrl, 150);
   }
   renderEmpty();
 
-  /* --- 輸出匯流排 --- */
   function renderSlots(){
     $('#bus').innerHTML = Array.from({ length: SLOT_COUNT }, (_, i) => {
       const s = i + 1, g = [...guests.values()].find(x => x.slot === s);
       const n = [...outputs].filter(o => o.slot === s).length;
       return `<div class="s ${g ? 'on' : ''} ${g?.ic ? 'icm' : ''}"><span class="n">${s}</span>
-        <span class="w ${g ? '' : 'e'}">${g ? esc(g.name) : '—'}${g?.ic ? '<small style="color:var(--ic)">INTERCOM · 聲音暫停</small>' : ''}${n ? `<small>● OBS×${n}</small>` : ''}</span>
+        <span class="w ${g ? '' : 'e'}">${g ? esc(g.name) : '—'}${g?.ic ? '<small style="color:var(--ic)">INTERCOM</small>' : ''}${n ? `<small>● OBS×${n}</small>` : ''}</span>
         <button class="btn sm ghost" data-out="${s}" title="複製輸出網址">${ic('link')}</button></div>`;
     }).join('');
     $('#bus').querySelectorAll('[data-out]').forEach(b => b.onclick = () => copy(outUrl(b.dataset.out), `已複製輸出 ${b.dataset.out} 網址`));
@@ -529,7 +506,6 @@ function Host(){
   }
   renderSlots();
 
-  // 送到 OBS 的節目訊號：來賓畫面 + 經過閘門的來賓聲音（Intercom 時關閉）
   function buildProgram(g){
     try { g.progSrc?.disconnect(); } catch {}
     const ac = audioCtx();
@@ -553,7 +529,6 @@ function Host(){
   }
   const refreshSlot = slot => outputs.forEach(o => o.slot === slot && feedOutput(o));
 
-  /* --- 麥克風清單 --- */
   async function fillMics(){
     const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
     const mics = devs.filter(d => d.kind === 'audioinput');
@@ -563,7 +538,6 @@ function Host(){
   fillMics();
   const micConstraint = () => ({ deviceId: $('#icmic').value ? { exact: $('#icmic').value } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true });
 
-  /* --- 回傳 / Intercom 音軌切換 --- */
   const returnTrack = kind => returnSrcStream?.getTracks().find(t => t.kind === kind && t.readyState === 'live') || returnStream.getTracks().find(t => t.kind === kind);
   const icTrack = () => icStream?.getAudioTracks().find(t => t.readyState === 'live');
   function applyTracks(g){
@@ -589,7 +563,6 @@ function Host(){
   $('#icmic').onchange = async () => {
     icStream?.getTracks().forEach(t => t.stop()); icStream = null;
     if ([...guests.values()].some(g => g.ic)) { await ensureIcMic(); guests.forEach(applyTracks); }
-    if ($('#retsel').value === 'mic' || $('#retsel').value === 'cam') setReturn();
   };
   async function ensureIcMic(){
     if (icTrack()) return true;
@@ -602,7 +575,7 @@ function Host(){
     if (on && !(await ensureIcMic())) return;
     audioCtx();
     g.ic = on;
-    if (g.gain) g.gain.gain.setTargetAtTime(on ? 0 : 1, AC.currentTime, .02);   // 節目聲音閘門
+    if (g.gain) g.gain.gain.setTargetAtTime(on ? 0 : 1, AC.currentTime, .02);
     applyTracks(g);
     const v = g.el.querySelector('video');
     if (on) { g.listenBefore = g.listen; setListen(g, true); clearCall(g); }
@@ -611,7 +584,7 @@ function Host(){
     g.el.classList.toggle('icm', on);
     const b = g.el.querySelector('[data-k="ic"]'); b.classList.toggle('on', on); b.lastChild.textContent = on ? 'INTERCOM ON' : 'INTERCOM';
     updateTags(g); renderSlots();
-    toast(on ? `與「${g.name}」對講中（來賓聲音暫停輸出）` : `結束對講，「${g.name}」聲音恢復輸出`);
+    toast(on ? `與「${g.name}」對講中` : `結束對講，「${g.name}」聲音恢復`);
     if (!guests.size || ![...guests.values()].some(x => x.ic)) { icStream?.getTracks().forEach(t => t.stop()); icStream = null; }
   }
   function setListen(g, on){
@@ -621,7 +594,6 @@ function Host(){
   }
   function clearCall(g){ clearTimeout(g.callT); g.calling = false; g.el?.classList.remove('calling'); updateTags(g); }
 
-  /* --- 來賓畫面 --- */
   function guestCard(id){
     const g = guests.get(id);
     const el = document.createElement('div');
@@ -638,16 +610,16 @@ function Host(){
         <select class="field grow" data-k="slot" title="輸出編號"><option value="0">不輸出</option>${Array.from({ length: SLOT_COUNT }, (_, i) => `<option value="${i + 1}">輸出 ${i + 1}</option>`).join('')}</select>
       </div>
       <div class="ctl">
-        <button class="btn sm icon" data-k="rmic" title="遠端開／關來賓麥克風">${ic('mic')}</button>
-        <button class="btn sm icon" data-k="rcam" title="遠端開／關來賓鏡頭">${ic('cam')}</button>
-        <button class="btn sm icb grow" data-k="ic" title="與來賓私下對講（來賓聲音不會輸出）">${ic('talk')}<span>INTERCOM</span></button>
+        <button class="btn sm icon" data-k="rmic" title="遠端開／關麥克風">${ic('mic')}</button>
+        <button class="btn sm icon" data-k="rcam" title="遠端開／關鏡頭">${ic('cam')}</button>
+        <button class="btn sm icb grow" data-k="ic" title="對講">${ic('talk')}<span>INTERCOM</span></button>
         <span class="vsep"></span>
         <button class="btn sm icon" data-k="gdb" title="對齊線">${ic('grid')}</button>
-        <button class="btn sm icon" data-k="listen" title="監聽來賓聲音">${ic('phones')}</button>
+        <button class="btn sm icon" data-k="listen" title="監聽">${ic('phones')}</button>
         <button class="btn sm icon" data-k="cpout" title="複製輸出網址">${ic('link')}</button>
-        <button class="btn sm icon danger" data-k="kick" title="中斷連線">${ic('x')}</button>
+        <button class="btn sm icon danger" data-k="kick" title="中斷">${ic('x')}</button>
       </div>
-      <div class="ctl"><input class="field grow" data-k="msg" placeholder="傳訊息給來賓（Enter 送出，空白送出＝清除）"><button class="btn sm icon" data-k="send" title="送出">${ic('send')}</button></div>
+      <div class="ctl"><input class="field grow" data-k="msg" placeholder="傳訊息給來賓"><button class="btn sm icon" data-k="send" title="送出">${ic('send')}</button></div>
       <div class="lastmsg" data-k="last"></div>`;
     const k = n => el.querySelector(`[data-k="${n}"]`);
     k('name').textContent = g.name;
@@ -667,8 +639,8 @@ function Host(){
     k('gdb').onclick = () => { g.guides = (g.guides + 1) % 4; k('gd').innerHTML = guidesSVG(g.guides); k('gdb').classList.toggle('on', !!g.guides); fit(); toast(GUIDE_NAMES[g.guides]); };
     const send = () => { const t = k('msg').value.trim(); sendMsg(g, t); k('msg').value = ''; };
     k('send').onclick = send; onEnter(k('msg'), send);
-    k('cpout').onclick = () => g.slot ? copy(outUrl(g.slot), `已複製輸出 ${g.slot} 網址`) : toast('先選一個輸出編號');
-    k('kick').onclick = () => { if (!confirm(`中斷「${g.name}」的連線？`)) return; g.conn?.send({ type: 'kick' }); setTimeout(() => removeGuest(id), 300); };
+    k('cpout').onclick = () => g.slot ? copy(outUrl(g.slot), `已複製輸出 ${g.slot}`) : toast('先選一個輸出編號');
+    k('kick').onclick = () => { if (!confirm(`中斷「${g.name}」？`)) return; g.conn?.send({ type: 'kick' }); setTimeout(() => removeGuest(id), 300); };
     const v = el.querySelector('video');
     v.addEventListener('resize', () => { const tv = el.querySelector('.tv'); if (v.videoWidth) { tv.style.setProperty('--ar', `${v.videoWidth}/${v.videoHeight}`); tv.style.setProperty('--arn', v.videoWidth / v.videoHeight); } });
     g.el = el;
@@ -676,17 +648,15 @@ function Host(){
     setTally(g, g.tally || 'off'); updateTags(g); updateRemoteBtns(g);
   }
   function remote(g, ctl){
-    if (!g.conn?.open) return toast('來賓目前沒有連線');
+    if (!g.conn?.open) return toast('來賓無連線');
     g.conn.send({ type: 'ctl', ...ctl });
-    if ('mic' in ctl) toast(`${ctl.mic ? '開啟' : '關閉'}「${g.name}」的麥克風`);
-    if ('cam' in ctl) toast(`${ctl.cam ? '開啟' : '關閉'}「${g.name}」的鏡頭`);
   }
   function updateRemoteBtns(g){
     if (!g.el) return;
     const m = g.el.querySelector('[data-k="rmic"]'), c = g.el.querySelector('[data-k="rcam"]');
     const mOff = g.mic === false, cOff = g.cam === false;
-    m.classList.toggle('off', mOff); m.innerHTML = ic(mOff ? 'micoff' : 'mic'); m.title = mOff ? '來賓麥克風已關，點擊遠端開啟' : '點擊遠端關閉來賓麥克風';
-    c.classList.toggle('off', cOff); c.innerHTML = ic(cOff ? 'camoff' : 'cam'); c.title = cOff ? '來賓鏡頭已關，點擊遠端開啟' : '點擊遠端關閉來賓鏡頭';
+    m.classList.toggle('off', mOff); m.innerHTML = ic(mOff ? 'micoff' : 'mic');
+    c.classList.toggle('off', cOff); c.innerHTML = ic(cOff ? 'camoff' : 'cam');
     updateTags(g);
   }
   function updateTags(g){
@@ -696,9 +666,7 @@ function Host(){
       `<span class="tag ${t === 'off' ? '' : t}">${t === 'live' ? '● ON AIR' : t === 'pvw' ? 'PREVIEW' : 'STBY'}</span>`,
       g.slot ? `<span class="tag out">OUT ${g.slot}</span>` : '',
       g.ic ? '<span class="tag icm">INTERCOM</span>' : '',
-      g.calling ? '<span class="tag call">🔔 呼叫導播</span>' : '',
-      g.mic === false ? '<span class="tag warn">MIC OFF</span>' : '',
-      g.cam === false ? '<span class="tag warn">CAM OFF</span>' : '',
+      g.calling ? '<span class="tag call">🔔 呼叫</span>' : '',
     ].join('');
   }
   function setTally(g, t){
@@ -730,19 +698,17 @@ function Host(){
       if (!guests.has(g.id)) return clearInterval(g.statT);
       const s = await readStats(g.call?.peerConnection, prev, 'inbound'); if (!s) return;
       const w = v.videoWidth, h = v.videoHeight;
-      const res = w ? `${w}×${h} ${h > w ? '直' : '橫'}` : '無畫面';
+      const res = w ? `${w}×${h}` : '無畫面';
       const warn = (s.rtt != null && s.rtt > 400) || s.loss > 5;
-      st.innerHTML = `${res}${s.fps ? ' · ' + Math.round(s.fps) + 'fps' : ''}${prev ? ' · ' + fmtKbps(s.kbps) : ''}${s.rtt != null ? ` · <span class="${warn ? 'bad' : ''}">${Math.round(s.rtt)}ms</span>` : ''}${s.loss >= 1 ? ` · <span class="bad">掉包 ${s.loss.toFixed(1)}%</span>` : ''}`;
+      st.innerHTML = `${res}${s.fps ? ' · ' + Math.round(s.fps) + 'fps' : ''}${prev ? ' · ' + fmtKbps(s.kbps) : ''}${s.rtt != null ? ` · <span class="${warn ? 'bad' : ''}">${Math.round(s.rtt)}ms</span>` : ''}`;
       prev = s;
     }, 1000);
   }
 
-  /* --- PeerJS --- */
-  const pst = (cls, t) => $('#pst').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`;
   function start(){
     peer = new Peer(hostIdOf(room), PEER_OPTS);
     peer.on('open', () => pst('ok', 'ONLINE · 可讓來賓加入'));
-    peer.on('disconnected', () => { pst('wait', '訊號伺服器重連中（現有連線不受影響）'); setTimeout(() => !peer.destroyed && peer.reconnect(), 2000); });
+    peer.on('disconnected', () => { pst('wait', '重連中…'); setTimeout(() => !peer.destroyed && peer.reconnect(), 2000); });
     peer.on('error', e => {
       pst('bad', peerErrText(e));
       if (e.type === 'unavailable-id') { peer.destroy(); setTimeout(start, 4000); }
@@ -769,7 +735,7 @@ function Host(){
         if (d.type === 'call') {
           if (g.ic) return;
           g.calling = true; g.el.classList.add('calling'); updateTags(g); beep(988); setTimeout(() => beep(1318), 180);
-          toast(`🔔「${g.name}」呼叫導播，按 INTERCOM 回應`);
+          toast(`🔔「${g.name}」呼叫導播`);
           clearTimeout(g.callT); g.callT = setTimeout(() => clearCall(g), 20000);
         }
       });
@@ -790,7 +756,6 @@ function Host(){
   window.addEventListener('beforeunload', () => peer?.destroy());
 }
 
-/* ===================== 來賓 ===================== */
 function Guest(){
   const room = (Q.get('room') || '').toUpperCase();
   if (!room) return Home();
@@ -807,7 +772,7 @@ function Guest(){
       <span class="gtally hidden" id="tally">STBY</span>
     </div>
     <div class="gnotes">
-      <div class="gic hidden" id="gic">${ic('talk')}<div>導播對講中<small>你的聲音只有導播聽得到，不會播出</small></div></div>
+      <div class="gic hidden" id="gic">${ic('talk')}<div>導播對講中<small>你的聲音只有導播聽得到</small></div></div>
       <div class="gmsg hidden" id="gmsg"></div>
     </div>
     <div class="ret hidden" id="rw"><video id="ret" autoplay playsinline></video><span>RETURN</span></div>
@@ -815,16 +780,16 @@ function Guest(){
       <button class="cbtn" id="mute"><span class="c"><span class="lv" id="mlv"></span>${ic('mic')}</span><span>麥克風</span></button>
       <button class="cbtn" id="vmute"><span class="c">${ic('cam')}</span><span>鏡頭</span></button>
       <button class="cbtn ${isMobile ? '' : 'hidden'}" id="flip"><span class="c">${ic('flip')}</span><span>翻轉</span></button>
-      <button class="cbtn" id="callb"><span class="c">${ic('bell')}</span><span>呼叫導播</span></button>
+      <button class="cbtn" id="callb"><span class="c">${ic('bell')}</span><span>呼叫</span></button>
       <button class="cbtn" id="set"><span class="c">${ic('gear')}</span><span>設定</span></button>
       <button class="cbtn end" id="leave"><span class="c">${ic('end')}</span><span>離開</span></button>
     </div>
     <div class="scrim hidden" id="scrim"></div>
     <div class="sheet" id="sheet">
       <h2 id="sh">加入連線</h2>
-      <div class="sub">房間 <b class="mono">${esc(room)}</b> · 請戴耳機，避免回音</div>
+      <div class="sub">房間 <b class="mono">${esc(room)}</b></div>
       <div class="grid2">
-        <div class="full"><span class="lbl">你的名字（導播看得到）</span><input class="field" id="nm" value="${esc(store('wc_name') || '')}" placeholder="例：王小明／台中現場" maxlength="30"></div>
+        <div class="full"><span class="lbl">你的名字</span><input class="field" id="nm" value="${esc(store('wc_name') || '')}" placeholder="例：王小明" maxlength="30"></div>
         <div class="full"><span class="lbl">鏡頭</span><select class="field" id="cam"></select></div>
         <div><span class="lbl">麥克風</span><select class="field" id="mic"></select></div>
         <div><span class="lbl">畫質</span><select class="field" id="q">${Object.entries(QUALITY).map(([k, v]) => `<option value="${k}" ${k === '720' ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div>
@@ -832,7 +797,6 @@ function Guest(){
       </div>
       <button class="btn primary go" id="join">加入連線</button>
       <button class="btn go hidden" id="done">完成</button>
-      <div class="tip">${isMobile ? '畫面會跟著手機方向：直拿送出直的畫面，橫拿送出橫的畫面。連線時請保持螢幕亮著、不要切到其他 App。' : '建議使用 Chrome 或 Edge。'}</div>
     </div>
   </div>`;
 
@@ -866,7 +830,7 @@ function Guest(){
     fill($('#cam'), 'videoinput', stream?.getVideoTracks()[0]?.getSettings().deviceId, '鏡頭');
     fill($('#mic'), 'audioinput', stream?.getAudioTracks()[0]?.getSettings().deviceId, '麥克風');
   }
-  // 讓送出的畫面跟著手機方向：直拿 = 直的、橫拿 = 橫的
+
   const isPortrait = () => { const t = screen.orientation?.type; return t ? t.startsWith('portrait') : innerHeight > innerWidth; };
   async function matchOrientation(){
     if (!isMobile) return;
@@ -878,7 +842,6 @@ function Guest(){
     const [w, h] = want ? [q.h, q.w] : [q.w, q.h];
     try { await t.applyConstraints({ width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: 30 } }); }
     catch { return; }
-    // 有些手機不吃 applyConstraints，就重開一次鏡頭
     setTimeout(() => { const s2 = t.getSettings(); if (t.readyState === 'live' && (s2.height > s2.width) !== want) getMedia(null, want).catch(() => {}); }, 600);
   }
   let orientT;
@@ -917,14 +880,13 @@ function Guest(){
     });
     syncButtons();
     listDevices();
-    if (portraitDims === undefined) setTimeout(matchOrientation, 400);
   }
   async function preview(){
     try { await getMedia(); st('', '預覽中'); }
-    catch (e) { st('bad', '無法開啟相機／麥克風'); toast(e.message); }
+    catch (e) { st('bad', '無法開啟相機／麥克風'); }
   }
-  $('#cam').onchange = $('#mic').onchange = $('#q').onchange = () => getMedia().catch(e => toast(e.message));
-  $('#flip').onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; getMedia(true).catch(e => toast(e.message)); };
+  $('#cam').onchange = $('#mic').onchange = $('#q').onchange = () => getMedia().catch(() => {});
+  $('#flip').onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; getMedia(true).catch(() => {}); };
   function syncButtons(){
     const a = stream?.getAudioTracks()[0], v = stream?.getVideoTracks()[0];
     const mOff = a && !a.enabled, vOff = v && !v.enabled;
@@ -950,11 +912,10 @@ function Guest(){
     const t = $('#tally'); t.className = 'gtally ' + (s === 'off' ? '' : s);
     t.textContent = s === 'live' ? '● ON AIR' : s === 'pvw' ? '準備上線' : 'STBY';
     paintFrame();
-    if (s === 'live' && navigator.vibrate) navigator.vibrate(200);
   }
   function showIntercom(on){
     icOn = on; $('#gic').classList.toggle('hidden', !on); paintFrame();
-    if (on) { $('#callb').classList.remove('calling'); clearTimeout(callT); navigator.vibrate?.([60, 40, 60]); beep(660); }
+    if (on) { $('#callb').classList.remove('calling'); clearTimeout(callT); beep(660); }
     const r = $('#ret'); r.muted = false; r.play().catch(() => {});
   }
   async function keepAwake(){ try { if (joined && 'wakeLock' in navigator && !document.hidden) wake = await navigator.wakeLock.request('screen'); } catch {} }
@@ -978,7 +939,7 @@ function Guest(){
       peer = new Peer(PREFIX + room.toLowerCase() + '-g-' + rnd(8), PEER_OPTS);
       peer.on('open', dial);
       peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
-      peer.on('error', e => { st('bad', peerErrText(e)); if (e.type === 'peer-unavailable' || e.type === 'network') retry(); });
+      peer.on('error', e => { st('bad', peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
     } else if (peer.open) dial();
   }
   function retry(){ clearTimeout(retryT); retryT = setTimeout(connect, 3000); }
@@ -1006,16 +967,16 @@ function Guest(){
       if (d.type === 'msg') {
         const m = $('#gmsg'); m.textContent = d.text; m.classList.toggle('hidden', !d.text);
         if (d.id) conn.send({ type: 'ack', id: d.id });
-        if (d.text) { navigator.vibrate?.([80, 60, 80]); beep(1046, 120); }
+        if (d.text) beep(1046, 120);
       }
       if (d.type === 'ctl') {
-        if ('mic' in d) { setMic(!!d.mic); toast(d.mic ? '導播已開啟你的麥克風' : '導播已關閉你的麥克風'); }
-        if ('cam' in d) { setCam(!!d.cam); toast(d.cam ? '導播已開啟你的鏡頭' : '導播已關閉你的鏡頭'); }
+        if ('mic' in d) setMic(!!d.mic);
+        if ('cam' in d) setCam(!!d.cam);
       }
       if (d.type === 'ic') showIntercom(!!d.on);
       if (d.type === 'kick') leave('導播已結束連線');
     });
-    conn.on('close', () => { if (joined) { st('wait', '與導播台中斷，重新連線中…'); $('#tally').classList.add('hidden'); showIntercom(false); tallyState = 'off'; paintFrame(); retry(); } });
+    conn.on('close', () => { if (joined) { st('wait', '重新連線中…'); $('#tally').classList.add('hidden'); showIntercom(false); retry(); } });
     conn.on('error', () => joined && retry());
   }
   function leave(msg){
@@ -1032,7 +993,7 @@ function Guest(){
   $('#join').onclick = async () => {
     const nm = $('#nm').value.trim(); if (!nm) { $('#nm').focus(); return toast('請先輸入名字'); }
     store('wc_name', nm);
-    if (!stream) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
+    if (!stream) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機'); return toast(e.message); } }
     audioCtx();
     joined = true;
     $('#join').classList.add('hidden'); $('#done').classList.remove('hidden');
@@ -1048,7 +1009,6 @@ function Guest(){
   preview();
 }
 
-/* ===================== 輸出（OBS 瀏覽器來源） ===================== */
 function Output(){
   const room = (Q.get('room') || '').toUpperCase(), slot = +Q.get('slot') || 1;
   const debug = Q.get('debug') === '1', fit = Q.get('fit') === 'cover' ? 'cover' : 'contain';
@@ -1064,7 +1024,7 @@ function Output(){
   function play(){
     v.play().catch(() => {
       if ($('#clickaudio')) return;
-      const c = document.createElement('div'); c.id = 'clickaudio'; c.textContent = '點一下啟用聲音（OBS 內不會出現）';
+      const c = document.createElement('div'); c.id = 'clickaudio'; c.textContent = '點一下啟用聲音';
       c.onclick = () => { c.remove(); v.play(); }; document.body.appendChild(c);
     });
   }
@@ -1073,14 +1033,13 @@ function Output(){
     clearTimeout(retryT);
     if (!peer?.open) return;
     try { conn?.close(); } catch {}
-    log('連線導播台中…');
     conn = peer.connect(hostIdOf(room), { metadata: { role: 'out', slot }, ...CONN_OPTS });
-    conn.on('open', () => log('已連上，等待來賓'));
+    conn.on('open', () => log('已連上'));
     conn.on('data', d => {
       if (d?.type === 'empty') { v.srcObject = null; log('未指派來賓'); }
       if (d?.type === 'source') log('來源：' + d.name);
     });
-    conn.on('close', () => { v.srcObject = null; log('導播台離線，重試中…'); retry(); });
+    conn.on('close', () => { v.srcObject = null; retry(); });
     conn.on('error', retry);
   }
   peer = new Peer(PREFIX + room.toLowerCase() + '-o-' + rnd(8), PEER_OPTS);
