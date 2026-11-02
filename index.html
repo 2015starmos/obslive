@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d10">
-<title>WebCall 連線導播台 - 終極完整旗艦版</title>
+<title>WebCall 專業導播台 - 自動排版模組版</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
@@ -58,14 +58,8 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .brand .mark{width:22px;height:22px;border-radius:5px;background:var(--live);display:grid;place-items:center}
 .brand .mark i{width:8px;height:8px;border-radius:50%;background:#fff}
 
-/* 雙向警示橫幅 */
 .global-warn-banner{position:fixed;top:0;left:0;right:0;background:var(--live);color:#fff;text-align:center;font-weight:700;padding:8px;font-size:13px;z-index:1000;box-shadow:0 2px 12px rgba(0,0,0,0.6);display:none}
 .global-warn-banner.show{display:block;animation:blink .8s infinite}
-
-/* 對齊線 */
-.guides{position:absolute;pointer-events:none;z-index:1}
-.guides svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 0 1px #000c)}
-.guides svg *{vector-effect:non-scaling-stroke}
 
 /* 首頁 */
 .home{min-height:100%;display:grid;place-items:center;padding:24px}
@@ -76,7 +70,7 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .home .card .row{display:flex;gap:8px}
 .home .card .field{flex:1;text-transform:uppercase;font-family:var(--mono);letter-spacing:.1em}
 
-/* 導播台 */
+/* 導播台版面 */
 .host{display:grid;grid-template-rows:52px 1fr;height:100%}
 .topbar{display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--s1);border-bottom:1px solid var(--line)}
 .topbar .sep{width:1px;height:22px;background:var(--line)}
@@ -86,8 +80,8 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .kpi span{font-size:9.5px;letter-spacing:.1em;color:var(--mute);font-weight:600}
 .kpi b{font-family:var(--mono);font-size:14px}
 .clock{font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.04em;min-width:92px;text-align:right}
-.body{display:grid;grid-template-columns:1fr 310px;min-height:0}
-.multiview{overflow:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;align-content:start;align-items:start}
+.body{display:grid;grid-template-columns:1fr 340px;min-height:0}
+.multiview{overflow:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;align-content:start;align-items:start}
 .sidebar{border-left:1px solid var(--line);background:var(--s1);overflow:auto}
 .sect{padding:14px;border-bottom:1px solid var(--line)}
 .sect h3{margin:0 0 10px;font-size:10.5px;letter-spacing:.1em;color:var(--mute);font-weight:600;display:flex;justify-content:space-between;align-items:center}
@@ -101,15 +95,15 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .bus .s .w.e{color:var(--mute)}
 .note{font-size:11.5px;color:var(--mute);margin:10px 0 0;line-height:1.55}
 
-/* 導播端來賓畫面：支援滑鼠自由拖拉大小 (resize) */
-.tile{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .12s,box-shadow .12s;resize:both;min-width:320px;min-height:240px}
+/* 來賓畫面瓦片（自動縮放大小，無手動拖拉） */
+.tile{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .12s,box-shadow .12s}
 .tile.live{border-color:var(--live);box-shadow:0 0 0 1px var(--live),0 0 18px #ff3b3b33}
 .tile.pvw{border-color:var(--pvw);box-shadow:0 0 0 1px var(--pvw)}
 .tile.icm{border-color:var(--ic);box-shadow:0 0 0 1px var(--ic)}
 .tile.calling{animation:callf 1s infinite}
 @keyframes callf{50%{box-shadow:0 0 0 2px var(--warn),0 0 24px #f5a52466}}
 .tvwrap{background:#000;display:flex;justify-content:center}
-.tv{position:relative;aspect-ratio:var(--ar,16/9);width:min(100%,calc(58vh * var(--arn,1.7778)));background:#000}
+.tv{position:relative;aspect-ratio:16/9;width:100%;background:#000}
 .tv video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .tv .nosig{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);color:var(--mute);letter-spacing:.2em;font-size:12px;background:repeating-linear-gradient(45deg,#0d0f12 0 10px,#101318 10px 20px)}
 .tv .tl{position:absolute;top:8px;left:8px;right:20px;display:flex;gap:5px;flex-wrap:wrap;z-index:2}
@@ -156,21 +150,18 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
   .kpi,.clock,.topbar .sep{display:none}
 }
 
-/* 來賓端：全螢幕、支援子畫面分享層與可自訂縮放大小 */
+/* 來賓端介面 */
 .gp{position:fixed;inset:0;background:#000;overflow:hidden}
 .stage{position:absolute;inset:0;transition:top .2s,bottom .2s}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
 .stage video.mirror{transform:scaleX(-1)}
 
-/* 獨立畫面分享層 (可拖拉縮放) */
-.screen-share-layer { position: absolute; bottom: 90px; left: 16px; width: var(--share-w, 260px); height: var(--share-h, 146px); background: #111; border: 2px solid var(--accent); border-radius: 8px; overflow: hidden; z-index: 10; resize: both; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+.screen-share-layer { position: absolute; bottom: 90px; left: 16px; width: 260px; height: 146px; background: #111; border: 2px solid var(--accent); border-radius: 8px; overflow: hidden; z-index: 10; resize: both; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
 .screen-share-layer video, .screen-share-layer img { width: 100%; height: 100%; object-fit: contain; }
 
-/* 美顏與景深磨皮特效 */
 .beauty-smooth { filter: contrast(104%) brightness(102%) saturate(102%) blur(0.3px); }
 .bokeh-depth { box-shadow: inset 0 0 40px rgba(76, 141, 255, 0.4); }
 
-/* 相機 Zoom 放大縮小控制器 */
 .zoom-ctrl { position: absolute; right: 16px; top: 90px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 24px; padding: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 5; align-items: center; }
 .zoom-ctrl button { width: 32px; height: 32px; border-radius: 50%; background: #222; color: #fff; border: 1px solid #444; font-weight: bold; cursor: pointer; display: grid; place-items: center; }
 .zoom-ctrl button:active { background: var(--accent); }
@@ -242,7 +233,7 @@ const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw-';
 const SLOT_COUNT = 8;
 const QUALITY = {
-  '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p · 網路省流' },
+  '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p · 省流模式' },
   '720':  { w: 1280, h: 720,  kbps: 2500, label: '720p · 標準自動' },
   '1080': { w: 1920, h: 1080, kbps: 4500, label: '1080p · 頂級高畫質' },
 };
@@ -375,7 +366,7 @@ function peerErrText(e){
 }
 
 if (!window.Peer) {
-  app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 載入失敗，請檢查網路連線。</p></div></div>`;
+  app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 載入失敗。</p></div></div>`;
 } else {
   const mode = Q.get('mode');
   if (mode === 'host') Host();
@@ -389,8 +380,8 @@ function Home(){
   app.innerHTML = `
   <div class="home"><div class="box">
     ${brand()}
-    <h1>WebCall 導播直播連線系統</h1>
-    <p>支援電腦、行動裝置相機、相簿影片串流分享、縮放、美顏與雙向延遲警告。</p>
+    <h1>WebCall 專業導播台</h1>
+    <p>支援自動排版、獨立發話矩陣、各路聲音監聽開關與獨立訊息面板。</p>
     <div class="card">
       <span class="lbl">導播端</span>
       <div class="row"><input class="field" id="hr" placeholder="房間代碼（留空自動產生）" value="${esc(last)}" maxlength="12"><button class="btn primary" id="hgo">開啟導播台</button></div>
@@ -438,18 +429,44 @@ function Host(){
         <div class="sect">
           <h3>OUTPUT BUS <span class="mono" id="busn"></span></h3>
           <div class="bus" id="bus"></div>
-          <p class="note">複製網址已自動過濾聲音干擾。視窗大小可於下方直接拖拉調整。</p>
+          <p class="note">來賓視窗採自動排版，畫面自動填滿對齊。</p>
         </div>
+        
+        <!-- ① 獨立對講發話控制區 -->
+        <div class="sect">
+          <h3>INTERCOM 獨立發話系統</h3>
+          <span class="lbl">發話對象選擇</span>
+          <select class="field" id="icTarget" style="width:100%; margin-bottom:8px">
+            <option value="all">📢 全體群發 (All-Call)</option>
+          </select>
+          <span class="lbl">導播專屬麥克風</span>
+          <select class="field" id="icmic" style="width:100%; margin-bottom:8px"></select>
+          <button class="btn primary" id="icToggleBtn" style="width:100%">${ic('talk')}開啟對講發話</button>
+        </div>
+
+        <!-- ② 獨立各路聲音監聽矩陣 -->
+        <div class="sect">
+          <h3>各路聲音監聽開關</h3>
+          <div id="audioMonitorList" style="display:grid; gap:6px"></div>
+        </div>
+
+        <!-- ③ 獨立訊息發送區塊 -->
+        <div class="sect">
+          <h3>獨立訊息發送面板</h3>
+          <span class="lbl">接收對象</span>
+          <select class="field" id="msgTarget" style="width:100%; margin-bottom:6px">
+            <option value="all">📢 發送給全體來賓</option>
+          </select>
+          <div style="display:flex;gap:6px">
+            <input class="field" id="bc" placeholder="輸入公告訊息…" style="flex:1">
+            <button class="btn icon" id="bcgo" title="送出">${ic('send')}</button>
+          </div>
+          <button class="btn ghost sm" id="bcclr" style="margin-top:6px; width:100%">清除所有來賓訊息</button>
+        </div>
+
         <div class="sect">
           <h3>導播相機擷取</h3>
-          <span class="lbl">電腦外部相機 / 擷取卡</span>
           <select class="field" id="hostcam" style="width:100%"></select>
-        </div>
-        <div class="sect">
-          <h3>INTERCOM 對講系統</h3>
-          <span class="lbl">導播專屬麥克風</span>
-          <select class="field" id="icmic" style="width:100%"></select>
-          <p class="note">獨立對講按鈕：點擊來賓視窗的 Intercom 即可單獨私下對講，此時直播輸出將暫停來賓聲音。</p>
         </div>
         <div class="sect">
           <h3>RETURN FEED 回傳畫面</h3>
@@ -459,11 +476,6 @@ function Host(){
             <option value="cam">導播鏡頭＋麥克風</option>
             <option value="screen">分享畫面</option>
           </select>
-        </div>
-        <div class="sect">
-          <h3>BROADCAST 廣播訊息</h3>
-          <div style="display:flex;gap:6px"><input class="field" id="bc" placeholder="傳給全體來賓" style="flex:1"><button class="btn icon" id="bcgo" title="送出">${ic('send')}</button></div>
-          <button class="btn ghost sm" id="bcclr" style="margin-top:6px">清除所有訊息</button>
         </div>
       </aside>
     </div>
@@ -486,6 +498,41 @@ function Host(){
   }
   fillHostDevices();
 
+  function updateTargetSelects(){
+    const opts = ['<option value="all">📢 全體群發 (All-Call)</option>' + [...guests.values()].map(g => `<option value="${g.id}">👤 ${esc(g.name)} (Slot ${g.slot || '未編號'})</option>`).join('')];
+    const icCur = $('#icTarget').value, msgCur = $('#msgTarget').value;
+    $('#icTarget').innerHTML = opts; if ($('#icTarget').querySelector(`[value="${icCur}"]`)) $('#icTarget').value = icCur;
+    $('#msgTarget').innerHTML = opts; if ($('#msgTarget').querySelector(`[value="${msgCur}"]`)) $('#msgTarget').value = msgCur;
+  }
+
+  function updateAudioMonitorUI(){
+    const list = $('#audioMonitorList');
+    if (!guests.size) { list.innerHTML = '<span style="color:var(--mute); font-size:11px">尚無來賓連線</span>'; return; }
+    list.innerHTML = [...guests.values()].map(g => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--s2); padding:6px 10px; border-radius:6px">
+        <span class="mono" style="font-size:12px">${esc(g.name)}</span>
+        <button class="btn sm ${g.listen ? 'primary' : 'ghost'}" onclick="window.toggleMonitor('${g.id}')">
+          ${g.listen ? '🔊 監聽開啟' : '🔇 監聽關閉'}
+        </button>
+      </div>
+    `).join('');
+  }
+  window.toggleMonitor = id => {
+    const g = guests.get(id);
+    if (g) { setListen(g, !g.listen); updateAudioMonitorUI(); }
+  };
+
+  function sendMsgToTarget(targetId, text, quiet){
+    if (targetId === 'all') {
+      let n = 0; guests.forEach(g => sendMsg(g, text, true) && n++);
+      if (!quiet) toast(n ? `已廣播訊息` : '無來賓連線');
+    } else {
+      const g = guests.get(targetId);
+      if (g) sendMsg(g, text, quiet);
+      else if (!quiet) toast('找不到指定的來賓');
+    }
+  }
+
   function sendMsg(g, text, quiet){
     if (!g.conn?.open) { if (!quiet) toast(`「${g.name}」未連線`); setLast(g, text, 'no'); return false; }
     const id = rnd(8);
@@ -499,13 +546,18 @@ function Host(){
     if (!text) { el.innerHTML = s === 'ok' ? '<span class="ok">✓ 已清除</span>' : ''; return; }
     el.innerHTML = `<b>最後訊息：</b>${esc(text)} ${s === 'ok' ? '<span class="ok">✓ 已送達</span>' : s === 'no' ? '<span class="no">✗ 未送達</span>' : '<span>傳送中…</span>'}`;
   }
-  const broadcast = t => {
-    let n = 0; guests.forEach(g => sendMsg(g, t, true) && n++);
-    toast(n ? (t ? `已廣播` : '已清除') : '無來賓連線');
+
+  $('#bcgo').onclick = () => {
+    const text = $('#bc').value.trim();
+    const target = $('#msgTarget').value;
+    sendMsgToTarget(target, text);
+    $('#bc').value = '';
   };
-  $('#bcgo').onclick = () => { broadcast($('#bc').value.trim()); $('#bc').value = ''; };
   onEnter($('#bc'), () => $('#bcgo').click());
-  $('#bcclr').onclick = () => broadcast('');
+  $('#bcclr').onclick = () => {
+    const target = $('#msgTarget').value;
+    sendMsgToTarget(target, '');
+  };
 
   function invite(){
     const m = document.createElement('div'); m.className = 'modal';
@@ -527,7 +579,7 @@ function Host(){
       <div><h2>等待來賓連線</h2>房間 <b class="mono">${room}</b>
         <ol><li>來賓掃描 QR Code 或使用連結加入</li>
         <li>允許相機與麥克風並填寫名稱</li>
-        <li>畫面將自動出現在導播台並可自由縮放</li></ol></div></div>`;
+        <li>視窗將自動顯示在導播台上</li></ol></div></div>`;
     qr($('#eqr'), guestUrl, 150);
   }
   renderEmpty();
@@ -611,21 +663,60 @@ function Host(){
     catch (e) { toast('無法開啟導播麥克風：' + e.message); return false; }
   }
 
-  async function setIntercom(g, on){
-    if (on && !(await ensureIcMic())) return;
-    audioCtx();
-    g.ic = on;
-    if (g.gain) g.gain.gain.setTargetAtTime(on ? 0 : 1, AC.currentTime, .02);
-    applyTracks(g);
-    if (on) { g.listenBefore = g.listen; setListen(g, true); clearCall(g); }
-    else setListen(g, !!g.listenBefore);
-    g.conn?.open && g.conn.send({ type: 'ic', on });
-    g.el.classList.toggle('icm', on);
-    const b = g.el.querySelector('[data-k="ic"]'); b.classList.toggle('on', on); b.lastChild.textContent = on ? 'IC ON' : 'INTERCOM';
-    updateTags(g); renderSlots();
-    toast(on ? `與「${g.name}」私下對講中` : `結束對講`);
-    if (!guests.size || ![...guests.values()].some(x => x.ic)) { icStream?.getTracks().forEach(t => t.stop()); icStream = null; }
+  let isMasterIntercomActive = false;
+  async function toggleMasterIntercom(){
+    const target = $('#icTarget').value;
+    if (!isMasterIntercomActive) {
+      if (!(await ensureIcMic())) return;
+      audioCtx();
+      isMasterIntercomActive = true;
+      $('#icToggleBtn').classList.add('on');
+      $('#icToggleBtn').textContent = '🔴 正在對講發話中 (點擊關閉)';
+
+      if (target === 'all') {
+        guests.forEach(g => {
+          g.ic = true;
+          if (g.gain) g.gain.gain.setTargetAtTime(0, AC.currentTime, .02);
+          applyTracks(g);
+          g.conn?.open && g.conn.send({ type: 'ic', on: true });
+          g.el?.classList.add('icm');
+          updateTags(g);
+        });
+        toast('已啟動全體對講發話');
+      } else {
+        const g = guests.get(target);
+        if (g) {
+          g.ic = true;
+          if (g.gain) g.gain.gain.setTargetAtTime(0, AC.currentTime, .02);
+          applyTracks(g);
+          g.conn?.open && g.conn.send({ type: 'ic', on: true });
+          g.el?.classList.add('icm');
+          updateTags(g);
+          toast(`正在與「${g.name}」私下對講發話`);
+        }
+      }
+    } else {
+      isMasterIntercomActive = false;
+      $('#icToggleBtn').classList.remove('on');
+      $('#icToggleBtn').textContent = '開啟對講發話';
+
+      guests.forEach(g => {
+        if (g.ic) {
+          g.ic = false;
+          if (g.gain) g.gain.gain.setTargetAtTime(1, AC.currentTime, .02);
+          applyTracks(g);
+          g.conn?.open && g.conn.send({ type: 'ic', on: false });
+          g.el?.classList.remove('icm');
+          updateTags(g);
+        }
+      });
+      icStream?.getTracks().forEach(t => t.stop()); icStream = null;
+      toast('已結束對講發話');
+    }
+    renderSlots();
   }
+  $('#icToggleBtn').onclick = toggleMasterIntercom;
+
   function setListen(g, on){
     g.listen = on; g.el.querySelector('video').muted = !on;
     g.el.querySelector('[data-k="listen"]').classList.toggle('on', on);
@@ -651,14 +742,12 @@ function Host(){
       <div class="ctl">
         <button class="btn sm icon" data-k="rmic" title="來賓麥克風開關">${ic('mic')}</button>
         <button class="btn sm icon" data-k="rcam" title="來賓鏡頭開關">${ic('cam')}</button>
-        <button class="btn sm icb grow" data-k="ic" title="私下對講">${ic('talk')}<span>INTERCOM</span></button>
         <span class="vsep"></span>
         <button class="btn sm icon" data-k="gdb" title="對齊線">${ic('grid')}</button>
         <button class="btn sm icon" data-k="listen" title="監聽">${ic('phones')}</button>
         <button class="btn sm icon" data-k="cpout" title="複製輸出">${ic('link')}</button>
         <button class="btn sm icon danger" data-k="kick" title="斷線">${ic('x')}</button>
       </div>
-      <div class="ctl"><input class="field grow" data-k="msg" placeholder="傳送訊息給來賓"><button class="btn sm icon" data-k="send" title="送出">${ic('send')}</button></div>
       <div class="lastmsg" data-k="last"></div>`;
     const k = n => el.querySelector(`[data-k="${n}"]`);
     k('name').textContent = g.name;
@@ -667,17 +756,15 @@ function Host(){
       const ns = +e.target.value, old = g.slot;
       if (ns) guests.forEach(o => { if (o !== g && o.slot === ns) { o.slot = 0; if (o.el) { o.el.querySelector('[data-k="slot"]').value = 0; updateTags(o); } } });
       g.slot = ns; if (old) refreshSlot(old); if (ns) refreshSlot(ns); renderSlots(); updateTags(g);
+      updateTargetSelects();
     };
     el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => setTally(g, b.dataset.t));
-    k('listen').onclick = () => setListen(g, !g.listen);
+    k('listen').onclick = () => { setListen(g, !g.listen); updateAudioMonitorUI(); };
     k('rmic').onclick = () => remote(g, { mic: !(g.mic ?? true) });
     k('rcam').onclick = () => remote(g, { cam: !(g.cam ?? true) });
-    k('ic').onclick = () => setIntercom(g, !g.ic);
     g.guides = 0;
     const fit = setupGuides(el.querySelector('.tv'), el.querySelector('video'), k('gd'));
     k('gdb').onclick = () => { g.guides = (g.guides + 1) % 4; k('gd').innerHTML = guidesSVG(g.guides); k('gdb').classList.toggle('on', !!g.guides); fit(); toast(GUIDE_NAMES[g.guides]); };
-    const send = () => { const t = k('msg').value.trim(); sendMsg(g, t); k('msg').value = ''; };
-    k('send').onclick = send; onEnter(k('msg'), send);
     k('cpout').onclick = () => g.slot ? copy(outUrl(g.slot), `已複製輸出網址`) : toast('請先選輸出編號');
     k('kick').onclick = () => { if (!confirm(`確定中斷「${g.name}」？`)) return; g.conn?.send({ type: 'kick' }); setTimeout(() => removeGuest(id), 300); };
     const v = el.querySelector('video');
@@ -685,6 +772,8 @@ function Host(){
     g.el = el;
     const mv = $('#mv'); mv.querySelector('.emptyv')?.remove(); mv.appendChild(el);
     setTally(g, g.tally || 'off'); updateTags(g); updateRemoteBtns(g);
+    updateTargetSelects();
+    updateAudioMonitorUI();
   }
 
   function remote(g, ctl){
@@ -726,6 +815,8 @@ function Host(){
     g.el?.remove();
     if (g.slot) refreshSlot(g.slot);
     renderSlots();
+    updateTargetSelects();
+    updateAudioMonitorUI();
     if (!guests.size) renderEmpty();
   }
   function showStream(g){
@@ -762,12 +853,12 @@ function Host(){
       }
       const id = conn.peer;
       let g = guests.get(id);
-      if (!g) { g = { id, name: (md.name || '來賓').slice(0, 30), slot: 0, tally: 'off' }; guests.set(id, g); guestCard(id); }
+      if (!g) { g = { id, name: (md.name || '來賓').slice(0, 30), slot: 0, tally: 'off', listen: true }; guests.set(id, g); guestCard(id); }
       g.conn = conn;
       conn.on('open', () => { setTally(g, g.tally); if (g.ic) conn.send({ type: 'ic', on: true }); renderSlots(); });
       conn.on('data', d => {
         if (!d) return;
-        if (d.type === 'name') { g.name = String(d.name).slice(0, 30) || '來賓'; g.el.querySelector('[data-k="name"]').textContent = g.name; renderSlots(); }
+        if (d.type === 'name') { g.name = String(d.name).slice(0, 30) || '來賓'; g.el.querySelector('[data-k="name"]').textContent = g.name; renderSlots(); updateTargetSelects(); updateAudioMonitorUI(); }
         if (d.type === 'ack') { const p = pending.get(d.id); if (p) { clearTimeout(p.t); pending.delete(d.id); setLast(p.g, p.text, 'ok'); } }
         if (d.type === 'state') { g.mic = d.mic; g.cam = d.cam; updateRemoteBtns(g); }
         if (d.type === 'call') {
@@ -803,17 +894,15 @@ function Guest(){
   <div class="gp" id="gp">
     <div class="stage" id="stage"><video id="self" class="mirror" autoplay playsinline muted></video><div class="guides" id="gd"></div></div>
     
-    <!-- 獨立畫面分享層 (可從相簿選取影片或直接分享，具備縮放大小調整) -->
     <div class="screen-share-layer hidden" id="screenLayer">
       <video id="screenVideo" autoplay playsinline muted loop></video>
       <input type="file" id="albumFile" accept="video/*" class="hidden">
     </div>
 
-    <!-- 仿相機 Zoom 放大縮小按鈕與顯示 -->
     <div class="zoom-ctrl" id="zoomCtrl">
-      <button id="zoomIn" title="放大 Zoom In">+</button>
+      <button id="zoomIn" title="放大">+</button>
       <span id="zoomLbl">1.0x</span>
-      <button id="zoomOut" title="縮小 Zoom Out">-</button>
+      <button id="zoomOut" title="縮小">-</button>
     </div>
 
     <div class="frame" id="frame"></div>
@@ -852,7 +941,7 @@ function Guest(){
       </div>
       <button class="btn primary go" id="join">加入連線</button>
       <button class="btn go hidden" id="done">完成設定</button>
-      <div class="tip">支援手機相簿影片播放、多工縮小與自動/手動畫質切換。</div>
+      <div class="tip">支援相簿影片分享與多工背景保持連線。</div>
     </div>
   </div>`;
 
@@ -926,7 +1015,6 @@ function Guest(){
   $('#cam').onchange = $('#mic').onchange = $('#q').onchange = () => getMedia().catch(e => toast(e.message));
   $('#flip').onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; getMedia(true).catch(e => toast(e.message)); };
 
-  // 鏡頭 Zoom In / Zoom Out 控制項邏輯
   async function applyZoom(val){
     currentZoom = Math.max(minZoom, Math.min(maxZoom, val));
     $('#zoomLbl.mono', $('#zoomCtrl')).textContent = currentZoom.toFixed(1) + 'x';
@@ -935,13 +1023,11 @@ function Guest(){
     if (caps && caps.zoom) {
       try { await track.applyConstraints({ advanced: [{ zoom: currentZoom }] }); return; } catch {}
     }
-    // 數位放大備用
     $('#self').style.transform = `${facing === 'user' ? 'scaleX(-1)' : ''} scale(${currentZoom})`;
   }
   $('#zoomIn').onclick = () => applyZoom(currentZoom + 0.5);
   $('#zoomOut').onclick = () => applyZoom(currentZoom - 0.5);
 
-  // 獨立畫面分享按鈕：優先使用 getDisplayMedia，若不支援則自動開啟手機相簿選取影片撥放
   $('#shareBtn').onclick = async () => {
     const layer = $('#screenLayer');
     if (!layer.classList.contains('hidden')) {
@@ -959,11 +1045,8 @@ function Guest(){
         toast('畫面分享已啟動');
         scrStream.getVideoTracks()[0].onended = () => layer.classList.add('hidden');
         return;
-      } catch (e) {
-        // 若使用者取消或不支援，退回相簿選取
-      }
+      } catch (e) {}
     }
-    // 行動端相簿影片選取機制
     $('#albumFile').click();
   };
   $('#albumFile').onchange = e => {
@@ -975,17 +1058,16 @@ function Guest(){
     sv.src = url;
     $('#screenLayer').classList.remove('hidden');
     sv.play().catch(() => {});
-    toast('已從相簿載入影片並開始播放分享');
+    toast('已從相簿載入影片分享');
   };
 
-  // 美顏磨皮與景深模糊功能
   let beautyOn = false;
   $('#beautyBtn').onclick = () => {
     beautyOn = !beautyOn;
     $('#self').classList.toggle('beauty-smooth', beautyOn);
     $('#self').classList.toggle('bokeh-depth', beautyOn);
     $('#beautyBtn').classList.toggle('on', beautyOn);
-    toast(beautyOn ? '美顏磨皮與景深模擬已開啟' : '美顏已關閉');
+    toast(beautyOn ? '美顏景深已開啟' : '美顏已關閉');
   };
 
   function syncButtons(){
@@ -1022,7 +1104,6 @@ function Guest(){
   }
   async function keepAwake(){ try { if (joined && 'wakeLock' in navigator && !document.hidden) wake = await navigator.wakeLock.request('screen'); } catch {} }
 
-  // 雙向網路速度自動檢測與警告機制
   function startStats(){
     clearInterval(statT); let prev = null;
     statT = setInterval(async () => {
@@ -1115,10 +1196,9 @@ function Guest(){
   $('#nm').onchange = () => conn?.open && conn.send({ type: 'name', name: $('#nm').value.trim() });
   $('#leave').onclick = () => { if (confirm('確定離開連線？')) leave(); };
   
-  // 手機背景多工與縮小視窗通知處理
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && joined) {
-      toast('網頁已切換背景，已自動啟動強制多工保持連線');
+      toast('已自動啟動背景多工保持連線');
     } else if (!document.hidden && joined) {
       keepAwake(); if (!conn?.open) connect();
     }
