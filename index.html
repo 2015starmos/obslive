@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d10">
-<title>WebCall 專業導播台 - 自動排版模組版</title>
+<title>WebCall 專業導播台 - 快捷鍵與遠端音量版</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
@@ -41,11 +41,10 @@ svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke
 .btn.sm.icon{width:28px}
 .btn.on{background:#1d2c46;border-color:var(--accent);color:#cfe0ff}
 .btn.off{background:#3a1518;border-color:var(--live);color:#ff9b9b}
-.btn.icb{font-family:var(--mono);font-weight:700;font-size:11px;letter-spacing:.04em}
-.btn.icb.on{background:var(--ic);border-color:var(--ic);color:#160a33}
 .field{background:var(--s1);border:1px solid var(--line2);border-radius:6px;height:34px;padding:0 10px;min-width:0;outline:none;transition:border-color .12s}
 .field:focus{border-color:var(--accent)}
 select.field{padding-right:28px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a93a3' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+input[type="range"]{accent-color:var(--accent);cursor:pointer}
 .lbl{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 6px;display:block}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--mute);display:inline-block;flex:none}
 .dot.ok{background:var(--pvw);box-shadow:0 0 6px var(--pvw)} .dot.bad{background:var(--live)} .dot.wait{background:var(--warn);animation:blink 1s infinite}
@@ -95,7 +94,7 @@ select.field{padding-right:28px;appearance:none;background-image:url("data:image
 .bus .s .w.e{color:var(--mute)}
 .note{font-size:11.5px;color:var(--mute);margin:10px 0 0;line-height:1.55}
 
-/* 來賓畫面瓦片（自動縮放大小，無手動拖拉） */
+/* 來賓畫面瓦片 */
 .tile{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .12s,box-shadow .12s}
 .tile.live{border-color:var(--live);box-shadow:0 0 0 1px var(--live),0 0 18px #ff3b3b33}
 .tile.pvw{border-color:var(--pvw);box-shadow:0 0 0 1px var(--pvw)}
@@ -381,7 +380,7 @@ function Home(){
   <div class="home"><div class="box">
     ${brand()}
     <h1>WebCall 專業導播台</h1>
-    <p>支援自動排版、獨立發話矩陣、各路聲音監聽開關與獨立訊息面板。</p>
+    <p>支援鍵盤快捷鍵、遠端音量控制、自動排版與獨立發話系統。</p>
     <div class="card">
       <span class="lbl">導播端</span>
       <div class="row"><input class="field" id="hr" placeholder="房間代碼（留空自動產生）" value="${esc(last)}" maxlength="12"><button class="btn primary" id="hgo">開啟導播台</button></div>
@@ -429,7 +428,7 @@ function Host(){
         <div class="sect">
           <h3>OUTPUT BUS <span class="mono" id="busn"></span></h3>
           <div class="bus" id="bus"></div>
-          <p class="note">來賓視窗採自動排版，畫面自動填滿對齊。</p>
+          <p class="note">快捷鍵說明：按數字鍵 1~8 切換對應來賓的 ON AIR 狀態。</p>
         </div>
         
         <!-- ① 獨立對講發話控制區 -->
@@ -444,10 +443,10 @@ function Host(){
           <button class="btn primary" id="icToggleBtn" style="width:100%">${ic('talk')}開啟對講發話</button>
         </div>
 
-        <!-- ② 獨立各路聲音監聽矩陣 -->
+        <!-- ② 獨立各路聲音監聽與音量控制 -->
         <div class="sect">
-          <h3>各路聲音監聽開關</h3>
-          <div id="audioMonitorList" style="display:grid; gap:6px"></div>
+          <h3>各路聲音監聽與遠端音量</h3>
+          <div id="audioMonitorList" style="display:grid; gap:8px"></div>
         </div>
 
         <!-- ③ 獨立訊息發送區塊 -->
@@ -491,6 +490,20 @@ function Host(){
   $('#roomc').onclick = () => copy(room, '已複製代碼');
   $('#inv').onclick = invite;
 
+  // 導播鍵盤快捷鍵監聽 (1~8鍵切換對應來賓 ON AIR)
+  document.addEventListener('keydown', e => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+    const num = parseInt(e.key);
+    if (!isNaN(num) && num >= 1 && num <= SLOT_COUNT) {
+      const g = [...guests.values()].find(x => x.slot === num) || [...guests.values()][num - 1];
+      if (g) {
+        const nextState = g.tally === 'live' ? 'off' : 'live';
+        setTally(g, nextState);
+        toast(`快捷鍵 [${num}]：${g.name} 切換為 ${nextState.toUpperCase()}`);
+      }
+    }
+  });
+
   async function fillHostDevices(){
     const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
     const cams = devs.filter(d => d.kind === 'videoinput');
@@ -509,17 +522,34 @@ function Host(){
     const list = $('#audioMonitorList');
     if (!guests.size) { list.innerHTML = '<span style="color:var(--mute); font-size:11px">尚無來賓連線</span>'; return; }
     list.innerHTML = [...guests.values()].map(g => `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--s2); padding:6px 10px; border-radius:6px">
-        <span class="mono" style="font-size:12px">${esc(g.name)}</span>
-        <button class="btn sm ${g.listen ? 'primary' : 'ghost'}" onclick="window.toggleMonitor('${g.id}')">
-          ${g.listen ? '🔊 監聽開啟' : '🔇 監聽關閉'}
-        </button>
+      <div style="background:var(--s2); padding:8px 10px; border-radius:6px; display:grid; gap:6px">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="mono" style="font-size:12px">${esc(g.name)}</span>
+          <button class="btn sm ${g.listen ? 'primary' : 'ghost'}" onclick="window.toggleMonitor('${g.id}')">
+            ${g.listen ? '🔊 監聽開啟' : '🔇 監聽關閉'}
+          </button>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:10px; color:var(--mute)">音量</span>
+          <input type="range" min="0" max="2" step="0.1" value="${g.vol ?? 1}" style="flex:1" oninput="window.setGuestVolume('${g.id}', this.value)">
+          <span class="mono" style="font-size:10px; width:32px; text-align:right" id="volLbl_${g.id}">${Math.round((g.vol ?? 1) * 100)}%</span>
+        </div>
       </div>
     `).join('');
   }
   window.toggleMonitor = id => {
     const g = guests.get(id);
     if (g) { setListen(g, !g.listen); updateAudioMonitorUI(); }
+  };
+  window.setGuestVolume = (id, val) => {
+    const g = guests.get(id);
+    if (!g) return;
+    g.vol = parseFloat(val);
+    const lbl = document.getElementById(`volLbl_${id}`);
+    if (lbl) lbl.textContent = Math.round(g.vol * 100) + '%';
+    if (g.gainNode && AC) {
+      g.gainNode.gain.setTargetAtTime(g.ic ? 0 : g.vol, AC.currentTime, 0.02);
+    }
   };
 
   function sendMsgToTarget(targetId, text, quiet){
@@ -602,10 +632,11 @@ function Host(){
     try { g.progSrc?.disconnect(); } catch {}
     const ac = audioCtx();
     const dst = ac.createMediaStreamDestination(), gain = ac.createGain();
-    gain.gain.value = g.ic ? 0 : 1;
+    g.vol = g.vol ?? 1;
+    gain.gain.value = g.ic ? 0 : g.vol;
+    g.gainNode = gain;
     if (g.stream.getAudioTracks().length) { g.progSrc = ac.createMediaStreamSource(g.stream); g.progSrc.connect(gain); }
     gain.connect(dst);
-    g.gain = gain;
     g.prog = new MediaStream([...g.stream.getVideoTracks(), dst.stream.getAudioTracks()[0]]);
   }
   function feedOutput(o){
@@ -676,7 +707,7 @@ function Host(){
       if (target === 'all') {
         guests.forEach(g => {
           g.ic = true;
-          if (g.gain) g.gain.gain.setTargetAtTime(0, AC.currentTime, .02);
+          if (g.gainNode) g.gainNode.gain.setTargetAtTime(0, AC.currentTime, .02);
           applyTracks(g);
           g.conn?.open && g.conn.send({ type: 'ic', on: true });
           g.el?.classList.add('icm');
@@ -687,7 +718,7 @@ function Host(){
         const g = guests.get(target);
         if (g) {
           g.ic = true;
-          if (g.gain) g.gain.gain.setTargetAtTime(0, AC.currentTime, .02);
+          if (g.gainNode) g.gainNode.gain.setTargetAtTime(0, AC.currentTime, .02);
           applyTracks(g);
           g.conn?.open && g.conn.send({ type: 'ic', on: true });
           g.el?.classList.add('icm');
@@ -703,7 +734,7 @@ function Host(){
       guests.forEach(g => {
         if (g.ic) {
           g.ic = false;
-          if (g.gain) g.gain.gain.setTargetAtTime(1, AC.currentTime, .02);
+          if (g.gainNode) g.gainNode.gain.setTargetAtTime(g.vol ?? 1, AC.currentTime, .02);
           applyTracks(g);
           g.conn?.open && g.conn.send({ type: 'ic', on: false });
           g.el?.classList.remove('icm');
