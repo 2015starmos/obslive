@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d10">
-<title>WebCall 專業導播台 - 對講音量微調旗艦版</title>
+<title>WebCall 專業導播台 - 完整修復版</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
@@ -42,7 +42,6 @@ svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke
 .btn.on{background:#1d2c46;border-color:var(--accent);color:#cfe0ff}
 .btn.off{background:#3a1518;border-color:var(--live);color:#ff9b9b}
 
-/* 專業導播大發光按鈕 */
 .cue-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;background:var(--s2);border:2px solid var(--line2);border-radius:8px;cursor:pointer;font-weight:700;font-family:var(--mono);font-size:13px;letter-spacing:.05em;color:var(--dim);transition:all .15s}
 .cue-btn:hover{border-color:var(--dim);color:var(--text)}
 .cue-btn.active-talk{background:#2e1a47;border-color:var(--ic);color:#e9d5ff;box-shadow:0 0 16px rgba(167,139,250,0.4);animation:pulse-ic 1.2s infinite}
@@ -101,17 +100,14 @@ input[type="range"]{accent-color:var(--accent);cursor:pointer}
 .bus .s .w.e{color:var(--mute)}
 .note{font-size:11.5px;color:var(--mute);margin:10px 0 0;line-height:1.55}
 
-/* 獨立導播快捷列 (Toolbar) */
 .toolbar-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px;background:var(--s2);border-bottom:1px solid var(--line)}
 .tab-btn{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--s3);border:1px solid var(--line2);border-radius:6px;padding:8px 4px;color:var(--dim);cursor:pointer;font-size:11px;font-weight:600;transition:all .12s}
 .tab-btn:hover{color:var(--text);background:#2a303b}
 .tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 
-/* 獨立彈出面板容器 */
 .panel-container{padding:14px;background:var(--s1);border-bottom:1px solid var(--line);display:grid;gap:10px}
 .panel-container.hidden{display:none}
 
-/* 來賓畫面瓦片 */
 .tile{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .12s,box-shadow .12s}
 .tile.live{border-color:var(--live);box-shadow:0 0 0 1px var(--live),0 0 18px #ff3b3b33}
 .tile.pvw{border-color:var(--pvw);box-shadow:0 0 0 1px var(--pvw)}
@@ -166,7 +162,6 @@ input[type="range"]{accent-color:var(--accent);cursor:pointer}
   .kpi,.clock,.topbar .sep{display:none}
 }
 
-/* 來賓端介面 */
 .gp{position:fixed;inset:0;background:#000;overflow:hidden}
 .stage{position:absolute;inset:0;transition:top .2s,bottom .2s}
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
@@ -226,7 +221,6 @@ input[type="range"]{accent-color:var(--accent);cursor:pointer}
 .scrim{position:absolute;inset:0;background:#0006;z-index:4}
 @media (min-width:700px) and (orientation:landscape){ .sheet{left:auto;right:16px;bottom:16px;border-radius:14px;width:400px;border:1px solid var(--line2)} }
 
-/* 輸出端 */
 body.out{background:transparent;overflow:hidden}
 body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 #outdbg{position:fixed;left:8px;bottom:8px;font:12px var(--mono);color:#7CFC9A;background:#000b;padding:4px 8px;border-radius:4px}
@@ -264,10 +258,10 @@ const roomCode = () => rnd(6).toUpperCase();
 const hostIdOf = room => PREFIX + room.toLowerCase() + '-host';
 const baseUrl = () => location.origin + location.pathname;
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
-function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2200); }
+function toast(t){ const el = $('#toast'); if(!el) return; el.textContent = t; el.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('show'), 2200); }
 async function copy(t, msg){ try { await navigator.clipboard.writeText(t); toast(msg || '已複製'); } catch { prompt('複製這段：', t); } }
 function store(k, v){ try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch {} }
-const onEnter = (el, fn) => el.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); fn(); } });
+const onEnter = (el, fn) => el && el.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); fn(); } });
 
 const ICONS = {
   mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/>',
@@ -288,13 +282,13 @@ const ICONS = {
   talk: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   screen: '<rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />',
   sparkle: '<path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z"/>',
-  zoom: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>',
   message: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
   sound: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>'
 };
 const ic = n => `<svg class="i" viewBox="0 0 24 24">${ICONS[n] || ''}</svg>`;
 const brand = () => '<div class="brand"><span class="mark"><i></i></span>WEBCALL</div>';
 function qr(el, text, size = 168){
+  if(!el) return;
   el.innerHTML = '';
   if (!window.QRCode) { el.classList.add('hidden'); return; }
   new QRCode(el, { text, width: size, height: size, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
@@ -310,6 +304,7 @@ function guidesSVG(mode){
   return `<svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" stroke="#fff" stroke-width="1">${s}</svg>`;
 }
 function fitGuides(box, video, ov){
+  if(!box || !video || !ov) return;
   const cw = box.clientWidth, ch = box.clientHeight, vw = video.videoWidth || 16, vh = video.videoHeight || 9;
   const k = Math.min(cw / vw, ch / vh), w = vw * k, h = vh * k;
   Object.assign(ov.style, { left: (cw - w) / 2 + 'px', top: (ch - h) / 2 + 'px', width: w + 'px', height: h + 'px' });
@@ -323,7 +318,7 @@ function setupGuides(box, video, ov){
 let AC;
 function audioCtx(){ AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); return AC; }
 function attachMeter(stream, cb){
-  if (!stream.getAudioTracks().length) return () => {};
+  if (!stream || !stream.getAudioTracks().length) return () => {};
   const ac = audioCtx(), src = ac.createMediaStreamSource(stream), an = ac.createAnalyser();
   an.fftSize = 512; src.connect(an);
   const buf = new Float32Array(an.fftSize); let alive = true;
@@ -380,18 +375,20 @@ function peerErrText(e){
   return ({ 'unavailable-id': '房間代碼已被使用',
             'peer-unavailable': '找不到導播台',
             'network': '網路連線異常',
-            'browser-incompatible': '瀏覽器不支援 WebRTC' })[e.type] || (e.type || e.message);
+            'browser-incompatible': '瀏覽器不支援 WebRTC' })[e?.type] || (e?.type || e?.message || '未知錯誤');
 }
 
-if (!window.Peer) {
-  app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 載入失敗。</p></div></div>`;
-} else {
+window.addEventListener('DOMContentLoaded', () => {
+  if (!window.Peer) {
+    if(app) app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 載入失敗。</p></div></div>`;
+    return;
+  }
   const mode = Q.get('mode');
   if (mode === 'host') Host();
   else if (mode === 'guest') Guest();
   else if (mode === 'out') Output();
   else Home();
-}
+});
 
 function Home(){
   const last = store('wc_room') || '';
@@ -409,9 +406,11 @@ function Home(){
       <div class="row"><input class="field" id="gr" placeholder="輸入房間代碼" maxlength="12"><button class="btn" id="ggo">加入連線</button></div>
     </div>
   </div></div>`;
-  $('#hgo').onclick = () => { const r = ($('#hr').value.trim() || roomCode()).toUpperCase().replace(/[^A-Z0-9]/g, ''); location.search = `?mode=host&room=${r}`; };
-  $('#ggo').onclick = () => { const r = $('#gr'].value.trim().toUpperCase(); if (r) location.search = `?mode=guest&room=${r}`; };
-  onEnter($('#gr'), () => $('#ggo').click()); onEnter($('#hr'), () => $('#hgo').click());
+  const hgoBtn = $('#hgo'), ggoBtn = $('#ggo'), hrInput = $('#hr'), grInput = $('#gr');
+  if(hgoBtn) hgoBtn.onclick = () => { const r = ((hrInput ? hrInput.value : '') || roomCode()).toUpperCase().replace(/[^A-Z0-9]/g, ''); location.search = `?mode=host&room=${r}`; };
+  if(ggoBtn) ggoBtn.onclick = () => { const r = (grInput ? grInput.value : '').toUpperCase(); if (r) location.search = `?mode=guest&room=${r}`; };
+  onEnter(grInput, () => ggoBtn && ggoBtn.click());
+  onEnter(hrInput, () => hgoBtn && hgoBtn.click());
 }
 
 function Host(){
@@ -425,7 +424,7 @@ function Host(){
   const outputs = new Set();
   const pending = new Map();
   let peer, returnStream = placeholderStream(), returnSrcStream = null, icStream = null;
-  let icGainNode = null, icGainVal = 1; // 導播對講麥克風返送音量
+  let icGainNode = null, icGainVal = 1;
 
   app.innerHTML = `
   <div class="host">
@@ -445,14 +444,12 @@ function Host(){
     <div class="body">
       <main class="multiview" id="mv"></main>
       <aside class="sidebar">
-        <!-- 導播專屬快捷分頁列 (Tabs) -->
         <div class="toolbar-tabs">
           <button class="tab-btn active" data-panel="intercom">${ic('talk')}對講機</button>
           <button class="tab-btn" data-panel="msg">${ic('message')}訊息廣播</button>
           <button class="tab-btn" data-panel="audio">${ic('sound')}聲音監聽</button>
         </div>
 
-        <!-- Panel 1: 獨立對講發話面板 (含對講返送音量微調) -->
         <div class="panel-container" id="panel-intercom">
           <h3>INTERCOM 獨立對講系統</h3>
           <span class="lbl">發話對象 (下拉選擇)</span>
@@ -473,7 +470,6 @@ function Host(){
           <button class="cue-btn" id="icToggleBtn">${ic('talk')}<span>點擊開啟對講發話</span></button>
         </div>
 
-        <!-- Panel 2: 獨立訊息面板 -->
         <div class="panel-container hidden" id="panel-msg">
           <h3>訊息發送面板</h3>
           <span class="lbl">接收對象 (下拉選擇)</span>
@@ -487,7 +483,6 @@ function Host(){
           <button class="btn ghost sm" id="bcclr" style="margin-top:4px; width:100%">清除所有來賓訊息</button>
         </div>
 
-        <!-- Panel 3: 獨立各路聲音監聽與音量面板 -->
         <div class="panel-container hidden" id="panel-audio">
           <h3>各路聲音監聽與遠端音量</h3>
           <div id="audioMonitorList" style="display:grid; gap:8px; max-height:300px; overflow-y:auto"></div>
@@ -515,36 +510,43 @@ function Host(){
     </div>
   </div>`;
 
-  // 側邊欄分頁切換邏輯
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.panel-container').forEach(p => p.classList.add('hidden'));
       btn.classList.add('active');
-      $(`#panel-${btn.dataset.panel}`).classList.remove('hidden');
+      const targetPanel = $(`#panel-${btn.dataset.panel}`);
+      if(targetPanel) targetPanel.classList.remove('hidden');
     };
   });
 
-  // 對講返送音量滑桿事件
-  $('#icVolRange').oninput = e => {
-    icGainVal = parseFloat(e.target.value);
-    $('#icVolLbl').textContent = Math.round(icGainVal * 100) + '%';
-    if (icGainNode && AC) {
-      icGainNode.gain.setTargetAtTime(icGainVal, AC.currentTime, 0.02);
-    }
-  };
+  const icVolRangeEl = $('#icVolRange');
+  if(icVolRangeEl) {
+    icVolRangeEl.oninput = e => {
+      icGainVal = parseFloat(e.target.value);
+      const lbl = $('#icVolLbl');
+      if(lbl) lbl.textContent = Math.round(icGainVal * 100) + '%';
+      if (icGainNode && AC) {
+        icGainNode.gain.setTargetAtTime(icGainVal, AC.currentTime, 0.02);
+      }
+    };
+  }
 
   const tick = () => {
-    $('#clk').textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
-    $('#acw').classList.toggle('hidden', !(guests.size && (!AC || AC.state !== 'running')));
+    const clk = $('#clk');
+    if(clk) clk.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+    const acw = $('#acw');
+    if(acw) acw.classList.toggle('hidden', !(guests.size && (!AC || AC.state !== 'running')));
   };
   tick(); setInterval(tick, 1000);
   document.addEventListener('pointerdown', () => audioCtx(), { capture: true });
-  $('#acw').onclick = () => { audioCtx(); tick(); };
-  $('#roomc').onclick = () => copy(room, '已複製代碼');
-  $('#inv').onclick = invite;
+  const acwBtn = $('#acw');
+  if(acwBtn) acwBtn.onclick = () => { audioCtx(); tick(); };
+  const roomcEl = $('#roomc');
+  if(roomcEl) roomcEl.onclick = () => copy(room, '已複製代碼');
+  const invBtn = $('#inv');
+  if(invBtn) invBtn.onclick = invite;
 
-  // 導播鍵盤快捷鍵監聽 (1~8鍵切換對應來賓 ON AIR)
   document.addEventListener('keydown', e => {
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
     const num = parseInt(e.key);
@@ -561,19 +563,29 @@ function Host(){
   async function fillHostDevices(){
     const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
     const cams = devs.filter(d => d.kind === 'videoinput');
-    $('#hostcam').innerHTML = cams.map((d, i) => `<option value="${d.deviceId}">${esc(d.label || '外部相機 ' + (i + 1))}</option>`).join('') || '<option value="">預設相機</option>';
+    const hcam = $('#hostcam');
+    if(hcam) hcam.innerHTML = cams.map((d, i) => `<option value="${d.deviceId}">${esc(d.label || '外部相機 ' + (i + 1))}</option>`).join('') || '<option value="">預設相機</option>';
   }
   fillHostDevices();
 
   function updateTargetSelects(){
-    const opts = ['<option value="all">📢 全體群發 (All-Call)</option>' + [...guests.values()].map(g => `<option value="${g.id}">👤 ${esc(g.name)} (Slot ${g.slot || '未編號'})</option>`).join('')];
-    const icCur = $('#icTarget').value, msgCur = $('#msgTarget').value;
-    $('#icTarget').innerHTML = opts; if ($('#icTarget').querySelector(`[value="${icCur}"]`)) $('#icTarget').value = icCur;
-    $('#msgTarget').innerHTML = opts; if ($('#msgTarget').querySelector(`[value="${msgCur}"]`)) $('#msgTarget').value = msgCur;
+    const opts = '<option value="all">📢 全體群發 (All-Call)</option>' + [...guests.values()].map(g => `<option value="${g.id}">👤 ${esc(g.name)} (Slot ${g.slot || '未編號'})</option>`).join('');
+    const icTarget = $('#icTarget'), msgTarget = $('#msgTarget');
+    if(icTarget) {
+      const icCur = icTarget.value;
+      icTarget.innerHTML = opts;
+      if (icTarget.querySelector(`[value="${icCur}"]`)) icTarget.value = icCur;
+    }
+    if(msgTarget) {
+      const msgCur = msgTarget.value;
+      msgTarget.innerHTML = opts;
+      if (msgTarget.querySelector(`[value="${msgCur}"]`)) msgTarget.value = msgCur;
+    }
   }
 
   function updateAudioMonitorUI(){
     const list = $('#audioMonitorList');
+    if(!list) return;
     if (!guests.size) { list.innerHTML = '<span style="color:var(--mute); font-size:11px">尚無來賓連線</span>'; return; }
     list.innerHTML = [...guests.values()].map(g => `
       <div style="background:var(--s2); padding:8px 10px; border-radius:6px; display:grid; gap:6px">
@@ -631,17 +643,22 @@ function Host(){
     el.innerHTML = `<b>最後訊息：</b>${esc(text)} ${s === 'ok' ? '<span class="ok">✓ 已送達</span>' : s === 'no' ? '<span class="no">✗ 未送達</span>' : '<span>傳送中…</span>'}`;
   }
 
-  $('#bcgo').onclick = () => {
-    const text = $('#bc').value.trim();
-    const target = $('#msgTarget').value;
-    sendMsgToTarget(target, text);
-    $('#bc').value = '';
-  };
-  onEnter($('#bc'), () => $('#bcgo').click());
-  $('#bcclr').onclick = () => {
-    const target = $('#msgTarget').value;
-    sendMsgToTarget(target, '');
-  };
+  const bcgoBtn = $('#bcgo'), bcInput = $('#bc'), bcclrBtn = $('#bcclr'), msgTargetEl = $('#msgTarget');
+  if(bcgoBtn && bcInput) {
+    bcgoBtn.onclick = () => {
+      const text = bcInput.value.trim();
+      const target = msgTargetEl ? msgTargetEl.value : 'all';
+      sendMsgToTarget(target, text);
+      bcInput.value = '';
+    };
+    onEnter(bcInput, () => bcgoBtn.click());
+  }
+  if(bcclrBtn) {
+    bcclrBtn.onclick = () => {
+      const target = msgTargetEl ? msgTargetEl.value : 'all';
+      sendMsgToTarget(target, '');
+    };
+  }
 
   function invite(){
     const m = document.createElement('div'); m.className = 'modal';
@@ -653,12 +670,15 @@ function Host(){
       <button class="btn ghost" id="icl" style="justify-self:end">關閉</button></div>`;
     document.body.appendChild(m);
     qr($('#iqr', m), guestUrl, 200);
-    $('#icp', m).onclick = () => copy(guestUrl, '已複製來賓連結');
+    const icp = $('#icp', m);
+    if(icp) icp.onclick = () => copy(guestUrl, '已複製來賓連結');
     m.onclick = e => { if (e.target === m || e.target.closest('#icl')) m.remove(); };
   }
 
   function renderEmpty(){
-    $('#mv').innerHTML = `<div class="emptyv">
+    const mv = $('#mv');
+    if(!mv) return;
+    mv.innerHTML = `<div class="emptyv">
       <div class="qr" id="eqr"></div>
       <div><h2>等待來賓連線</h2>房間 <b class="mono">${room}</b>
         <ol><li>來賓掃描 QR Code 或使用連結加入</li>
@@ -669,16 +689,20 @@ function Host(){
   renderEmpty();
 
   function renderSlots(){
-    $('#bus').innerHTML = Array.from({ length: SLOT_COUNT }, (_, i) => {
+    const bus = $('#bus');
+    if(!bus) return;
+    bus.innerHTML = Array.from({ length: SLOT_COUNT }, (_, i) => {
       const s = i + 1, g = [...guests.values()].find(x => x.slot === s);
       const n = [...outputs].filter(o => o.slot === s).length;
       return `<div class="s ${g ? 'on' : ''} ${g?.ic ? 'icm' : ''}"><span class="n">${s}</span>
         <span class="w ${g ? '' : 'e'}">${g ? esc(g.name) : '—'}${g?.ic ? '<small style="color:var(--ic)">INTERCOM</small>' : ''}${n ? `<small>● OBS×${n}</small>` : ''}</span>
         <button class="btn sm ghost" data-out="${s}" title="複製輸出">${ic('link')}</button></div>`;
     }).join('');
-    $('#bus').querySelectorAll('[data-out]').forEach(b => b.onclick = () => copy(outUrl(b.dataset.out), `已複製輸出網址`));
-    $('#kg').textContent = guests.size; $('#ko').textContent = outputs.size;
-    $('#busn').textContent = `${outputs.size} LINKED`;
+    bus.querySelectorAll('[data-out]').forEach(b => b.onclick = () => copy(outUrl(b.dataset.out), `已複製輸出網址`));
+    const kg = $('#kg'), ko = $('#ko'), busn = $('#busn');
+    if(kg) kg.textContent = guests.size;
+    if(ko) ko.textContent = outputs.size;
+    if(busn) busn.textContent = `${outputs.size} LINKED`;
   }
   renderSlots();
 
@@ -710,10 +734,18 @@ function Host(){
     const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
     const mics = devs.filter(d => d.kind === 'audioinput');
     const opts = mics.map(d => `<option value="${d.deviceId}">${esc(d.label || '麥克風')}</option>`).join('') || '<option value="">預設麥克風</option>';
-    const cur = $('#icmic').value; $('#icmic').innerHTML = opts; if (cur) $('#icmic').value = cur;
+    const icmic = $('#icmic');
+    if(icmic) {
+      const cur = icmic.value;
+      icmic.innerHTML = opts;
+      if (cur) icmic.value = cur;
+    }
   }
   fillMics();
-  const micConstraint = () => ({ deviceId: $('#icmic').value ? { exact: $('#icmic').value } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true });
+  const micConstraint = () => {
+    const icmic = $('#icmic');
+    return { deviceId: icmic && icmic.value ? { exact: icmic.value } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+  };
 
   const returnTrack = kind => returnSrcStream?.getTracks().find(t => t.kind === kind && t.readyState === 'live') || returnStream.getTracks().find(t => t.kind === kind);
   const icTrack = () => icStream?.getAudioTracks().find(t => t.readyState === 'live');
@@ -725,34 +757,45 @@ function Host(){
     });
   }
   async function setReturn(){
-    const kind = $('#retsel').value;
-    returnSrcStream?.getTracks().forEach(t => t.stop()); returnSrcStream = null;
+    const retsel = $('#retsel');
+    const kind = retsel ? retsel.value : 'none';
+    if(returnSrcStream) {
+      returnSrcStream.getTracks().forEach(t => t.stop());
+      returnSrcStream = null;
+    }
     try {
       if (kind === 'mic') returnSrcStream = await navigator.mediaDevices.getUserMedia({ audio: micConstraint() });
       if (kind === 'cam') returnSrcStream = await navigator.mediaDevices.getUserMedia({ audio: micConstraint(), video: { width: 640, height: 360 } });
       if (kind === 'screen') returnSrcStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 15 }, audio: true });
-    } catch (e) { toast('無法取得來源：' + e.message); $('#retsel').value = 'none'; }
+    } catch (e) {
+      toast('無法取得來源：' + e.message);
+      if(retsel) retsel.value = 'none';
+    }
     fillMics();
     guests.forEach(applyTracks);
     toast('回傳來源已切換');
   }
-  $('#retsel').onchange = setReturn;
-  $('#icmic').onchange = async () => {
-    icStream?.getTracks().forEach(t => t.stop()); icStream = null;
-    if ([...guests.values()].some(g => g.ic)) { await ensureIcMic(); guests.forEach(applyTracks); }
-    if ($('#retsel').value === 'mic' || $('#retsel').value === 'cam') setReturn();
-  };
+  const retselEl = $('#retsel'), icmicEl = $('#icmic');
+  if(retselEl) retselEl.onchange = setReturn;
+  if(icmicEl) {
+    icmicEl.onchange = async () => {
+      if(icStream) {
+        icStream.getTracks().forEach(t => t.stop());
+        icStream = null;
+      }
+      if ([...guests.values()].some(g => g.ic)) { await ensureIcMic(); guests.forEach(applyTracks); }
+      if (retselEl && (retselEl.value === 'mic' || retselEl.value === 'cam')) setReturn();
+    };
+  }
   async function ensureIcMic(){
     if (icTrack()) return true;
     try {
       icStream = await navigator.mediaDevices.getUserMedia({ audio: micConstraint() });
-      // 為導播監聽建立返送音量 GainNode
       const ac = audioCtx();
       const src = ac.createMediaStreamSource(icStream);
       icGainNode = ac.createGain();
       icGainNode.gain.value = icGainVal;
       src.connect(icGainNode);
-      // 連線至導播喇叭/耳機輸出（如果不想讓導播自己聽到自己說話可保持靜音或透過gain控制）
       const dummyDest = ac.createMediaStreamDestination();
       icGainNode.connect(dummyDest);
       fillMics();
@@ -763,14 +806,16 @@ function Host(){
 
   let isMasterIntercomActive = false;
   async function toggleMasterIntercom(){
-    const target = $('#icTarget').value;
+    const icTarget = $('#icTarget'), icToggleBtn = $('#icToggleBtn');
+    const target = icTarget ? icTarget.value : 'all';
     if (!isMasterIntercomActive) {
       if (!(await ensureIcMic())) return;
       audioCtx();
       isMasterIntercomActive = true;
-      const btn = $('#icToggleBtn');
-      btn.classList.add('active-talk');
-      btn.innerHTML = `${ic('talk')}<span>🔴 正在對講發話中 (點擊關閉)</span>`;
+      if(icToggleBtn) {
+        icToggleBtn.classList.add('active-talk');
+        icToggleBtn.innerHTML = `${ic('talk')}<span>🔴 正在對講發話中 (點擊關閉)</span>`;
+      }
 
       if (target === 'all') {
         guests.forEach(g => {
@@ -796,9 +841,10 @@ function Host(){
       }
     } else {
       isMasterIntercomActive = false;
-      const btn = $('#icToggleBtn');
-      btn.classList.remove('active-talk');
-      btn.innerHTML = `${ic('talk')}<span>點擊開啟對講發話</span>`;
+      if(icToggleBtn) {
+        icToggleBtn.classList.remove('active-talk');
+        icToggleBtn.innerHTML = `${ic('talk')}<span>點擊開啟對講發話</span>`;
+      }
 
       guests.forEach(g => {
         if (g.ic) {
@@ -810,16 +856,23 @@ function Host(){
           updateTags(g);
         }
       });
-      icStream?.getTracks().forEach(t => t.stop()); icStream = null;
+      if(icStream) {
+        icStream.getTracks().forEach(t => t.stop());
+        icStream = null;
+      }
       toast('已結束對講發話');
     }
     renderSlots();
   }
-  $('#icToggleBtn').onclick = toggleMasterIntercom;
+  const icToggleBtnEl = $('#icToggleBtn');
+  if(icToggleBtnEl) icToggleBtnEl.onclick = toggleMasterIntercom;
 
   function setListen(g, on){
-    g.listen = on; g.el.querySelector('video').muted = !on;
-    g.el.querySelector('[data-k="listen"]').classList.toggle('on', on);
+    g.listen = on;
+    const v = g.el.querySelector('video');
+    if(v) v.muted = !on;
+    const listenBtn = g.el.querySelector('[data-k="listen"]');
+    if(listenBtn) listenBtn.classList.toggle('on', on);
     if (on) audioCtx();
   }
   function clearCall(g){ clearTimeout(g.callT); g.calling = false; g.el?.classList.remove('calling'); updateTags(g); }
@@ -851,8 +904,9 @@ function Host(){
       <div class="lastmsg" data-k="last"></div>`;
     const k = n => el.querySelector(`[data-k="${n}"]`);
     k('name').textContent = g.name;
-    k('slot').value = g.slot;
-    k('slot').onchange = e => {
+    const slotSel = k('slot');
+    slotSel.value = g.slot;
+    slotSel.onchange = e => {
       const ns = +e.target.value, old = g.slot;
       if (ns) guests.forEach(o => { if (o !== g && o.slot === ns) { o.slot = 0; if (o.el) { o.el.querySelector('[data-k="slot"]').value = 0; updateTags(o); } } });
       g.slot = ns; if (old) refreshSlot(old); if (ns) refreshSlot(ns); renderSlots(); updateTags(g);
@@ -870,7 +924,11 @@ function Host(){
     const v = el.querySelector('video');
     v.addEventListener('resize', () => { const tv = el.querySelector('.tv'); if (v.videoWidth) { tv.style.setProperty('--ar', `${v.videoWidth}/${v.videoHeight}`); tv.style.setProperty('--arn', v.videoWidth / v.videoHeight); } });
     g.el = el;
-    const mv = $('#mv'); mv.querySelector('.emptyv')?.remove(); mv.appendChild(el);
+    const mv = $('#mv');
+    if(mv) {
+      mv.querySelector('.emptyv')?.remove();
+      mv.appendChild(el);
+    }
     setTally(g, g.tally || 'off'); updateTags(g); updateRemoteBtns(g);
     updateTargetSelects();
     updateAudioMonitorUI();
@@ -884,21 +942,24 @@ function Host(){
     if (!g.el) return;
     const m = g.el.querySelector('[data-k="rmic"]'), c = g.el.querySelector('[data-k="rcam"]');
     const mOff = g.mic === false, cOff = g.cam === false;
-    m.classList.toggle('off', mOff); m.innerHTML = ic(mOff ? 'micoff' : 'mic');
-    c.classList.toggle('off', cOff); c.innerHTML = ic(cOff ? 'camoff' : 'cam');
+    if(m) { m.classList.toggle('off', mOff); m.innerHTML = ic(mOff ? 'micoff' : 'mic'); }
+    if(c) { c.classList.toggle('off', cOff); c.innerHTML = ic(cOff ? 'camoff' : 'cam'); }
     updateTags(g);
   }
   function updateTags(g){
     if (!g.el) return;
     const t = g.tally || 'off';
-    g.el.querySelector('[data-k="tags"]').innerHTML = [
-      `<span class="tag ${t === 'off' ? '' : t}">${t === 'live' ? '● ON AIR' : t === 'pvw' ? 'PREVIEW' : 'STBY'}</span>`,
-      g.slot ? `<span class="tag out">OUT ${g.slot}</span>` : '',
-      g.ic ? '<span class="tag icm">INTERCOM</span>' : '',
-      g.calling ? '<span class="tag call">🔔 呼叫導播</span>' : '',
-      g.mic === false ? '<span class="tag warn">MIC OFF</span>' : '',
-      g.cam === false ? '<span class="tag warn">CAM OFF</span>' : '',
-    ].join('');
+    const tagContainer = g.el.querySelector('[data-k="tags"]');
+    if(tagContainer) {
+      tagContainer.innerHTML = [
+        `<span class="tag ${t === 'off' ? '' : t}">${t === 'live' ? '● ON AIR' : t === 'pvw' ? 'PREVIEW' : 'STBY'}</span>`,
+        g.slot ? `<span class="tag out">OUT ${g.slot}</span>` : '',
+        g.ic ? '<span class="tag icm">INTERCOM</span>' : '',
+        g.calling ? '<span class="tag call">🔔 呼叫導播</span>' : '',
+        g.mic === false ? '<span class="tag warn">MIC OFF</span>' : '',
+        g.cam === false ? '<span class="tag warn">CAM OFF</span>' : '',
+      ].join('');
+    }
   }
   function setTally(g, t){
     g.tally = t;
@@ -923,12 +984,12 @@ function Host(){
     const v = g.el.querySelector('video'); v.srcObject = g.stream; v.play().catch(() => {});
     g.el.querySelector('[data-k="nosig"]').classList.add('hidden');
     const bar = g.el.querySelector('.vu i');
-    g.stopMeter?.(); g.stopMeter = attachMeter(g.stream, lv => bar.style.height = (lv * 100) + '%');
+    g.stopMeter?.(); g.stopMeter = attachMeter(g.stream, lv => { if(bar) bar.style.height = (lv * 100) + '%'; });
     const st = g.el.querySelector('[data-k="stats"]');
     clearInterval(g.statT); let prev = null;
     g.statT = setInterval(async () => {
       if (!guests.has(g.id)) return clearInterval(g.statT);
-      const s = await readStats(g.call?.peerConnection, prev, 'inbound'); if (!s) return;
+      const s = await readStats(g.call?.peerConnection, prev, 'inbound'); if (!s || !st) return;
       const w = v.videoWidth, h = v.videoHeight;
       const res = w ? `${w}×${h}` : '';
       const warn = (s.rtt != null && s.rtt > 400) || s.loss > 5;
@@ -939,9 +1000,20 @@ function Host(){
 
   function start(){
     peer = new Peer(hostIdOf(room), PEER_OPTS);
-    peer.on('open', () => pst('ok', 'ONLINE'));
-    peer.on('disconnected', () => { pst('wait', '重連中…'); setTimeout(() => !peer.destroyed && peer.reconnect(), 2000); });
-    peer.on('error', e => { pst('bad', peerErrText(e)); if (e.type === 'unavailable-id') { peer.destroy(); setTimeout(start, 4000); } });
+    peer.on('open', () => {
+      const pstEl = $('#pst');
+      if(pstEl) pstEl.innerHTML = '<span class="dot ok"></span>ONLINE';
+    });
+    peer.on('disconnected', () => {
+      const pstEl = $('#pst');
+      if(pstEl) pstEl.innerHTML = '<span class="dot wait"></span>重連中…';
+      setTimeout(() => !peer.destroyed && peer.reconnect(), 2000);
+    });
+    peer.on('error', e => {
+      const pstEl = $('#pst');
+      if(pstEl) pstEl.innerHTML = `<span class="dot bad"></span>${peerErrText(e)}`;
+      if (e.type === 'unavailable-id') { peer.destroy(); setTimeout(start, 4000); }
+    });
     peer.on('connection', conn => {
       const md = conn.metadata || {};
       if (md.role === 'out') {
@@ -958,12 +1030,12 @@ function Host(){
       conn.on('open', () => { setTally(g, g.tally); if (g.ic) conn.send({ type: 'ic', on: true }); renderSlots(); });
       conn.on('data', d => {
         if (!d) return;
-        if (d.type === 'name') { g.name = String(d.name).slice(0, 30) || '來賓'; g.el.querySelector('[data-k="name"]').textContent = g.name; renderSlots(); updateTargetSelects(); updateAudioMonitorUI(); }
+        if (d.type === 'name') { g.name = String(d.name).slice(0, 30) || '來賓'; const nm = g.el?.querySelector('[data-k="name"]'); if(nm) nm.textContent = g.name; renderSlots(); updateTargetSelects(); updateAudioMonitorUI(); }
         if (d.type === 'ack') { const p = pending.get(d.id); if (p) { clearTimeout(p.t); pending.delete(d.id); setLast(p.g, p.text, 'ok'); } }
         if (d.type === 'state') { g.mic = d.mic; g.cam = d.cam; updateRemoteBtns(g); }
         if (d.type === 'call') {
           if (g.ic) return;
-          g.calling = true; g.el.classList.add('calling'); updateTags(g); beep(988); setTimeout(() => beep(1318), 180);
+          g.calling = true; g.el?.classList.add('calling'); updateTags(g); beep(988); setTimeout(() => beep(1318), 180);
           toast(`🔔「${g.name}」呼叫導播`);
           clearTimeout(g.callT); g.callT = setTimeout(() => clearCall(g), 20000);
         }
@@ -1045,20 +1117,23 @@ function Guest(){
     </div>
   </div>`;
 
-  const st = (cls, t) => $('#gst').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`;
+  const st = (cls, t) => { const gst = $('#gst'); if(gst) gst.innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`; };
   const fitG = setupGuides($('#stage'), $('#self'), $('#gd'));
-  $('#gdb').onclick = () => { guides = (guides + 1) % 4; $('#gd').innerHTML = guidesSVG(guides); $('#gdb').classList.toggle('on', !!guides); fitG(); toast(GUIDE_NAMES[guides]); };
+  const gdbBtn = $('#gdb');
+  if(gdbBtn) gdbBtn.onclick = () => { guides = (guides + 1) % 4; const gd = $('#gd'); if(gd) gd.innerHTML = guidesSVG(guides); gdbBtn.classList.toggle('on', !!guides); fitG(); toast(GUIDE_NAMES[guides]); };
 
   function layoutStage(){
-    const sh = $('#sheet'), portrait = innerHeight > innerWidth;
+    const sh = $('#sheet'), stage = $('#stage'), portrait = innerHeight > innerWidth;
+    if(!sh || !stage) return;
     const lobby = !joined && !sh.classList.contains('hidden') && portrait;
-    $('#stage').style.bottom = lobby ? Math.max(0, sh.offsetHeight - 14) + 'px' : '0';
-    $('#stage').style.top = lobby ? 'calc(44px + var(--sat))' : '0';
+    stage.style.bottom = lobby ? Math.max(0, sh.offsetHeight - 14) + 'px' : '0';
+    stage.style.top = lobby ? 'calc(44px + var(--sat))' : '0';
   }
-  new ResizeObserver(layoutStage).observe($('#sheet'));
+  const sheetEl = $('#sheet');
+  if(sheetEl) new ResizeObserver(layoutStage).observe(sheetEl);
   addEventListener('resize', layoutStage);
-  const openSheet = () => { $('#sheet').classList.remove('hidden'); if (joined) { $('#scrim').classList.remove('hidden'); $('#sh').textContent = '設定'; } layoutStage(); };
-  const closeSheet = () => { $('#sheet').classList.add('hidden'); $('#scrim').classList.add('hidden'); layoutStage(); };
+  const openSheet = () => { if(sheetEl) sheetEl.classList.remove('hidden'); const scrim = $('#scrim'), sh = $('#sh'); if (joined) { if(scrim) scrim.classList.remove('hidden'); if(sh) sh.textContent = '設定'; } layoutStage(); };
+  const closeSheet = () => { if(sheetEl) sheetEl.classList.add('hidden'); const scrim = $('#scrim'); if(scrim) scrim.classList.add('hidden'); layoutStage(); };
 
   const sendState = () => {
     if (!conn?.open) return;
@@ -1069,16 +1144,19 @@ function Guest(){
   async function listDevices(){
     const devs = await navigator.mediaDevices.enumerateDevices().catch(() => []);
     const fill = (sel, kind, cur, base) => {
+      if(!sel) return;
       sel.innerHTML = devs.filter(d => d.kind === kind).map((d, i) => `<option value="${d.deviceId}">${esc(d.label || base + ' ' + (i + 1))}</option>`).join('');
       if (cur) sel.value = cur;
     };
-    fill($('#cam'), 'videoinput', stream?.getVideoTracks()[0]?.getSettings().deviceId, '鏡頭');
-    fill($('#mic'), 'audioinput', stream?.getAudioTracks()[0]?.getSettings().deviceId, '麥克風');
+    const camSel = $('#cam'), micSel = $('#mic');
+    fill(camSel, 'videoinput', stream?.getVideoTracks()[0]?.getSettings().deviceId, '鏡頭');
+    fill(micSel, 'audioinput', stream?.getAudioTracks()[0]?.getSettings().deviceId, '麥克風');
   }
 
   async function getMedia(useFacing){
-    const q = QUALITY[$('#q').value];
-    const cam = $('#cam').value, mic = $('#mic').value;
+    const qEl = $('#q'), camEl = $('#cam'), micEl = $('#mic');
+    const q = QUALITY[qEl ? qEl.value : '720'];
+    const cam = camEl ? camEl.value : '', mic = micEl ? micEl.value : '';
     const video = { width: { ideal: q.w }, height: { ideal: q.h }, frameRate: { ideal: 30 } };
     if (useFacing) video.facingMode = facing; else if (cam) video.deviceId = { exact: cam };
     const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
@@ -1087,11 +1165,12 @@ function Guest(){
     const wasA = stream?.getAudioTracks()[0]?.enabled ?? true, wasV = stream?.getVideoTracks()[0]?.enabled ?? true;
     stream?.getTracks().forEach(t => t.stop());
     stream = s; s.getAudioTracks().forEach(t => t.enabled = wasA); s.getVideoTracks().forEach(t => t.enabled = wasV);
-    $('#self').srcObject = s;
+    const selfVid = $('#self');
+    if(selfVid) selfVid.srcObject = s;
     const track = s.getVideoTracks()[0];
     const fm = track?.getSettings()?.facingMode;
     if (fm) facing = fm === 'environment' ? 'environment' : 'user';
-    $('#self').classList.toggle('mirror', facing === 'user');
+    if(selfVid) selfVid.classList.toggle('mirror', facing === 'user');
     if (call?.peerConnection) {
       call.peerConnection.getSenders().forEach(snd => {
         const t = s.getTracks().find(x => x.kind === snd.track?.kind);
@@ -1101,8 +1180,9 @@ function Guest(){
     }
     stopMeter?.();
     stopMeter = attachMeter(s, lv => {
-      $('#lvl').style.width = (lv * 100) + '%';
-      $('#mlv').style.opacity = stream.getAudioTracks()[0]?.enabled && lv > .35 ? Math.min(1, (lv - .35) * 3) : 0;
+      const lvl = $('#lvl'), mlv = $('#mlv');
+      if(lvl) lvl.style.width = (lv * 100) + '%';
+      if(mlv) mlv.style.opacity = stream.getAudioTracks()[0]?.enabled && lv > .35 ? Math.min(1, (lv - .35) * 3) : 0;
     });
     syncButtons();
     listDevices();
@@ -1112,95 +1192,118 @@ function Guest(){
     try { await getMedia(); st('', '預覽中'); }
     catch (e) { st('bad', '相機啟動失敗'); toast(e.message); }
   }
-  $('#cam').onchange = $('#mic').onchange = $('#q').onchange = () => getMedia().catch(e => toast(e.message));
-  $('#flip').onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; getMedia(true).catch(e => toast(e.message)); };
+  const camEl = $('#cam'), micEl = $('#mic'), qEl = $('#q'), flipBtn = $('#flip');
+  if(camEl) camEl.onchange = () => getMedia().catch(e => toast(e.message));
+  if(micEl) micEl.onchange = () => getMedia().catch(e => toast(e.message));
+  if(qEl) qEl.onchange = () => getMedia().catch(e => toast(e.message));
+  if(flipBtn) flipBtn.onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; getMedia(true).catch(e => toast(e.message)); };
 
   async function applyZoom(val){
     currentZoom = Math.max(minZoom, Math.min(maxZoom, val));
-    $('#zoomLbl.mono', $('#zoomCtrl')).textContent = currentZoom.toFixed(1) + 'x';
+    const zoomLbl = $('#zoomLbl');
+    if(zoomLbl) zoomLbl.textContent = currentZoom.toFixed(1) + 'x';
     const track = stream?.getVideoTracks()[0];
     const caps = track?.getCapabilities?.();
     if (caps && caps.zoom) {
       try { await track.applyConstraints({ advanced: [{ zoom: currentZoom }] }); return; } catch {}
     }
-    $('#self').style.transform = `${facing === 'user' ? 'scaleX(-1)' : ''} scale(${currentZoom})`;
+    const selfVid = $('#self');
+    if(selfVid) selfVid.style.transform = `${facing === 'user' ? 'scaleX(-1)' : ''} scale(${currentZoom})`;
   }
-  $('#zoomIn').onclick = () => applyZoom(currentZoom + 0.5);
-  $('#zoomOut').onclick = () => applyZoom(currentZoom - 0.5);
+  const zoomInBtn = $('#zoomIn'), zoomOutBtn = $('#zoomOut');
+  if(zoomInBtn) zoomInBtn.onclick = () => applyZoom(currentZoom + 0.5);
+  if(zoomOutBtn) zoomOutBtn.onclick = () => applyZoom(currentZoom - 0.5);
 
-  $('#shareBtn').onclick = async () => {
-    const layer = $('#screenLayer');
-    if (!layer.classList.contains('hidden')) {
-      layer.classList.add('hidden');
-      $('#screenVideo').srcObject = null;
-      $('#screenVideo').src = '';
-      toast('已關閉畫面分享');
-      return;
-    }
-    if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function') {
-      try {
-        const scrStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-        $('#screenVideo').srcObject = scrStream;
-        layer.classList.remove('hidden');
-        toast('畫面分享已啟動');
-        scrStream.getVideoTracks()[0].onended = () => layer.classList.add('hidden');
+  const shareBtn = $('#shareBtn'), screenLayer = $('#screenLayer'), screenVideo = $('#screenVideo'), albumFile = $('#albumFile');
+  if(shareBtn) {
+    shareBtn.onclick = async () => {
+      if(!screenLayer) return;
+      if (!screenLayer.classList.contains('hidden')) {
+        screenLayer.classList.add('hidden');
+        if(screenVideo) { screenVideo.srcObject = null; screenVideo.src = ''; }
+        toast('已關閉畫面分享');
         return;
-      } catch (e) {}
-    }
-    $('#albumFile').click();
-  };
-  $('#albumFile').onchange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const sv = $('#screenVideo');
-    sv.srcObject = null;
-    sv.src = url;
-    $('#screenLayer').classList.remove('hidden');
-    sv.play().catch(() => {});
-    toast('已從相簿載入影片分享');
-  };
+      }
+      if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function') {
+        try {
+          const scrStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          if(screenVideo) screenVideo.srcObject = scrStream;
+          screenLayer.classList.remove('hidden');
+          toast('畫面分享已啟動');
+          scrStream.getVideoTracks()[0].onended = () => screenLayer.classList.add('hidden');
+          return;
+        } catch (e) {}
+      }
+      if(albumFile) albumFile.click();
+    };
+  }
+  if(albumFile) {
+    albumFile.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      if(screenVideo) {
+        screenVideo.srcObject = null;
+        screenVideo.src = url;
+        if(screenLayer) screenLayer.classList.remove('hidden');
+        screenVideo.play().catch(() => {});
+      }
+      toast('已從相簿載入影片分享');
+    };
+  }
 
   let beautyOn = false;
-  $('#beautyBtn').onclick = () => {
-    beautyOn = !beautyOn;
-    $('#self').classList.toggle('beauty-smooth', beautyOn);
-    $('#self').classList.toggle('bokeh-depth', beautyOn);
-    $('#beautyBtn').classList.toggle('on', beautyOn);
-    toast(beautyOn ? '美顏景深已開啟' : '美顏已關閉');
-  };
+  const beautyBtn = $('#beautyBtn'), selfVid = $('#self');
+  if(beautyBtn) {
+    beautyBtn.onclick = () => {
+      beautyOn = !beautyOn;
+      if(selfVid) {
+        selfVid.classList.toggle('beauty-smooth', beautyOn);
+        selfVid.classList.toggle('bokeh-depth', beautyOn);
+      }
+      beautyBtn.classList.toggle('on', beautyOn);
+      toast(beautyOn ? '美顏景深已開啟' : '美顏已關閉');
+    };
+  }
 
   function syncButtons(){
     const a = stream?.getAudioTracks()[0], v = stream?.getVideoTracks()[0];
     const mOff = a && !a.enabled, vOff = v && !v.enabled;
-    $('#mute').classList.toggle('off', mOff); $('#mute').querySelector('svg').outerHTML = ic(mOff ? 'micoff' : 'mic');
-    $('#vmute').classList.toggle('off', vOff); $('#vmute').querySelector('svg').outerHTML = ic(vOff ? 'camoff' : 'cam');
+    const muteBtn = $('#mute'), vmuteBtn = $('#vmute');
+    if(muteBtn) { muteBtn.classList.toggle('off', mOff); const svg = muteBtn.querySelector('svg'); if(svg) svg.outerHTML = ic(mOff ? 'micoff' : 'mic'); }
+    if(vmuteBtn) { vmuteBtn.classList.toggle('off', vOff); const svg = vmuteBtn.querySelector('svg'); if(svg) svg.outerHTML = ic(vOff ? 'camoff' : 'cam'); }
     sendState();
   }
 
   const setMic = on => { const a = stream?.getAudioTracks()[0]; if (a) a.enabled = on; syncButtons(); };
   const setCam = on => { const v = stream?.getVideoTracks()[0]; if (v) v.enabled = on; syncButtons(); };
-  $('#mute').onclick = () => { const on = !stream?.getAudioTracks()[0]?.enabled; setMic(on); toast(on ? '麥克風已開啟' : '靜音中'); };
-  $('#vmute').onclick = () => { const on = !stream?.getVideoTracks()[0]?.enabled; setCam(on); toast(on ? '鏡頭已開啟' : '鏡頭已關閉'); };
-  $('#set').onclick = openSheet; $('#done').onclick = closeSheet; $('#scrim').onclick = closeSheet;
-  $('#callb').onclick = () => {
+  const muteBtn = $('#mute'), vmuteBtn = $('#vmute'), setBtn = $('#set'), doneBtn = $('#done'), scrimEl = $('#scrim'), callbBtn = $('#callb'), leaveBtn = $('#leave');
+  if(muteBtn) muteBtn.onclick = () => { const on = !stream?.getAudioTracks()[0]?.enabled; setMic(on); toast(on ? '麥克風已開啟' : '靜音中'); };
+  if(vmuteBtn) vmuteBtn.onclick = () => { const on = !stream?.getVideoTracks()[0]?.enabled; setCam(on); toast(on ? '鏡頭已開啟' : '鏡頭已關閉'); };
+  if(setBtn) setBtn.onclick = openSheet;
+  if(doneBtn) doneBtn.onclick = closeSheet;
+  if(scrimEl) scrimEl.onclick = closeSheet;
+  if(callbBtn) callbBtn.onclick = () => {
     if (!conn?.open) return toast('未連線');
     conn.send({ type: 'call' }); toast('已發送呼叫導播');
-    $('#callb').classList.add('calling'); clearTimeout(callT); callT = setTimeout(() => $('#callb').classList.remove('calling'), 20000);
+    callbBtn.classList.add('calling'); clearTimeout(callT); callT = setTimeout(() => callbBtn.classList.remove('calling'), 20000);
   };
 
   let tallyState = 'off', icOn = false;
-  function paintFrame(){ $('#frame').className = 'frame ' + (icOn ? 'icm' : tallyState === 'off' ? '' : tallyState); }
+  function paintFrame(){ const frame = $('#frame'); if(frame) frame.className = 'frame ' + (icOn ? 'icm' : tallyState === 'off' ? '' : tallyState); }
   function showTally(s){
     tallyState = s;
-    const t = $('#tally'); t.className = 'gtally ' + (s === 'off' ? '' : s);
-    t.textContent = s === 'live' ? '● ON AIR' : s === 'pvw' ? '預備上線' : 'STBY';
+    const t = $('#tally');
+    if(t) {
+      t.className = 'gtally ' + (s === 'off' ? '' : s);
+      t.textContent = s === 'live' ? '● ON AIR' : s === 'pvw' ? '預備上線' : 'STBY';
+    }
     paintFrame();
   }
   function showIntercom(on){
-    icOn = on; $('#gic').classList.toggle('hidden', !on); paintFrame();
-    if (on) { $('#callb').classList.remove('calling'); clearTimeout(callT); beep(660); }
-    const r = $('#ret'); r.muted = false; r.play().catch(() => {});
+    icOn = on; const gic = $('#gic'); if(gic) gic.classList.toggle('hidden', !on); paintFrame();
+    if (on) { if(callbBtn) callbBtn.classList.remove('calling'); clearTimeout(callT); beep(660); }
+    const r = $('#ret'); if(r) { r.muted = false; r.play().catch(() => {}); }
   }
   async function keepAwake(){ try { if (joined && 'wakeLock' in navigator && !document.hidden) wake = await navigator.wakeLock.request('screen'); } catch {} }
 
@@ -1209,12 +1312,13 @@ function Guest(){
     statT = setInterval(async () => {
       if (!call?.peerConnection) return;
       const s = await readStats(call.peerConnection, prev, 'outbound'); if (!s) return;
-      $('#gq').classList.remove('hidden');
-      $('#bars').className = 'bars q' + qLevel(s);
-      $('#gqt').textContent = prev ? fmtKbps(s.kbps) : '';
+      const gq = $('#gq'), bars = $('#bars'), gqt = $('#gqt'), globalWarn = $('#globalWarn');
+      if(gq) gq.classList.remove('hidden');
+      if(bars) bars.className = 'bars q' + qLevel(s);
+      if(gqt) gqt.textContent = prev ? fmtKbps(s.kbps) : '';
       
       const isPoorNetwork = s.rtt > 350 || s.loss > 5;
-      $('#globalWarn').classList.toggle('show', isPoorNetwork);
+      if(globalWarn) globalWarn.classList.toggle('show', isPoorNetwork);
       
       prev = s;
     }, 1500);
@@ -1233,28 +1337,31 @@ function Guest(){
   }
   function retry(){ clearTimeout(retryT); retryT = setTimeout(connect, 3000); }
   function dial(){
-    const hid = hostIdOf(room), name = $('#nm').value.trim() || '來賓';
+    const hid = hostIdOf(room), nmInput = $('#nm'), name = nmInput ? nmInput.value.trim() || '來賓' : '來賓';
     try { conn?.close(); } catch {} try { call?.close(); } catch {}
     conn = peer.connect(hid, { metadata: { role: 'guest', name }, ...CONN_OPTS });
     conn.on('open', () => {
       call = peer.call(hid, stream, { metadata: { role: 'guest', name } });
       call.on('stream', s => {
-        const r = $('#ret'); r.srcObject = s; r.play().catch(() => {});
-        const upd = () => $('#rw').classList.toggle('hidden', !(r.videoWidth > 64));
+        const r = $('#ret');
+        if(r) { r.srcObject = s; r.play().catch(() => {}); }
+        const rw = $('#rw');
+        const upd = () => { if(rw && r) rw.classList.toggle('hidden', !(r.videoWidth > 64)); };
         r.onresize = upd; setTimeout(upd, 1500);
       });
       call.on('error', () => {});
-      setTimeout(() => setBitrate(call?.peerConnection, QUALITY[$('#q'].value].kbps), 1500);
+      setTimeout(() => setBitrate(call?.peerConnection, QUALITY[qEl ? qEl.value : '720'].kbps), 1500);
       startStats();
       st('ok', '已連線');
-      $('#tally').classList.remove('hidden');
+      const tally = $('#tally'); if(tally) tally.classList.remove('hidden');
       sendState();
     });
     conn.on('data', d => {
       if (!d) return;
       if (d.type === 'tally') showTally(d.state);
       if (d.type === 'msg') {
-        const m = $('#gmsg'); m.textContent = d.text; m.classList.toggle('hidden', !d.text);
+        const m = $('#gmsg');
+        if(m) { m.textContent = d.text; m.classList.toggle('hidden', !d.text); }
         if (d.id) conn.send({ type: 'ack', id: d.id });
         if (d.text) { beep(1046, 120); }
       }
@@ -1265,7 +1372,7 @@ function Guest(){
       if (d.type === 'ic') showIntercom(!!d.on);
       if (d.type === 'kick') leave('導播已結束連線');
     });
-    conn.on('close', () => { if (joined) { st('wait', '重新連線中…'); $('#tally').classList.add('hidden'); showIntercom(false); retry(); } });
+    conn.on('close', () => { if (joined) { st('wait', '重新連線中…'); const tally = $('#tally'); if(tally) tally.classList.add('hidden'); showIntercom(false); retry(); } });
     conn.on('error', () => joined && retry());
   }
 
@@ -1273,28 +1380,41 @@ function Guest(){
     joined = false; clearTimeout(retryT); clearInterval(statT);
     try { conn?.close(); } catch {} try { call?.close(); } catch {} try { peer?.destroy(); } catch {}
     peer = null; call = null; conn = null; wake?.release?.().catch(() => {});
-    $('#gbar').classList.add('hidden'); $('#tally').classList.add('hidden'); $('#rw').classList.add('hidden'); $('#gq').classList.add('hidden');
-    $('#gmsg').classList.add('hidden'); icOn = false; $('#gic').classList.add('hidden'); tallyState = 'off'; paintFrame();
-    $('#join').classList.remove('hidden'); $('#done').classList.add('hidden'); $('#sh').textContent = '加入連線';
-    $('#scrim').classList.add('hidden'); $('#sheet').classList.remove('hidden');
+    const gbar = $('#gbar'), tally = $('#tally'), rw = $('#rw'), gq = $('#gq'), gmsg = $('#gmsg'), gic = $('#gic'), joinBtn = $('#join'), sh = $('#sh');
+    if(gbar) gbar.classList.add('hidden');
+    if(tally) tally.classList.add('hidden');
+    if(rw) rw.classList.add('hidden');
+    if(gq) gq.classList.add('hidden');
+    if(gmsg) gmsg.classList.add('hidden');
+    icOn = false; if(gic) gic.classList.add('hidden'); tallyState = 'off'; paintFrame();
+    if(joinBtn) joinBtn.classList.remove('hidden');
+    if(doneBtn) doneBtn.classList.add('hidden');
+    if(sh) sh.textContent = '加入連線';
+    if(scrimEl) scrimEl.classList.add('hidden');
+    if(sheetEl) sheetEl.classList.remove('hidden');
     layoutStage();
     st('', msg || '已離開');
   }
 
-  $('#join').onclick = async () => {
-    const nm = $('#nm').value.trim(); if (!nm) { $('#nm').focus(); return toast('請先輸入您的姓名'); }
-    store('wc_name', nm);
-    if (!stream) { try { await getMedia(); } catch (e) { st('bad', '相機啟動失敗'); return toast(e.message); } }
-    audioCtx();
-    joined = true;
-    $('#join').classList.add('hidden'); $('#done').classList.remove('hidden');
-    closeSheet(); $('#gbar').classList.remove('hidden');
-    keepAwake();
-    connect();
-  };
-  onEnter($('#nm'), () => { if (!joined) $('#join').click(); else $('#nm').blur(); });
-  $('#nm').onchange = () => conn?.open && conn.send({ type: 'name', name: $('#nm').value.trim() });
-  $('#leave').onclick = () => { if (confirm('確定離開連線？')) leave(); };
+  const joinBtn = $('#join'), nmInput = $('#nm');
+  if(joinBtn) {
+    joinBtn.onclick = async () => {
+      const nm = nmInput ? nmInput.value.trim() : ''; if (!nm) { nmInput?.focus(); return toast('請先輸入您的姓名'); }
+      store('wc_name', nm);
+      if (!stream) { try { await getMedia(); } catch (e) { st('bad', '相機啟動失敗'); return toast(e.message); } }
+      audioCtx();
+      joined = true;
+      joinBtn.classList.add('hidden');
+      if(doneBtn) doneBtn.classList.remove('hidden');
+      closeSheet();
+      if(gbar) gbar.classList.remove('hidden');
+      keepAwake();
+      connect();
+    };
+  }
+  onEnter(nmInput, () => { if (!joined && joinBtn) joinBtn.click(); else nmInput?.blur(); });
+  if(nmInput) nmInput.onchange = () => conn?.open && conn.send({ type: 'name', name: nmInput.value.trim() });
+  if(leaveBtn) leaveBtn.onclick = () => { if (confirm('確定離開連線？')) leave(); };
   
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && joined) {
@@ -1316,10 +1436,11 @@ function Output(){
   app.innerHTML = `<video id="ov" autoplay playsinline style="object-fit:${fit}"></video>${debug ? '<div id="outdbg"></div>' : ''}`;
   const v = $('#ov');
   if (Q.get('mute') === '1') v.muted = true;
-  const log = t => { if (debug) $('#outdbg').textContent = `ROOM ${room} · OUT ${slot} · ${t}`; };
+  const log = t => { if (debug) { const dbg = $('#outdbg'); if(dbg) dbg.textContent = `ROOM ${room} · OUT ${slot} · ${t}`; } };
   let peer, conn, retryT;
 
   function play(){
+    if(!v) return;
     v.play().catch(() => {
       if ($('#clickaudio')) return;
       const c = document.createElement('div'); c.id = 'clickaudio'; c.textContent = '點一下啟用聲音';
@@ -1335,18 +1456,18 @@ function Output(){
     conn = peer.connect(hostIdOf(room), { metadata: { role: 'out', slot }, ...CONN_OPTS });
     conn.on('open', () => log('已連線'));
     conn.on('data', d => {
-      if (d?.type === 'empty') { v.srcObject = null; log('無訊號'); }
+      if (d?.type === 'empty') { if(v) v.srcObject = null; log('無訊號'); }
       if (d?.type === 'source') log('來源：' + d.name);
     });
-    conn.on('close', () => { v.srcObject = null; retry(); });
+    conn.on('close', () => { if(v) v.srcObject = null; retry(); });
     conn.on('error', retry);
   }
   peer = new Peer(PREFIX + room.toLowerCase() + '-o-' + rnd(8), PEER_OPTS);
   peer.on('open', dial);
   peer.on('call', call => {
     call.answer();
-    call.on('stream', s => { v.srcObject = s; play(); });
-    call.on('close', () => { if (v.srcObject === call.remoteStream) v.srcObject = null; });
+    call.on('stream', s => { if(v) { v.srcObject = s; play(); } });
+    call.on('close', () => { if (v && v.srcObject === call.remoteStream) v.srcObject = null; });
   });
   peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
   peer.on('error', e => { log(peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
