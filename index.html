@@ -365,6 +365,43 @@ body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 /* 頂列在 1366～1600 寬的螢幕也排成一列 */
 @media (max-width:1680px){ .key{min-width:52px;padding:4px 6px 3px;font-size:10px} .topbar{gap:8px} .sess b{max-width:170px} .sess span{display:none} .kpi{display:none} .clock{min-width:74px;font-size:15px} }
 @media (max-width:1440px){ .brand{font-size:0;gap:0} .key{min-width:46px;padding:4px 4px 3px;font-size:9.5px} #inv{padding:0 8px} }
+
+/* 切換台關閉：每一路 ON AIR／PVW／STBY，右側固定輸出面板 */
+.hmain{grid-template-columns:minmax(0,1fr) auto}
+.hmain .switcher,.hmain .multiview{grid-column:1}
+.dock{grid-column:2;grid-row:1/span 2;width:300px;border-left:1px solid var(--line);background:var(--s1);overflow:auto;min-height:0}
+.host:not(.simple) .dock{display:none}
+.host:not(.simple) .hmain .switcher{grid-row:1}
+.host:not(.simple) .hmain .multiview{grid-row:2}
+.host.simple .hmain{grid-template-rows:minmax(0,1fr)}
+.host.simple .hmain .multiview{grid-row:1}
+.host.simple .dock{grid-row:1}
+.host.simple .switcher{display:none}
+.host.simple .swonly{display:none}
+.host:not(.simple) .simponly{display:none}
+.dsec{padding:14px;border-bottom:1px solid var(--line)}
+.dsec h3{margin:0 0 10px;font-size:11px;letter-spacing:.08em;color:var(--mute);font-weight:700;display:flex;justify-content:space-between}
+.dsec h3 span{font-family:var(--mono);font-weight:500}
+.dock .bus{display:grid;gap:4px}
+.dock .bus .s{display:grid;grid-template-columns:40px 1fr auto;gap:8px;align-items:center;height:36px;padding:0 4px 0 0;background:var(--s2);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.dock .bus .s .n{height:100%;display:grid;place-items:center;font-family:var(--mono);font-weight:700;background:var(--s3);color:var(--dim);font-size:12px}
+.dock .bus .s.on .n{background:var(--accent);color:#fff}
+.dock .bus .s.pgmrow.on .n{background:var(--live)}
+.dock .bus .s .w{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock .bus .s .w small{color:var(--pvw);font-size:11px;margin-left:6px}
+.dock .bus .s .w.e{color:var(--mute)}
+.dock .field.full{width:100%}
+.seg3{display:flex;border:1px solid var(--line2);border-radius:5px;overflow:hidden;flex:none}
+.seg3 button{height:24px;padding:0 8px;background:var(--s2);border:0;border-right:1px solid var(--line2);cursor:pointer;font:700 10.5px var(--mono);letter-spacing:.03em;color:var(--dim)}
+.seg3 button:last-child{border-right:0}
+.seg3 button:hover{color:var(--text)}
+.seg3 button.a-live{background:var(--live);color:#fff}
+.seg3 button.a-pvw{background:var(--pvw);color:#04140a}
+.seg3 button.a-off{background:var(--s4);color:var(--text)}
+.tag.pvwt{background:var(--pvw);color:#04140a}
+.tile.sel{outline:2px solid var(--accent);outline-offset:-2px}
+.host.simple .tile.pvw{border-color:var(--pvw);box-shadow:0 0 0 1px var(--pvw)}
+@media (max-width:900px){ .hmain{grid-template-columns:1fr} .dock{grid-column:1;grid-row:auto;width:auto;border-left:0;border-top:1px solid var(--line)} }
 </style>
 </head>
 <body>
@@ -1019,6 +1056,7 @@ function Host(sess){
   const ac = audioCtx();
   const WIN = {}; let zTop = 200;
   const CTL = { sel: null };
+  const UI = { sw: store('wc_swmode') === 'on' };   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1038,7 +1076,7 @@ function Host(sess){
   const programStream = new MediaStream([pgmCanvas.captureStream(30).getVideoTracks()[0], programDst.stream.getAudioTracks()[0]]);
 
   app.innerHTML = `
-  <div class="host">
+  <div class="host ${UI.sw ? '' : 'simple'}" id="hroot">
     <div class="topbar">
       ${brand()}
       <span class="sep"></span>
@@ -1051,8 +1089,9 @@ function Host(sess){
       <div class="kpi"><span>OUTPUTS</span><b id="ko">0</b></div>
       <div class="clock" id="clk">--:--:--</div>
       <div class="keys" id="keys">
-        ${[['ic', 'INTERCOM'], ['msg', 'MESSAGE'], ['mix', 'MIXER'], ['ctl', 'CONTROL'], ['qa', 'Q&A'], ['ret', 'RETURN'], ['out', 'OUTPUT'], ['src', 'SOURCE'], ['keys', 'KEYS']].map(([k, n]) => `<div class="key" data-win="${k}"><span class="led"></span>${n}${k === 'msg' ? '<span class="bdg hidden" id="mbdg">0</span>' : k === 'qa' ? '<span class="bdg hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
-        <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>SHARE</div>
+        ${[['ic', '對講'], ['msg', '訊息'], ['mix', '混音監聽'], ['ctl', '遠端控制'], ['qa', '舉手投票'], ['ret', '回傳'], ['out', '輸出'], ['src', '本機來源'], ['keys', '快捷鍵']].map(([k, n]) => `<div class="key" data-win="${k}"><span class="led"></span>${n}${k === 'msg' ? '<span class="bdg hidden" id="mbdg">0</span>' : k === 'qa' ? '<span class="bdg hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
+        <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
+        <div class="key" id="swk" title="開啟／關閉切換台（PREVIEW、PROGRAM、T-Bar）"><span class="led"></span>切換台</div>
       </div>
       <button class="btn primary" id="inv">${ic('user')}邀請來賓</button>
       <button class="btn danger" id="endb">結束</button>
@@ -1085,6 +1124,7 @@ function Host(sess){
         </div>
       </div>
       <main class="multiview" id="mv"></main>
+      <aside class="dock" id="dock"></aside>
     </div>
   </div>`;
   $('#pgms').prepend(pgmCanvas);
@@ -1109,6 +1149,8 @@ function Host(sess){
   $('#acw').onclick = () => AC.resume();
   $('#inv').onclick = inviteModal;
   $('#invk').onclick = () => copyText(invite, '已複製來賓邀請代碼');
+  $('#swk').classList.toggle('on', UI.sw);
+  $('#swk').onclick = () => setSwMode(!UI.sw);
   // 分享畫面（獨立按鈕）：回傳給來賓看，或當作節目來源
   $('#shk').onclick = () => {
     const scr = order.map(id => inputs.get(id)).find(x => x.kind === 'local' && x.isScreen);
@@ -1134,7 +1176,7 @@ function Host(sess){
 
   /* =============== 輸入（來賓／本機來源） =============== */
   function newInput(id, kind, name){
-    const inp = { id, kind, name, slot: 0, state: {}, fader: 1, mute: false, pfl: false, icListen: true, talk: false, tally: 'off', guides: 0, stats: '', calling: false, ctl: { notifySound: false, allowVideo: true, videoAudio: true, retVol: 1 } };
+    const inp = { id, kind, name, slot: 0, manual: 'off', state: {}, fader: 1, mute: false, pfl: false, icListen: true, talk: false, tally: 'off', guides: 0, stats: '', calling: false, ctl: { notifySound: false, allowVideo: true, videoAudio: true, retVol: 1 } };
     inp.pgmGain = ac.createGain(); inp.afvGain = ac.createGain(); inp.afvGain.gain.value = 0;
     inp.isoDst = ac.createMediaStreamDestination(); inp.retSend = ac.createGain(); inp.monGain = ac.createGain(); inp.monGain.gain.value = 0;
     inp.pgmGain.connect(inp.isoDst); inp.pgmGain.connect(inp.afvGain); inp.afvGain.connect(programBus); inp.afvGain.connect(inp.retSend); inp.monGain.connect(monitorBus);
@@ -1160,7 +1202,7 @@ function Host(sess){
     const v = inp.video; v.srcObject = stream; v.play().catch(() => {});
     $('[data-k="nosig"]', inp.el).classList.add('hidden');
     if (inp.slot) refreshSlot(inp.slot);
-    if (!SW.pgm) { SW.pgm = inp.id; } else if (!SW.pvw) SW.pvw = inp.id;
+    if (UI.sw) { if (!SW.pgm) { SW.pgm = inp.id; } else if (!SW.pvw) SW.pvw = inp.id; }
     renderSwitcherLabels(); updateTally();
     if (RET.src === inp.id) setReturn(inp.id);
   }
@@ -1172,7 +1214,7 @@ function Host(sess){
     try { inp.call?.close(); } catch {} try { inp.conn?.close(); } catch {}
     if (inp.kind === 'local') inp.stream?.getTracks().forEach(t => t.stop());
     inp.el?.remove();
-    if (SW.pgm === id) SW.pgm = null; if (SW.pvw === id) SW.pvw = null; if (SW.pip.src === id) SW.pip.src = null;
+    if (SW.pgm === id) SW.pgm = (!UI.sw && order.find(x => inputs.get(x).manual === 'live')) || null; if (SW.pvw === id) SW.pvw = null; if (CTL.sel === id) CTL.sel = null; if (SW.pip.src === id) SW.pip.src = null;
     if (RET.src === id) setReturn('none');
     if (inp.slot) refreshSlot(inp.slot);
     renumber(); renderAll(); rebuildReturn(); updHands();
@@ -1204,8 +1246,9 @@ function Host(sess){
         <div class="vu"><i></i></div>
         <div class="lower"><div class="nm" data-k="name"></div><div class="st mono" data-k="stats">${g ? '連線中…' : '本機來源'}</div></div></div>
       <div class="ctl">
-        <button class="btn k" data-a="pvw" title="送到 PREVIEW">PVW</button>
-        <button class="btn k" data-a="pgm" title="直接切到 PROGRAM">PGM</button>
+        <button class="btn k swonly" data-a="pvw" title="送到 PREVIEW">PVW</button>
+        <button class="btn k swonly" data-a="pgm" title="直接切到 PROGRAM">PGM</button>
+        <div class="seg3 simponly"><button data-t="live">ON AIR</button><button data-t="pvw">PVW</button><button data-t="off">STBY</button></div>
         <select class="field" data-a="slot" title="ISO 輸出編號"><option value="0">OUT -</option>${Array.from({ length: LINES }, (_, i) => `<option value="${i + 1}">OUT ${i + 1}</option>`).join('')}</select>
         <span class="vsep opt2"></span>
         ${g ? `<button class="btn icon opt2" data-a="mic" title="遠端開／關來賓節目麥克風">${ic('mic')}</button>
@@ -1219,8 +1262,9 @@ function Host(sess){
     inp.el = el; inp.video = $('video', el);
     $('[data-k="name"]', el).textContent = inp.name;
     const fitG = setupGuides($('.tv', el), inp.video, $('[data-k="gd"]', el));
-    $('.tv', el).onclick = () => setPvw(inp.id);
-    $('.tv', el).ondblclick = () => cutTo(inp.id);
+    $('.tv', el).onclick = () => UI.sw ? setPvw(inp.id) : selectInput(inp.id);
+    $('.tv', el).ondblclick = () => UI.sw && cutTo(inp.id);
+    $$('.seg3 [data-t]', el).forEach(b => b.onclick = () => setManual(inp, b.dataset.t));
     const A = a => $(`[data-a="${a}"]`, el);
     A('pvw').onclick = () => setPvw(inp.id);
     A('pgm').onclick = () => cutTo(inp.id);
@@ -1243,14 +1287,16 @@ function Host(sess){
   function updateTile(inp){
     const el = inp.el; if (!el) return;
     const s = inp.state, g = inp.kind === 'guest';
-    el.classList.toggle('live', inp.tally === 'live'); el.classList.toggle('pvw', SW.pvw === inp.id);
+    el.classList.toggle('live', inp.tally === 'live'); el.classList.toggle('pvw', UI.sw ? SW.pvw === inp.id : inp.tally === 'pvw');
+    el.classList.toggle('sel', !UI.sw && CTL.sel === inp.id);
+    $$('.seg3 [data-t]', el).forEach(b => b.className = b.dataset.t === inp.tally ? 'a-' + inp.tally : '');
     el.classList.toggle('calling', !!inp.calling); el.classList.toggle('handup', !!s.hand);
     $('[data-a="pvw"]', el).classList.toggle('a-pvw', SW.pvw === inp.id);
     $('[data-a="pgm"]', el).classList.toggle('a-pgm', inp.tally === 'live');
     $('[data-a="slot"]', el).value = inp.slot;
     const q = s.quality;
     $('[data-k="tags"]', el).innerHTML = [
-      inp.tally === 'live' ? '<span class="tag live">ON AIR</span>' : '',
+      inp.tally === 'live' ? '<span class="tag live">ON AIR</span>' : !UI.sw && inp.tally === 'pvw' ? '<span class="tag pvwt">PVW</span>' : '',
       inp.slot ? `<span class="tag out">OUT ${inp.slot}</span>` : '',
       inp.talk || (IC.all && g) ? '<span class="tag icm">TALK</span>' : '',
       g && s.icMic ? '<span class="tag icm">對講麥</span>' : '',
@@ -1301,12 +1347,54 @@ function Host(sess){
   }
   renderEmpty();
 
+  /* =============== 簡易模式：手動燈號 ON AIR／PVW／STBY =============== */
+  function setManual(inp, t){
+    inp.manual = t;
+    if (t === 'live') SW.pgm = inp.id;                 // PGM 輸出跟著最後按 ON AIR 的來源
+    else if (SW.pgm === inp.id) SW.pgm = order.find(id => id !== inp.id && inputs.get(id).manual === 'live') || null;
+    if (t === 'pvw') SW.pvw = inp.id; else if (SW.pvw === inp.id) SW.pvw = null;
+    CTL.sel = inp.id;
+    renderSwitcherLabels(); updateTally(); renderDock();
+  }
+  function selectInput(id){ CTL.sel = id; order.forEach(x => updateTile(inputs.get(x))); if (WIN.ctl?.open) renderCtl(); }
+  const target = () => inputs.get(UI.sw ? SW.pvw : (CTL.sel || SW.pvw));
+  function setSwMode(on){
+    UI.sw = on; store('wc_swmode', on ? 'on' : 'off');
+    $('#hroot').classList.toggle('simple', !on); $('#swk').classList.toggle('on', on);
+    SW.t = 0; SW.anim = null; SW.base = SW.tpos = 0; SW.pip.on = false; SW.ftbOn = false; $('#ftb').classList.remove('on'); $('#ftbtag').classList.add('hidden');
+    if (on) { if (!inputs.get(SW.pgm)) SW.pgm = order.find(id => inputs.get(id).tally === 'live') || order[0] || null; if (!inputs.get(SW.pvw) || SW.pvw === SW.pgm) SW.pvw = order.find(id => id !== SW.pgm) || null; }
+    else order.forEach(id => { const x = inputs.get(id); x.manual = x.tally; });
+    renderPipBar(); renderSwitcherLabels(); updateTally(); renderDock(); setTimeout(() => { layoutGrid(); drawTbar(); }, 30);
+    toast(on ? '切換台已開啟（PREVIEW／PROGRAM／T-Bar）' : '切換台已關閉（每一路用 ON AIR／PVW／STBY）');
+  }
+  // 右側固定面板（切換台關閉時）：輸出給 OBS＋回傳
+  function renderDock(){
+    const d = $('#dock'); if (!d || UI.sw) return;
+    const cnt = sl => [...outputs].filter(o => o.slot === sl).length;
+    const pg = inputs.get(SW.pgm);
+    d.innerHTML = `<div class="dsec"><h3>輸出（給 OBS）<span>${outputs.size} 個連線</span></h3>
+        <div class="bus"><div class="s pgmrow ${pg ? 'on' : ''}"><span class="n">PGM</span><span class="w ${pg ? '' : 'e'}">${pg ? esc(pg.name) : 'ON AIR 的來賓'}${cnt('pgm') ? `<small>● OBS×${cnt('pgm')}</small>` : ''}</span><button class="btn sm ghost" data-c="pgm" title="複製節目輸出網址">${ic('link')}</button></div>
+        ${Array.from({ length: LINES }, (_, i) => { const n = i + 1, x = [...inputs.values()].find(v => v.slot === n); return `<div class="s ${x ? 'on' : ''}"><span class="n">${n}</span><span class="w ${x ? '' : 'e'}">${x ? esc(x.name) : '—'}${cnt(n) ? `<small>● OBS×${cnt(n)}</small>` : ''}</span><button class="btn sm ghost" data-c="${n}" title="複製輸出 ${n} 網址">${ic('link')}</button></div>`; }).join('')}</div>
+        <p class="note">OBS → 新增「瀏覽器來源」→ 貼上輸出網址 → 1920×1080 → 勾選「透過 OBS 控制音訊」。換人只要改來賓的輸出編號，OBS 不用動。PGM＝目前 ON AIR 的那一路。</p></div>
+      <div class="dsec"><h3>回傳給來賓</h3><span class="lbl">來賓會聽到／看到</span>
+        <select class="field full" id="drs"><option value="none">不回傳（只有對講聲音）</option><option value="program">節目畫面＋聲音（扣除來賓自己）</option>
+        ${order.filter(id => inputs.get(id).kind === 'local').map(id => `<option value="${id}">${esc(inputs.get(id).name)}</option>`).join('')}<option value="screen">分享螢幕／OBS 投影視窗…</option></select>
+        <span class="lbl" style="margin-top:10px">回傳音量</span><div class="row"><input type="range" min="0" max="100" value="${Math.round(RET.vol * 100)}" id="drv" style="flex:1"><span class="mono" id="drvv" style="width:38px;text-align:right">${Math.round(RET.vol * 100)}%</span></div>
+        <p class="note">請來賓戴耳機，避免回授。</p></div>`;
+    $$('[data-c]', d).forEach(b => b.onclick = () => copyText(outUrl(b.dataset.c), b.dataset.c === 'pgm' ? '已複製 PGM 輸出網址' : `已複製輸出 ${b.dataset.c} 網址`));
+    $('#drs', d).value = RET.src; $('#drs', d).onchange = e => setReturn(e.target.value);
+    $('#drv', d).oninput = e => { RET.vol = e.target.value / 100; $('#drvv', d).textContent = e.target.value + '%'; store('wc_retvol', RET.vol); guests().forEach(applyGains); };
+  }
+
   /* =============== 切換台 =============== */
   function setPvw(id){ SW.pvw = id; renderSwitcherLabels(); updateTally(); }
   function cutTo(id){ if (SW.pgm === id) return; const old = SW.pgm; SW.pgm = id; SW.pvw = old ?? SW.pvw; SW.t = 0; SW.anim = null; SW.base = SW.tpos; renderSwitcherLabels(); updateTally(); }
   function swap(){ const a = SW.pgm; SW.pgm = SW.pvw; SW.pvw = a; }
-  function doCut(){ if (!SW.pvw) return toast('PREVIEW 沒有畫面'); swap(); SW.t = 0; SW.anim = null; SW.base = SW.tpos; renderSwitcherLabels(); updateTally(); drawTbar(); }
+  function doCut(){
+    if (!UI.sw) { const pv = inputs.get(SW.pvw); if (!pv) return toast('沒有設為 PVW 的來源'); order.forEach(id => { const x = inputs.get(id); if (x !== pv && x.manual === 'live') x.manual = 'off'; }); setManual(pv, 'live'); return; }
+    if (!SW.pvw) return toast('PREVIEW 沒有畫面'); swap(); SW.t = 0; SW.anim = null; SW.base = SW.tpos; renderSwitcherLabels(); updateTally(); drawTbar(); }
   function doAuto(){
+    if (!UI.sw) return doCut();
     if (!SW.pvw) return toast('PREVIEW 沒有畫面');
     if (SW.anim) return;
     SW.anim = { t0: performance.now(), from: SW.tpos, to: SW.base > .5 ? 0 : 1 };
@@ -1412,7 +1500,7 @@ function Host(sess){
     const key = [...live].join(',') + '|' + SW.pvw;
     order.forEach(id => {
       const inp = inputs.get(id);
-      const st = live.has(id) ? 'live' : SW.pvw === id ? 'pvw' : 'off';
+      const st = !UI.sw ? inp.manual : live.has(id) ? 'live' : SW.pvw === id ? 'pvw' : 'off';
       if (st !== inp.tally) { inp.tally = st; if (inp.conn?.open) inp.conn.send({ type: 'tally', state: st }); }
       updateTile(inp);
     });
@@ -1510,7 +1598,7 @@ function Host(sess){
     retVideoTrack = vt || blackTrack();
     guests().forEach(g => g.call?.peerConnection?.getSenders().forEach(s => { if (s.track?.kind === 'video') s.replaceTrack(retVideoTrack).catch(() => {}); }));
     rebuildReturn();
-    if (WIN.ret?.open) renderRet();
+    if (WIN.ret?.open) renderRet(); renderDock();
   }
 
   /* =============== 遠端控制 =============== */
@@ -1588,7 +1676,7 @@ function Host(sess){
   function closeWin(id){ const w = WIN[id]; if (!w) return; w.open = false; w.el.classList.add('hidden'); $(`.key[data-win="${id}"]`).classList.remove('on'); }
   function focusWin(w){ $$('.win').forEach(x => x.classList.remove('focus')); w.el.classList.add('focus'); w.el.style.zIndex = ++zTop; }
   $$('.key[data-win]').forEach(k => k.onclick = () => { const id = k.dataset.win; WIN[id]?.open ? closeWin(id) : openWin(id); });
-  function renderAll(){ renderPipBar(); renderSwitcherLabels(); Object.keys(WIN).forEach(id => WIN[id].open && WDEF[id].render()); $('#kg').textContent = `${guests().length}/${LINES}`; $('#ko').textContent = outputs.size; layoutGrid(); }
+  function renderAll(){ renderDock(); renderPipBar(); renderSwitcherLabels(); Object.keys(WIN).forEach(id => WIN[id].open && WDEF[id].render()); $('#kg').textContent = `${guests().length}/${LINES}`; $('#ko').textContent = outputs.size; layoutGrid(); }
 
   async function devices(kind){ const d = await navigator.mediaDevices.enumerateDevices().catch(() => []); return d.filter(x => x.kind === kind); }
 
@@ -1897,9 +1985,10 @@ function Host(sess){
     const w = WIN.keys; if (!w?.open) return;
     const K = (k, d) => `<tr><td>${k.split(' ').map(x => `<span class="kbd">${x}</span>`).join(' ')}</td><td>${d}</td></tr>`;
     w.body.innerHTML = `<table class="ktable">
-      ${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
+      <tr><td colspan=2 class="note">切換台關閉時：數字＝設為 PVW、Shift＋數字＝ON AIR、Space／Enter＝把 PVW 那一路切成 ON AIR</td></tr>
+      ${K('W', '開啟／關閉切換台')}${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
       ${K('Space', 'CUT')}${K('Enter', 'AUTO（依設定的轉場）')}${K('↑ ↓', '手動推 T-Bar')}${K('B', 'FTB 淡出黑畫面')}${K('P', '子母畫面開／關')}
-      ${K('T', '按住：對 PREVIEW 來賓說話')}${K('A', '按住：群發給所有來賓')}
+      ${K('T', '按住：對 PREVIEW（或選取）的來賓說話')}${K('A', '按住：群發給所有來賓')}
       ${K('M', 'PREVIEW 那一路靜音／取消')}${K('L', 'PREVIEW 那一路 PFL 監聽')}${K('G', 'PREVIEW 那一路對齊線（導播端）')}
       ${K('I', 'INTERCOM 對講台')}${K('N', 'MESSAGE 訊息')}${K('X', 'MIXER 混音')}${K('C', 'CONTROL 遠端控制')}${K('Q', 'Q&A 舉手／投票')}${K('R', 'RETURN 回傳')}${K('O', 'OUTPUT 輸出')}${K('S', 'SOURCE 本機來源')}${K('K', '這個說明')}${K('Esc', '關閉最上層視窗')}
     </table><div class="note">在輸入框打字時快捷鍵不會作用。</div>`;
@@ -1912,8 +2001,9 @@ function Host(sess){
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.repeat && (e.code === 'KeyT' || e.code === 'KeyA')) return;
     const m = /^Digit(\d)$/.exec(e.code);
-    if (m) { const n = +m[1] || 10; const id = order[n - 1]; if (!id) return; e.preventDefault(); e.shiftKey ? cutTo(id) : setPvw(id); return; }
-    const pv = inputs.get(SW.pvw);
+    if (m) { const n = +m[1] || 10; const id = order[n - 1]; if (!id) return; e.preventDefault(); if (!UI.sw) setManual(inputs.get(id), e.shiftKey ? 'live' : 'pvw'); else e.shiftKey ? cutTo(id) : setPvw(id); return; }
+    const pv = target();
+    if (!UI.sw && ['ArrowUp', 'ArrowDown', 'KeyB', 'KeyP'].includes(e.code)) return;
     const map = {
       Space: doCut, Enter: doAuto, KeyB: () => $('#ftb').click(), KeyP: () => $('#pipon').click(),
       ArrowUp: () => { SW.anim = null; if (SW.pvw) setTpos(SW.tpos + (SW.base > .5 ? -.05 : .05)); }, ArrowDown: () => { SW.anim = null; if (SW.pvw) setTpos(SW.tpos - (SW.base > .5 ? -.05 : .05)); },
@@ -1922,7 +2012,7 @@ function Host(sess){
       KeyM: () => { if (pv) { pv.mute = !pv.mute; applyGains(pv); updateTile(pv); renderMix(); toast(pv.mute ? `${pv.name} 靜音` : `${pv.name} 取消靜音`); } },
       KeyL: () => { if (pv) { pv.pfl = !pv.pfl; applyGains(pv); renderMix(); toast(pv.pfl ? `監聽 ${pv.name}` : '關閉監聽'); } },
       KeyG: () => pv && $('[data-a="gd"]', pv.el).click(),
-      KeyI: () => toggleWin('ic'), KeyN: () => toggleWin('msg'), KeyX: () => toggleWin('mix'), KeyC: () => toggleWin('ctl'), KeyR: () => toggleWin('ret'), KeyO: () => toggleWin('out'), KeyS: () => toggleWin('src'), KeyK: () => toggleWin('keys'), KeyQ: () => toggleWin('qa'), Slash: () => toggleWin('keys'),
+      KeyI: () => toggleWin('ic'), KeyN: () => toggleWin('msg'), KeyX: () => toggleWin('mix'), KeyC: () => toggleWin('ctl'), KeyR: () => toggleWin('ret'), KeyO: () => toggleWin('out'), KeyS: () => toggleWin('src'), KeyK: () => toggleWin('keys'), KeyQ: () => toggleWin('qa'), KeyW: () => setSwMode(!UI.sw), Slash: () => toggleWin('keys'),
       Escape: () => { const top = Object.values(WIN).filter(w => w.open).sort((a, b) => b.el.style.zIndex - a.el.style.zIndex)[0]; if (top) closeWin(top.id); },
     };
     if (map[e.code]) { e.preventDefault(); map[e.code](); }
@@ -1938,7 +2028,7 @@ function Host(sess){
     const old = inp.slot;
     if (ns) inputs.forEach(o => { if (o !== inp && o.slot === ns) { o.slot = 0; updateTile(o); } });
     inp.slot = ns; if (old) refreshSlot(old); if (ns) refreshSlot(ns);
-    updateTile(inp); if (WIN.out?.open) renderOut();
+    updateTile(inp); if (WIN.out?.open) renderOut(); renderDock();
   }
   function feedOutput(o){
     try { o.call?.close(); } catch {}
@@ -2111,7 +2201,7 @@ function Host(sess){
 
   start();
   addEventListener('beforeunload', () => peer?.destroy());
-  window.__host = { inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, changeInvite };
+  window.__host = { UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, changeInvite };
 }
 /* ===================== 來賓 ===================== */
 function Guest(){
