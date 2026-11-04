@@ -2,9 +2,26 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
+<meta name="webcall-version" content="2026.1104.1600">
+<script>
+/* 自動更新載入器：系統管理員在派發平台發布的新版本會先存在這台裝置（wc_pkg），開啟時直接換成新版本
+ * 網址加 ?builtin=1 可以強制使用這個檔案內建的版本（新版本有問題時救援用） */
+(function(){
+  var ms = document.querySelectorAll('meta[name="webcall-version"]'), me = ms.length ? ms[ms.length - 1].content : '';
+  if (window.__WC_PKG) { window.WC_VER = window.__WC_PKG; return; }
+  window.WC_VER = me;
+  if (/[?&]builtin=1/.test(location.search)) { window.WC_BUILTIN = true; return; }
+  var p = null; try { p = JSON.parse(localStorage.getItem('wc_pkg') || 'null'); } catch (e) {}
+  if (!p || !p.v || !p.html || p.v === me) return;
+  window.__WC_PKG = p.v;
+  // 新版本 15 秒內沒有正常啟動 → 丟掉它，改用內建版本
+  setTimeout(function(){ if (!window.__WC_OK) { try { localStorage.removeItem('wc_pkg'); localStorage.setItem('wc_badpkg', p.v); } catch (e) {} location.reload(); } }, 15000);
+  document.write(p.html + '<plaintext style="display:none">');
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b0d10">
-<title>WebCall 連線導播台</title>
+<title>WebCall 視訊連線導播台</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <script>
@@ -2499,7 +2516,7 @@ function Host(sess){
     const pc = $('#sslp', B).getContext('2d'); drawSlate(pc, 0, 0, 160, 90, null);
     $('#ssl', B).onchange = e => { const f = e.target.files[0]; if (!f) return; imageFileToDataUrl(f).then(u => { const im = new Image(); im.onload = () => { SLATE.img = im; renderSet(); }; im.src = u; try { store('wc_slate', u); } catch {} toast('斷線圖卡已更新'); }).catch(err => toast(err.message)); };
     const sx = $('#sslx', B); if (sx) sx.onclick = () => { SLATE.img = null; store('wc_slate', null); renderSet(); };
-    $('#spr', B).onchange = e => { SW.res = e.target.value; store('wc_pgmres', SW.res); setPgmRes(SW.res); $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`; };
+    $('#spr', B).onchange = e => { SW.res = e.target.value; store('wc_pgmres', SW.res); setPgmRes(SW.res); refreshSlot('pgm'); refreshSlot('clean'); $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`; };
     $('#smv', B).oninput = e => { const v = e.target.value / 100; store('wc_master', v); if (!PANIC) masterGain.gain.setTargetAtTime(v, ac.currentTime, .02); };
     $('#slm', B).onchange = e => { limiterOn = e.target.checked; store('wc_limit', limiterOn ? '1' : '0'); routeMaster(); };
   }
@@ -3192,7 +3209,7 @@ function Host(sess){
     apiCall({ action: 'end', token: sess.token, sid: sess.sid }).catch(() => {});
     setTimeout(() => { try { peer?.destroy(); } catch {} sstore('wc_host', null);
       app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>導播已結束</h1><p>${esc(reason || '')}</p><button class="btn primary" onclick="location.href=location.pathname">回首頁</button></div></div>`;
-      $$('.win,.splash,.modal').forEach(x => x.remove());
+      $$('.win,.splash,.modal').forEach(x => x.remove()); wcIdle();
     }, 400);
   }
   // 每 10 秒回報一次：代碼是否仍有效 + 連線品質（給派發平台的 NOC 監控面板）
@@ -3223,7 +3240,7 @@ function Host(sess){
     setTimeout(() => endSession('房間代碼已到期'), Math.max(0, left));
   }
 
-  start();
+  start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   window.__host = { OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite };
 }
@@ -3277,7 +3294,7 @@ function GuestMain(inv, roomKey){
   let leaveMode = store('wc_leave') || 'ask', hiddenClosed = false, isHidden = false, askAfterReturn = false;
   let share = null, filePlaying = false, mix = null, tallyState = 'off', icOn = false;
   let hand = false, handT = 0, poll = null, netQ = {}, cpu = 0, pressure = '';
-  let orientMode = store('wc_orient') || 'auto', fpsPref = +(store('wc_fps') || 30), hostWarn = '', orientLock = false, battery = null;
+  let orientMode = store('wc_orient2') || (isMobile ? 'portrait' : 'auto'), fpsPref = +(store('wc_fps') || 30), hostWarn = '', orientLock = false, battery = null;
   let retLayout = (() => { try { return { size: 'm', pos: 'tr', ...JSON.parse(store('wc_ret') || '{}') }; } catch { return { size: 'm', pos: 'tr' }; } })();
   codecPref = store('wc_codec') || 'auto';
   const bgParts = new Map();
@@ -3290,6 +3307,7 @@ function GuestMain(inv, roomKey){
     <div class="frame" id="frame"></div>
     <div class="gtop">
       <span class="pill" id="gst"><span class="dot"></span>準備中</span>
+      <button class="pill" id="grot" style="cursor:pointer" title="畫面方向：預設固定直式，按一下改成跟著手機旋轉"></button>
       <span class="pill hidden" id="gq"><span class="bars" id="bars"><i></i><i></i><i></i></span><span class="mono" id="gqt"></span></span>
       <span class="gtally hidden" id="tally">STBY</span>
     </div>
@@ -3410,15 +3428,23 @@ function GuestMain(inv, roomKey){
     fx.maxLong = QUALITY[tier].w;
     syncSenders();
   }
+  function paintRot(){
+    const b = $('#grot'); if (!b) return;
+    b.innerHTML = orientMode === 'auto' ? '🔄 跟隨旋轉' : orientMode === 'portrait' ? '🔒 直式' : '🔒 橫式';
+    b.classList.toggle('hidden', !isMobile && orientMode === 'auto');
+  }
+  $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '畫面固定為直式'); };
+  setTimeout(paintRot, 0);
   function setOrient(m, by){
-    orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient', orientMode);
+    orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient2', orientMode); paintRot();
     applyOrient(); applyTier(tier);
-    if (by) toast(`導播設定畫面方向：${{ auto: '跟隨手機', portrait: '直式', landscape: '橫式' }[orientMode]}`);
+    if (by) toast(`導播設定畫面方向：${{ auto: '跟隨手機旋轉', portrait: '直式', landscape: '橫式' }[orientMode]}`);
     sendState();
   }
   async function getMedia(o = {}){
     const [w, h] = tierDims(tier);
     const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: fpsPref } };
+    if (orientMode !== 'auto') video.aspectRatio = { ideal: w / h };   // 固定直式／橫式時，請鏡頭直接給這個比例，減少裁切
     if (o.facing) video.facingMode = o.facing;
     else if (o.deviceId || camTrack?.getSettings().deviceId) video.deviceId = { exact: o.deviceId || camTrack.getSettings().deviceId };
     else if (isMobile) video.facingMode = facing;
@@ -3786,7 +3812,7 @@ function GuestMain(inv, roomKey){
     if (by) toast(on ? '' : '導播已放下你的手');
     else if (on) toast('已舉手，導播會看到提示');
   }
-  if ($('#bsh')) $('#bsh').onclick = () => share ? sheetShare() : sheetShare();
+  if ($('#bsh')) $('#bsh').onclick = sheetShare;
   $('#bh').onclick = () => { if (!conn?.open) return toast('尚未連上導播台'); setHand(!hand); };
   function showPoll(p){
     poll = p; const el = $('#pollc');
@@ -3852,9 +3878,9 @@ function GuestMain(inv, roomKey){
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">耳機／喇叭（聽導播）</span><select class="field" id="dspk"></select></div>
         <div class="full"><span class="lbl">導播聲音音量</span><div class="srow" style="grid-template-columns:1fr 40px"><input type="range" id="rv" min="0" max="100" value="${Math.round(retVol * 100)}"><span>${Math.round(retVol * 100)}</span></div>
-          <div class="hmeter"><i id="retlv"></i></div><button class="btn sm" id="tone" style="margin-top:8px">${ic('speaker')}測試耳機聲音</button></div>
+          <div class="hmeter"><i id="retlv"></i></div><button class="btn sm" id="tone" style="margin-top:8px">${ic('speaker')}${toneA && !toneA.paused ? '停止測試聲音' : '測試耳機聲音'}</button></div>
         <div class="full"><span class="lbl">畫質　目前 ${QUALITY[tier].label}${rec ? '・網路建議 ' + QUALITY[rec].label : ''}</span>${segc('dq', qOpts(), qMode)}</div>
-        <div class="full"><span class="lbl">畫面方向</span>${segc('dor', [['auto', '跟隨手機'], ['portrait', '直式'], ['landscape', '橫式']], orientMode)}<div class="tip" style="margin-top:4px">跟隨手機：開自動旋轉就跟著轉；鎖定直向就固定直的。</div></div>
+        <div class="full"><span class="lbl">畫面方向</span>${segc('dor', [['portrait', '直式（預設）'], ['auto', '跟隨旋轉'], ['landscape', '橫式']], orientMode)}<div class="tip" style="margin-top:4px">預設固定直式。選「跟隨旋轉」後，手機有開自動旋轉就會跟著橫／直。</div></div>
         <div class="full"><span class="lbl">每秒張數（FPS）</span>${segc('dfps', [[15, '15'], [24, '24'], [30, '30'], [60, '60']], fpsPref)}</div>
         <div class="full"><span class="lbl">回看畫面大小（也可以直接拖曳畫面、拉左下角縮放）</span>${segc('drs', RET_SIZES, retLayout.size)}</div>
         <div class="full"><span class="lbl">回看畫面位置</span>${segc('drp', RET_POS, retLayout.pos)}</div>
@@ -3876,11 +3902,25 @@ function GuestMain(inv, roomKey){
       const lv = () => { const el = $('#retlv', sh); if (!el || sheetName !== 'set') return; el.style.width = (retMeter() * 100) + '%'; requestAnimationFrame(lv); }; lv();
     });
   }
+  // 測試聲音：叮－咚－叮 三個音（約 1.6 秒），只播一次；播放中再按一次就停止
+  let toneA = null;
+  function toneUrl(){
+    if (toneUrl.u) return toneUrl.u;
+    const sr = 44100, notes = [[0, 880], [.38, 1108.7], [.76, 1318.5]], len = Math.round(sr * 1.65), d = new Float32Array(len);
+    notes.forEach(([t0, f]) => { const s0 = Math.round(t0 * sr); for (let i = s0; i < len; i++) { const t = (i - s0) / sr, env = Math.min(1, t / .006) * Math.exp(-t * 3.2); d[i] += env * (Math.sin(2 * Math.PI * f * t) * .6 + Math.sin(4 * Math.PI * f * t) * .12) * .32; } });
+    const buf = new ArrayBuffer(44 + len * 2), v = new DataView(buf), w = (o, str) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, 'RIFF'); v.setUint32(4, 36 + len * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, len * 2, true);
+    for (let i = 0; i < len; i++) v.setInt16(44 + i * 2, clamp(d[i], -1, 1) * 32767, true);
+    return toneUrl.u = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
   function testTone(){
-    const ac = audioCtx(), dst = ac.createMediaStreamDestination(), o = ac.createOscillator(), g = ac.createGain();
-    o.frequency.value = 660; g.gain.value = .2; o.connect(g).connect(dst); o.start(); o.stop(ac.currentTime + .8);
-    const a = new Audio(); a.srcObject = dst.stream; const sink = store('wc_gsink'); if (sink && a.setSinkId) a.setSinkId(sink).catch(() => {});
-    a.play().then(() => toast('有聽到「嗶」聲就代表耳機正常')).catch(() => toast('無法播放測試音'));
+    const btn = $('#tone');
+    const done = () => { if (btn?.isConnected) btn.innerHTML = ic('speaker') + '測試耳機聲音'; };
+    if (toneA && !toneA.paused) { toneA.pause(); toneA.currentTime = 0; done(); return toast('已停止測試聲音'); }
+    toneA = toneA || new Audio(); toneA.loop = false; toneA.src = toneUrl(); toneA.volume = Math.max(.2, retVol);
+    const sink = store('wc_gsink'); if (sink && toneA.setSinkId) toneA.setSinkId(sink).catch(() => {});
+    toneA.onended = toneA.onpause = done;
+    toneA.play().then(() => { if (btn?.isConnected) btn.innerHTML = ic('stop') + '停止測試聲音'; toast('有聽到「叮咚叮」就代表耳機正常'); }).catch(() => toast('無法播放測試聲音'));
   }
   function sheetChat(){
     openSheet('chat', `<h2>訊息<button class="btn ghost sm" data-close>${ic('x')}</button></h2><div class="sub">傳文字給導播（不會出現在畫面上）</div>
@@ -4085,7 +4125,7 @@ function GuestMain(inv, roomKey){
     ['#gbar', '#tally', '#rw', '#gq', '#gmsg', '#gic', '#gw', '#gau', '#zui', '#pollc'].forEach(s => $(s).classList.add('hidden'));
     hand = false; $('#bh').classList.remove('hand-on');
     icOn = false; tallyState = 'off'; paintFrame();
-    sheetJoin(); st('', msg || '已離開');
+    sheetJoin(); st('', msg || '已離開'); wcIdle();
   }
   async function join(){
     const nm = $('#nm').value.trim() || (of ? '第二機位' : ''); if (!nm) { $('#nm').focus(); return toast('請先輸入名字'); }
@@ -4093,7 +4133,7 @@ function GuestMain(inv, roomKey){
     audioCtx();
     retA.srcObject = new MediaStream(); retA.play().catch(() => {});   // 先用使用者的點擊解鎖播放
     if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
-    joined = true; window.__gJoined = true;
+    joined = true; window.__gJoined = true; window.__WC_BUSY = true;
     $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
     layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
   }
@@ -4144,7 +4184,7 @@ function Home(msg){
   app.innerHTML = `
   <div class="home"><div class="box">
     ${brand()}
-    <h1>遠端連線導播系統</h1>
+    <h1>WebCall 視訊連線導播台</h1>
     <p>導播請用「代碼派發平台」的帳號密碼登入。來賓不需要帳號，打開導播給的連結、掃 QR Code 或輸入邀請代碼即可。</p>
     <form class="card" id="lf">
       <span class="lbl">導播登入</span>
@@ -4165,7 +4205,7 @@ function Home(msg){
     audioCtx();
     $('#lgo').disabled = true; $('#lgo').textContent = '登入中…';
     try {
-      const r = await apiCall({ action: 'login', account: a, password: pw });
+      const r = await apiCall({ action: 'login', account: a, password: pw, client: window.wcShell ? 'EXE 導播台' : '網頁導播台' });
       if (!r.ok) throw new Error(r.error || '登入失敗');
       store('wc_acc', a); sstore('wc_tok', r.token); sstore('wc_me', JSON.stringify(r.me));
       HostSetup(r.token, r.me);
@@ -4294,14 +4334,63 @@ function Output(){
 }
 
 /* ===================== 路由 ===================== */
-if (!window.Peer) {
-  app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 函式庫沒有載入，請確認網路可連到 cdnjs.cloudflare.com 或 unpkg.com。</p></div></div>`;
-} else {
+/* ===================== 自動更新（系統管理員在派發平台發布） =====================
+ * 打開時先用這台裝置已經下載好的版本（不用等網路）；背景檢查有沒有新版本
+ * 一般更新：下載好，下次打開自動套用；強制更新：沒在連線的人立刻套用，正在導播／連線的人結束後才套用 */
+const wcBusy = () => !!window.__WC_BUSY || Q.get('mode') === 'out';
+let updPending = null;
+function updBanner(a, forced){
+  let b = $('#updbar');
+  if (!b) { b = document.createElement('div'); b.id = 'updbar'; b.style.cssText = 'position:fixed;left:50%;top:calc(' + (Q.get('mode') === 'guest' ? 56 : 8) + 'px + var(--sat));transform:translateX(-50%);z-index:980;background:#13233f;border:1px solid var(--accent);color:#cfe0ff;padding:8px 12px;border-radius:8px;display:flex;gap:10px;align-items:center;max-width:94vw;box-shadow:0 8px 24px #0008;font-size:12.5px'; document.body.appendChild(b); }
+  b.innerHTML = `<span>⬆ 新版本 v${esc(a.v)} ${forced ? '已強制發布，這次連線結束後自動套用' : '已下載，下次打開自動套用'}${a.notes ? '：' + esc(a.notes.slice(0, 60)) : ''}</span>${wcBusy() ? '' : '<button class="btn sm primary" id="updnow">立即更新</button>'}<button class="btn sm ghost" id="updx">${ic('x')}</button>`;
+  $('#updnow', b) && ($('#updnow', b).onclick = () => location.reload());
+  $('#updx', b).onclick = () => b.remove();
+}
+async function checkAppUpdate(){
+  if (!CONFIG.API_URL || window.WC_BUILTIN) return;
+  let r; try { r = await apiCall({ action: 'ver' }); } catch { return; }
+  if (!r?.ok) return;
+  const a = r.app; let cached = null; try { cached = JSON.parse(localStorage.getItem('wc_pkg') || 'null'); } catch {}
+  if (!a) {   // 系統管理員下架了更新 → 回到內建版本
+    if (cached) { try { localStorage.removeItem('wc_pkg'); } catch {} }
+    if (window.__WC_PKG && !wcBusy()) location.reload();
+    return;
+  }
+  if (a.v === window.WC_VER) { updPending = null; return; }
+  try { if (localStorage.getItem('wc_badpkg') === a.v) return; } catch {}   // 這個版本在這台裝置啟動失敗過，不再自動套用
+  if (!cached || cached.v !== a.v) {
+    let p; try { p = await apiCall({ action: 'pkg', id: a.id }); } catch { return; }
+    if (!p?.ok || !p.html || (p.sha && await sha256hex(p.html) !== p.sha)) return;
+    try { localStorage.setItem('wc_pkg', JSON.stringify({ v: p.v, id: a.id, html: p.html, t: Date.now() })); }
+    catch { try { ['wc_slate', 'wc_ov'].forEach(k => localStorage.removeItem(k)); localStorage.setItem('wc_pkg', JSON.stringify({ v: p.v, id: a.id, html: p.html, t: Date.now() })); } catch { return; } }
+  }
+  updPending = a;
+  if (a.force && !wcBusy()) { toast(`正在更新到 v${a.v}…`); setTimeout(() => { if (!wcBusy()) location.reload(); }, 900); }
+  else if (Q.get('mode') !== 'out') updBanner(a, a.force);
+}
+// 導播結束、來賓離開後，如果有強制更新就套用
+function wcIdle(){ window.__WC_BUSY = false; if (updPending?.force) setTimeout(() => !wcBusy() && location.reload(), 1500); }
+setTimeout(checkAppUpdate, 2500);
+setInterval(checkAppUpdate, 5 * 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - (checkAppUpdate.t || 0) > 60000) { checkAppUpdate.t = Date.now(); checkAppUpdate(); } });
+
+/* ===================== 路由 ===================== */
+function route(){
+  window.__WC_OK = true;
+  if (!window.Peer) {
+    app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 函式庫沒有載入，請確認網路可連到 cdnjs.cloudflare.com 或 unpkg.com，然後重新整理。</p></div></div>`;
+    return;
+  }
   const mode = Q.get('mode');
   if (mode === 'guest') Guest();
   else if (mode === 'out') Output();
   else if (mode === 'host' && !/[#&]c=/.test(location.hash) && sstore('wc_host')) HostResume();
   else Home();
+}
+if (window.Peer) route();
+else {   // 網路慢、CDN 被擋時再試一次備用來源
+  const sc = document.createElement('script'); sc.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+  sc.onload = sc.onerror = route; document.head.appendChild(sc);
 }
 </script>
 </body></html>
