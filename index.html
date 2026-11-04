@@ -1250,6 +1250,27 @@ function Host(sess){
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
+  // 監聽混音（導播耳機聽到的：PFL＋來賓對講）與對講專用混音，可以指定給某個 OBS 輸出（OBS 設成「僅監聽」）
+  const monDst = ac.createMediaStreamDestination(); monitorBus.connect(monDst);
+  const nstore = (k, d) => { const v = store(k); return v == null || v === '' || isNaN(+v) ? d : +v; };
+  const MON = { pgm: nstore('wc_mon_pgm', 0), pfl: nstore('wc_mon_pfl', 1), ic: nstore('wc_mon_ic', 1), play: nstore('wc_mon_play', 1), ret: nstore('wc_mon_ret', 1), dim: store('wc_mon_dim') !== '0' };
+  // 五條監聽線，各自調音量，最後合到導播耳機：節目、PFL、來賓對講、來賓回放（影片／分享畫面）、回傳（來賓耳機聽到的）
+  const pgmMon = ac.createGain(), pflBus = ac.createGain(), icMonBus = ac.createGain(), playMonBus = ac.createGain(), retMonBus = ac.createGain();
+  pgmMon.gain.value = MON.pgm; pflBus.gain.value = MON.pfl; icMonBus.gain.value = MON.ic; playMonBus.gain.value = MON.play; retMonBus.gain.value = MON.ret;
+  [pgmMon, pflBus, icMonBus, playMonBus, retMonBus].forEach(n => n.connect(monitorBus));
+  const monMeter = makeAnalyser(monitorBus);
+  // PFL 時自動把節目監聽壓低，才聽得清楚 PFL 那一路
+  function updMon(){ const anyPfl = [...inputs.values()].some(x => x.pfl); pgmMon.gain.setTargetAtTime(MON.pgm * (MON.dim && anyPfl ? .25 : 1), ac.currentTime, .03); pflBus.gain.setTargetAtTime(MON.pfl, ac.currentTime, .03); icMonBus.gain.setTargetAtTime(MON.ic, ac.currentTime, .03); playMonBus.gain.setTargetAtTime(MON.play, ac.currentTime, .03); retMonBus.gain.setTargetAtTime(MON.ret, ac.currentTime, .03); }
+  // 重新開啟導播台時，套用上次選的監聽耳機
+  if (store('wc_sink') && ac.setSinkId) ac.setSinkId(store('wc_sink')).catch(() => {});
+  const icBus = ac.createGain(), icDst = ac.createMediaStreamDestination(); icBus.connect(icDst);
+  const icDirGain = ac.createGain(); icDirGain.connect(icBus);
+  // 每個輸出的聲音：pgm 節目聲音／iso 這一路自己的聲音／mon 導播監聽（含對講）／ic 只有對講／none 靜音
+  const OUT_AUD = (() => { try { return JSON.parse(store('wc_outaud') || '{}'); } catch { return {}; } })();
+  const outAud = sl => OUT_AUD[sl] || ({ pgm: 'pgm', clean: 'pgm', pvw: 'none', mv: 'none' }[sl] || 'iso');
+  const AUD_OPTS = sl => [...(typeof sl === 'number' ? [['iso', '這一路自己的聲音（ISO）']] : []), ['pgm', '節目聲音（PGM）'], ['mon', '導播監聽（耳機聽到的）'], ['ic', '只有對講'], ['none', '靜音（只有畫面）']];
+  const AUD_NAME = { iso: 'ISO 自己', pgm: '節目 PGM', mon: '導播監聽', ic: '只有對講', none: '靜音' };
+  function setOutAud(sl, v){ OUT_AUD[sl] = v; store('wc_outaud', JSON.stringify(OUT_AUD)); refreshSlot(sl); toast(`${typeof sl === 'number' ? 'OUT ' + sl : String(sl).toUpperCase()} 的聲音：${AUD_NAME[v]}`); renderDock(); softRender('out'); softRender('aud'); }
   const programBus = ac.createGain(); const programDst = ac.createMediaStreamDestination();
   let pgmMeter = () => 0;
   const IC = { mutePgm: store('wc_ic_mute') !== '0', duck: store('wc_ic_duck') !== '0', all: false, stream: null, src: null, meter: () => 0, device: store('wc_ic_dev') || '' };
@@ -1309,7 +1330,7 @@ function Host(sess){
   const masterGain = ac.createGain(); masterGain.gain.value = Number(store('wc_master') || 1);
   const limiter = ac.createDynamicsCompressor(); limiter.threshold.value = -3; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = .002; limiter.release.value = .15;
   let limiterOn = store('wc_limit') !== '0';
-  function routeMaster(){ try { programBus.disconnect(); masterGain.disconnect(); limiter.disconnect(); } catch {} programBus.connect(masterGain); if (limiterOn) { masterGain.connect(limiter); limiter.connect(programDst); } else masterGain.connect(programDst); pgmMeter = makeAnalyser(masterGain); }
+  function routeMaster(){ try { programBus.disconnect(); masterGain.disconnect(); limiter.disconnect(); } catch {} programBus.connect(masterGain); if (limiterOn) { masterGain.connect(limiter); limiter.connect(programDst); limiter.connect(pgmMon); } else { masterGain.connect(programDst); masterGain.connect(pgmMon); } pgmMeter = makeAnalyser(masterGain); }
   routeMaster();
 
   app.innerHTML = `
@@ -1332,7 +1353,7 @@ function Host(sess){
       <button class="btn danger" id="endb">結束</button>
     </div>
     <div class="keybar" id="keys">
-      ${[['ic', '對講'], ['msg', '訊息'], ['mix', '混音監聽'], ['ctl', '遠端控制'], ['qa', '舉手投票'], ['gfx', '字幕圖層'], ['scene', '場景'], ['timer', '計時倒數'], ['rec', '錄影'], ['src', '來源'], ['ret', '回傳'], ['out', '輸出'], ['set', '切換台設定'], ['keys', '快捷鍵']].map(([k, n]) => `<div class="key" data-win="${k}"><span class="led"></span>${n}${k === 'msg' ? '<span class="bdg hidden" id="mbdg">0</span>' : k === 'qa' ? '<span class="bdg hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
+      ${[['ic', '對講'], ['msg', '訊息'], ['mix', '混音監聽'], ['aud', '聲音路由'], ['ctl', '遠端控制'], ['qa', '舉手投票'], ['gfx', '字幕圖層'], ['scene', '場景'], ['timer', '計時倒數'], ['rec', '錄影'], ['src', '來源'], ['ret', '回傳'], ['out', '輸出'], ['set', '切換台設定'], ['keys', '快捷鍵']].map(([k, n]) => `<div class="key" data-win="${k}"><span class="led"></span>${n}${k === 'msg' ? '<span class="bdg hidden" id="mbdg">0</span>' : k === 'qa' ? '<span class="bdg hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
       <span class="kgap"></span>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
       <div class="key" id="swk" title="開啟／關閉切換台（PREVIEW、PROGRAM、T-Bar）（W）"><span class="led"></span>切換台</div>
@@ -1435,12 +1456,22 @@ function Host(sess){
     inp.pgmGain = ac.createGain(); inp.afvGain = ac.createGain(); inp.afvGain.gain.value = 0;
     inp.isoDst = ac.createMediaStreamDestination(); inp.retSend = ac.createGain(); inp.monGain = ac.createGain(); inp.monGain.gain.value = 0;
     F.gate.connect(inp.pgmGain); F.gate.connect(inp.monGain);
-    inp.pgmGain.connect(inp.isoDst); inp.pgmGain.connect(inp.afvGain); inp.afvGain.connect(programBus); inp.afvGain.connect(inp.retSend); inp.monGain.connect(monitorBus);
+    inp.pgmGain.connect(inp.isoDst); inp.pgmGain.connect(inp.afvGain); inp.afvGain.connect(programBus); inp.afvGain.connect(inp.retSend); inp.monGain.connect(pflBus);
+    inp.icGain = ac.createGain(); inp.icGain.gain.value = 0; inp.icGain.connect(icBus);
+    inp.icLis = ac.createGain(); inp.icLis.gain.value = 0; inp.icLis.connect(icMonBus);
+    inp.icIn = ac.createGain(); inp.icIn.connect(inp.icGain); inp.icIn.connect(inp.icLis);
+    F.gate.connect(inp.icIn);   // 舊版來賓只有一條聲音：對講時從節目麥那條取
+    // 回放聲音（來賓播放的影片／分享畫面）：獨立一條，要不要進節目、要不要監聽分開設定
+    inp.medIn = ac.createGain(); inp.medPgm = ac.createGain(); inp.medPgm.gain.value = 0; inp.medMon = ac.createGain(); inp.medMon.gain.value = 0;
+    inp.medIn.connect(inp.medPgm); inp.medIn.connect(inp.medMon); inp.medPgm.connect(inp.pgmGain); inp.medMon.connect(playMonBus);
+    inp.medVol = 1; inp.medListen = false; inp.retListen = false; inp.icToPgm = false;
+    inp.icMeter = () => 0; inp.medMeter = () => 0;
     inp.postMeter = makeAnalyser(inp.pgmGain); inp.meter = () => 0;
     applyFx(inp);
     if (kind === 'guest') {
       inp.retMix = ac.createMediaStreamDestination(); inp.retGain = ac.createGain(); inp.talkGain = ac.createGain(); inp.talkGain.gain.value = 0;
       inp.retGain.connect(inp.retMix); inp.talkGain.connect(inp.retMix);
+      inp.retMon = ac.createGain(); inp.retMon.gain.value = 0; inp.retGain.connect(inp.retMon); inp.talkGain.connect(inp.retMon); inp.retMon.connect(retMonBus);
       if (IC.src) IC.src.connect(inp.talkGain);
     }
     inputs.set(id, inp); order.push(id);
@@ -1469,9 +1500,28 @@ function Host(sess){
     if (!inp.isoC) { inp.isoC = Object.assign(document.createElement('canvas'), { width: 1280, height: 720 }); inp.isoX = inp.isoC.getContext('2d'); inp.isoTrack = inp.isoC.captureStream(30).getVideoTracks()[0]; }
     return inp.isoTrack;
   }
+  // 來賓送來的聲音：新版是三條（節目麥、對講麥、回放），舊版只有一條
+  function wireAudio(inp){
+    const st = inp.stream; if (!st) return;
+    const at = st.getAudioTracks(), ids = inp.atracks || inp.state.atracks || {};
+    const find = (id, i) => at.find(t => id && t.id === id) || at[i] || null;
+    const multi = inp.kind === 'guest' && at.length >= 3;
+    const pgmT = multi ? find(ids.pgm, 0) : null, icT = multi ? find(ids.ic, 1) : null, medT = multi ? find(ids.media, 2) : null;
+    const one = t => ac.createMediaStreamSource(new MediaStream([t]));
+    connectAudio(inp, multi ? one(pgmT) : at.length ? ac.createMediaStreamSource(st) : null);
+    [inp.icSrc, inp.medSrc].forEach(n => { try { n?.disconnect(); } catch {} });
+    inp.icSrc = inp.medSrc = null; inp.icMeter = inp.medMeter = () => 0;
+    try { inp.fxn.gate.disconnect(inp.icIn); } catch {}
+    if (multi) {
+      inp.icSrc = one(icT); inp.icSrc.connect(inp.icIn); inp.icMeter = makeAnalyser(inp.icSrc);
+      inp.medSrc = one(medT); inp.medSrc.connect(inp.medIn); inp.medMeter = makeAnalyser(inp.medSrc);
+    } else inp.fxn.gate.connect(inp.icIn);
+    inp.multi = multi;
+    applyGains(inp);
+  }
   function setStream(inp, stream){
     inp.stream = stream; inp.lost = false; clearTimeout(inp.lostT);
-    connectAudio(inp, stream.getAudioTracks().length ? ac.createMediaStreamSource(stream) : null);
+    if (inp.kind === 'guest') wireAudio(inp); else connectAudio(inp, stream.getAudioTracks().length ? ac.createMediaStreamSource(stream) : null);
     const v = inp.video; v.srcObject = stream; v.play().catch(() => {});
     $('[data-k="nosig"]', inp.el).classList.add('hidden');
     buildIso(inp);
@@ -1494,7 +1544,7 @@ function Host(sess){
     const inp = inputs.get(id); if (!inp) return;
     inputs.delete(id); order.splice(order.indexOf(id), 1);
     clearInterval(inp.statT); clearTimeout(inp.callT); clearTimeout(inp.lostT); clearTimeout(inp.cdT);
-    [inp.src, inp.pgmGain, inp.afvGain, inp.retSend, inp.monGain, inp.retGain, inp.talkGain, inp.fxn?.gate].forEach(n => { try { n?.disconnect(); } catch {} });
+    [inp.src, inp.icSrc, inp.medSrc, inp.pgmGain, inp.afvGain, inp.retSend, inp.monGain, inp.icGain, inp.icLis, inp.icIn, inp.medIn, inp.medPgm, inp.medMon, inp.retMon, inp.retGain, inp.talkGain, inp.fxn?.gate].forEach(n => { try { n?.disconnect(); } catch {} });
     try { inp.call?.close(); } catch {} try { inp.conn?.close(); } catch {}
     if (inp.kind === 'local') inp.stream?.getTracks().forEach(t => t.stop());
     if (inp.kind === 'media') { try { inp.video.pause(); URL.revokeObjectURL(inp.video.src); } catch {} }
@@ -1511,14 +1561,26 @@ function Host(sess){
   const byPeer = p => [...inputs.values()].find(x => x.peer === p);
   const numOf = inp => order.indexOf(inp.id) + 1;
   function renumber(){ order.forEach((id, i) => { const el = inputs.get(id).el; if (el) $('.num', el).textContent = i + 1; }); }
-  const pgmAudioOn = inp => inp.kind !== 'guest' || inp.state.pgmMic !== false || !!inp.state.mediaAudio;
+  // 來賓開「對講麥克風」＝在跟導播講話：這段聲音只進導播監聽與對講輸出，不進節目、ISO、OBS
+  const guestTalkback = inp => inp.kind === 'guest' && !!inp.state.icMic;
+  // 新版來賓：三條聲音分開，節目麥那條本身就只有節目聲音，所以不用整路關掉；舊版來賓（只有一條）對講時整路不進節目
+  const pgmAudioOn = inp => inp.kind !== 'guest' || (inp.multi ? true : (!guestTalkback(inp) && (inp.state.pgmMic !== false || !!inp.state.mediaAudio)));
+  const medToPgm = inp => inp.kind === 'guest' && inp.multi && inp.ctl.videoAudio !== false;
   function applyGains(inp){
     const t = ac.currentTime;
     const talking = inp.talk || (IC.all && inp.kind === 'guest');
     const pg = PANIC || inp.mute || inp.lost || !pgmAudioOn(inp) || (talking && IC.mutePgm) ? 0 : inp.fader;
     inp.pgmGain.gain.setTargetAtTime(pg, t, .02);
-    const mon = (inp.pfl && pgmAudioOn(inp)) || (inp.kind === 'guest' && inp.icListen && inp.state.icMic) ? 1 : 0;
-    inp.monGain.gain.setTargetAtTime(mon, t, .02);
+    inp.monGain.gain.setTargetAtTime(inp.pfl && pgmAudioOn(inp) && !inp.lost ? 1 : 0, t, .02);          // PFL：只有導播耳機
+    const tb = guestTalkback(inp) && !inp.lost;
+    inp.icGain.gain.setTargetAtTime(tb ? 1 : 0, t, .02);                                                 // 對講輸出
+    inp.icLis.gain.setTargetAtTime(tb && inp.icListen ? 1 : 0, t, .02);                                  // 導播耳機聽來賓對講
+    if (inp.medPgm) {
+      inp.medPgm.gain.setTargetAtTime(medToPgm(inp) && !inp.lost ? inp.medVol : 0, t, .02);              // 回放聲音進節目（也會進這一路的 ISO）
+      inp.medMon.gain.setTargetAtTime(inp.medListen && !inp.lost ? 1 : 0, t, .02);                        // 導播耳機聽回放
+    }
+    if (inp.retMon) inp.retMon.gain.setTargetAtTime(inp.retListen && !inp.lost ? 1 : 0, t, .02);         // 導播耳機聽「這位來賓聽到的回傳」
+    updMon();
     if (inp.kind === 'guest') {
       inp.talkGain.gain.setTargetAtTime(talking ? 1 : 0, t, .01);
       inp.retGain.gain.setTargetAtTime(RET.vol * (talking && IC.duck ? .3 : 1), t, .05);
@@ -1595,7 +1657,7 @@ function Host(sess){
       inp.tally === 'live' ? '<span class="tag live">ON AIR</span>' : !UI.sw && inp.tally === 'pvw' ? '<span class="tag pvwt">PVW</span>' : '',
       inp.slot ? `<span class="tag out">OUT ${inp.slot}</span>` : '',
       inp.talk || (IC.all && g) ? '<span class="tag icm">TALK</span>' : '',
-      g && s.icMic ? '<span class="tag icm">對講麥</span>' : '',
+      g && s.icMic ? '<span class="tag icm" title="來賓正在用對講麥跟導播說話，這段聲音不會送到節目／OBS">對講中·節目靜音</span>' : '',
       inp.calling ? '<span class="tag call">🔔 呼叫</span>' : '',
       g && s.hand ? '<span class="tag hand">✋ 舉手</span>' : '',
       g && s.pgmMic === false ? '<span class="tag warn">MIC OFF</span>' : '',
@@ -1960,7 +2022,8 @@ function Host(sess){
     inputs.forEach(inp => { const v = inp.meter(); const b = $('.tv .vu i', inp.el); if (b) b.style.height = v * 100 + '%'; inp._lv = v; });
     $('#pgmvu').style.width = pgmMeter() * 100 + '%';
     if (WIN.mix?.open) inputs.forEach(inp => { const b = document.getElementById('mx-' + inp.id); if (b) b.style.height = inp.postMeter() * 100 + '%'; });
-    if (WIN.mix?.open) { const b = document.getElementById('mx-pgm'); if (b) b.style.height = pgmMeter() * 100 + '%'; }
+    if (WIN.mix?.open) { const b = document.getElementById('mx-mon'); if (b) b.style.height = monMeter() * 100 + '%'; }
+    if (WIN.aud?.open) { const b = document.getElementById('aud-mon'); if (b) b.style.width = monMeter() * 100 + '%'; }
     if (WIN.ic?.open) { const b = document.getElementById('ic-me'); if (b) b.style.width = IC.meter() * 100 + '%'; guests().forEach(g => { const e = document.getElementById('ic-' + g.id); if (e) e.style.width = (g.state.icMic ? g._lv || 0 : 0) * 100 + '%'; }); }
   })();
 
@@ -2064,7 +2127,7 @@ function Host(sess){
       IC.stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: IC.device ? { exact: IC.device } : undefined, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     } catch (e) { toast('無法開啟導播對講麥克風：' + e.message); return false; }
     try { IC.src?.disconnect(); } catch {}
-    IC.src = ac.createMediaStreamSource(IC.stream); IC.meter = makeAnalyser(IC.src);
+    IC.src = ac.createMediaStreamSource(IC.stream); IC.meter = makeAnalyser(IC.src); IC.src.connect(icDirGain);
     guests().forEach(g => IC.src.connect(g.talkGain));
     syncTalkTrack();
     patchIC();
@@ -2116,7 +2179,7 @@ function Host(sess){
     retVideoTrack = vt || blackTrack();
     guests().forEach(g => g.call?.peerConnection?.getSenders().forEach(s => { if (s.track?.kind === 'video') s.replaceTrack(retVideoTrack).catch(() => {}); }));
     rebuildReturn();
-    if (WIN.ret?.open) renderRet(); renderDock();
+    if (WIN.ret?.open) renderRet(); renderDock(); softRender('aud');
   }
 
   /* =============== 遠端控制 =============== */
@@ -2124,7 +2187,7 @@ function Host(sess){
     if (!g.conn?.open) return toast('來賓目前沒有連線');
     Object.assign(g.ctl, ctl);
     g.conn.send({ type: 'ctl', ...ctl });
-    const names = { pgmMic: '節目麥克風', icMic: '對講麥克風', cam: '鏡頭' };
+    const names = { pgmMic: '節目麥克風', icMic: '對講麥克風', cam: '鏡頭', videoAudio: '回放聲音進節目', icMutesPgm: '對講時節目麥靜音', monMedia: '來賓聽回放' };
     Object.keys(ctl).forEach(k => names[k] && toast(`已${ctl[k] ? '開啟' : '關閉'}「${g.name}」的${names[k]}`));
   }
 
@@ -2553,6 +2616,7 @@ function Host(sess){
     set:  { title: 'SWITCHER 切換台設定', w: 460, h: 640, render: renderSet },
     ret:  { title: 'RETURN 回傳給來賓', w: 340, h: 280, render: renderRet },
     out:  { title: 'OUTPUT 輸出給 OBS', w: 420, h: 460, render: renderOut },
+    aud:  { title: 'AUDIO ROUTING 聲音路由', w: 760, h: 760, render: renderAud },
     src:  { title: 'SOURCES 來源', w: 400, h: 640, render: renderSrc },
     keys: { title: 'KEYS 鍵盤快捷鍵', w: 380, h: 470, render: renderKeys },
   };
@@ -2582,7 +2646,7 @@ function Host(sess){
     WDEF[id].render();
   }
   // 視窗正在被操作（拖拉滑桿、按住按鈕、輸入文字）時，延後重畫
-  const ctlSig = g => { const st = g.state; return JSON.stringify([g.id, st.pgmMic, st.icMic, st.cam, st.torch, st.zoom && [st.zoom.hw, st.zoom.min, st.zoom.max], st.guides, st.quality && [st.quality.mode, st.quality.tier, st.quality.rec, st.quality.warn], st.beauty, st.bg, st.share, st.playing, st.leaveMode, st.canShare, st.fxStatus, g.ctl]); };
+  const ctlSig = g => { const st = g.state; return JSON.stringify([g.id, st.icMutesPgm, st.monMedia, st.retMute, st.videoAudio, g.multi, st.pgmMic, st.icMic, st.cam, st.torch, st.zoom && [st.zoom.hw, st.zoom.min, st.zoom.max], st.guides, st.quality && [st.quality.mode, st.quality.tier, st.quality.rec, st.quality.warn], st.beauty, st.bg, st.share, st.playing, st.leaveMode, st.canShare, st.fxStatus, g.ctl]); };
   function softRender(id, sig){
     const w = WIN[id]; if (!w?.open) return;
     if (sig !== undefined && w.sig === sig) return;
@@ -2596,7 +2660,7 @@ function Host(sess){
   function closeWin(id){ const w = WIN[id]; if (!w) return; w.open = false; w.el.classList.add('hidden'); $(`.key[data-win="${id}"]`).classList.remove('on'); }
   function focusWin(w){ $$('.win').forEach(x => x.classList.remove('focus')); w.el.classList.add('focus'); w.el.style.zIndex = ++zTop; }
   $$('.key[data-win]').forEach(k => k.onclick = () => { const id = k.dataset.win; WIN[id]?.open ? closeWin(id) : openWin(id); });
-  function renderAll(){ renderDock(); renderPipBar(); renderSwitcherLabels(); Object.keys(WIN).forEach(id => WIN[id].open && WDEF[id].render()); $('#kg').textContent = `${liveGuests().length}/${LINES}`; $('#ko').textContent = outputs.size; layoutGrid(); }
+  function renderAll(){ softRender('aud'); renderDock(); renderPipBar(); renderSwitcherLabels(); Object.keys(WIN).forEach(id => WIN[id].open && WDEF[id].render()); $('#kg').textContent = `${liveGuests().length}/${LINES}`; $('#ko').textContent = outputs.size; layoutGrid(); }
 
   async function devices(kind){ const d = await navigator.mediaDevices.enumerateDevices().catch(() => []); return d.filter(x => x.kind === kind); }
 
@@ -2664,6 +2728,85 @@ function Host(sess){
     $$('.quick button', w.body).forEach(b => b.onclick = () => sendMsg($('#mt', w.body).value, b.textContent));
     const ml = $('#ml', w.body); ml.scrollTop = ml.scrollHeight;
   }
+  /* ---------- 聲音路由：每一條聲音線獨立，分別設定 ----------
+   *  來賓節目麥／本機來源 ─ 推桿 ─┬─ ISO（這一路自己）
+   *                               └─ AFV ─ 節目 PGM（OBS、錄影、回傳給來賓扣掉自己）
+   *  來賓對講麥 ────────────────────── 對講線（導播耳機、指定的輸出），不進節目／ISO
+   *  導播對講麥 ────────────────────── 只送到被對講的來賓耳機（和「只有對講」輸出）
+   *  導播耳機 ＝ 節目監聽 ＋ PFL ＋ 來賓對講，三條各自調音量 */
+  function renderAud(){
+    const w = WIN.aud; if (!w?.open) return;
+    const pct = v => Math.round(v * 100);
+    const slider = (k, label, v, hint) => `<div class="row" style="margin:5px 0"><span style="width:96px;font-size:12px" title="${esc(hint)}">${label}</span><input type="range" min="0" max="150" value="${pct(v)}" data-mon="${k}" style="flex:1"><span class="mono" style="width:40px;text-align:right;font-size:11px">${pct(v)}%</span></div>`;
+    const outs = [['pgm', 'PGM 節目'], ['clean', 'CLEAN 無字幕'], ['pvw', 'PREVIEW'], ['mv', 'MULTIVIEW'], ...Array.from({ length: LINES }, (_, i) => [i + 1, `OUT ${i + 1}`])];
+    const cnt = sl => [...outputs].filter(o => o.slot === sl).length;
+    const sel = sl => `<select class="field sm" data-oa="${sl}" style="width:100%">${AUD_OPTS(sl).map(([k, n]) => `<option value="${k}" ${outAud(sl) === k ? 'selected' : ''}>${n}</option>`).join('')}</select>`;
+    w.body.innerHTML = `
+      <div class="wsec"><h4>聲音怎麼走 <span>每一條都分開</span></h4>
+        <div style="font-size:12px;line-height:1.75;color:var(--dim)">
+          <div>🎙 <b style="color:var(--text)">來賓節目麥克風</b> → 推桿 → <b>ISO</b>（這一路自己）＋ ON AIR 時 → <b>節目 PGM</b>（OBS、錄影）</div>
+          <div>🎧 <b style="color:var(--ic)">來賓對講麥克風</b> → 只到 <b>導播耳機</b>／「只有對講」的輸出，<b>不會進節目、ISO、OBS</b></div>
+          <div>🎬 <b style="color:var(--text)">來賓回放</b>（播放影片／分享畫面的聲音）→ 獨立一條：進不進節目、導播要不要監聽，分開設定</div>
+          <div>🗣 <b style="color:var(--ic)">導播對講</b> → 只送到被對講那位來賓的耳機</div>
+          <div>↩ <b style="color:var(--text)">回傳給來賓</b> → 節目聲音扣掉來賓自己（mix-minus）＋導播對講</div></div></div>
+      <div class="wsec"><h4>導播耳機（監聽） <span>總音量 ${pct(monitorBus.gain.value)}%</span></h4>
+        ${slider('pgm', '節目 PGM', MON.pgm, '聽到跟 OBS 一樣的節目聲音')}
+        ${slider('pfl', 'PFL 個別監聽', MON.pfl, '混音台按了 PFL 的那幾路')}
+        ${slider('ic', '來賓對講', MON.ic, '來賓開對講麥克風跟你說的話')}
+        ${slider('play', '來賓回放', MON.play, '來賓播放的影片／分享畫面的聲音（下面「聽回放」打開的那幾路）')}
+        ${slider('retmon', '回傳（來賓聽到的）', MON.ret, '下面「聽回傳」打開的那幾路，來賓耳機裡聽到的聲音')}
+        ${slider('all', '耳機總音量', monitorBus.gain.value, '')}
+        <div class="row" style="margin-top:4px"><span style="width:96px;font-size:12px">耳機音量表</span><div class="hmeter grow"><i id="aud-mon"></i></div></div>
+        <div class="row" style="margin-top:6px;flex-wrap:wrap"><select class="field sm grow" id="audsink"><option value="">預設輸出裝置</option></select>
+          <label class="note" style="margin:0"><input type="checkbox" id="auddim" ${MON.dim ? 'checked' : ''}> 按 PFL 時自動壓低節目監聽</label></div>
+        <div class="note">耳機聽到的聲音不會送到 OBS（除非你把某個輸出設成「導播監聽」）。OBS 那邊如果也要聽，請在 OBS 把來源設成「僅監聽」。</div>
+        <div class="note" style="color:var(--warn)">⚠ 如果 OBS 跟導播台在同一台電腦：請關掉 OBS 的「桌面音效」，或把導播耳機改到 OBS 沒有擷取的裝置（上面的輸出裝置選單）。否則 OBS 會把你耳機裡的對講、PFL 一起錄進去。</div></div>
+      <div class="wsec"><h4>每個輸出送什麼聲音（給 OBS）</h4>
+        <div style="display:grid;grid-template-columns:110px 1fr;gap:4px 8px;align-items:center">
+          ${outs.map(([sl, n]) => { const x = typeof sl === 'number' ? [...inputs.values()].find(v => v.slot === sl) : null; return `<span style="font-size:12px">${n}${x ? `<br><small style="color:var(--mute)">${esc(x.name)}</small>` : ''}${cnt(sl) ? ` <span style="color:var(--pvw);font-size:11px">● OBS×${cnt(sl)}</span>` : ''}</span>${sel(sl)}`; }).join('')}</div>
+        <div class="note">預設：PGM／CLEAN＝節目聲音；OUT 1～${LINES}＝這一路自己的聲音（ISO）；PREVIEW／MULTIVIEW＝靜音。錄影：PGM 與 CLEAN 錄節目聲音，ISO 錄這一路自己的聲音。</div></div>
+      <div class="wsec"><h4>每一路來源（導播端） <span>點一下切換</span></h4>
+        <div style="display:grid;grid-template-columns:minmax(90px,1fr) repeat(7,auto);gap:4px 5px;align-items:center;font-size:12px">
+          <span class="lbl" style="margin:0">來源</span><span class="lbl" style="margin:0" title="這一路的聲音進不進節目與 ISO">送節目</span><span class="lbl" style="margin:0">跟畫面</span><span class="lbl" style="margin:0" title="導播耳機個別監聽">PFL</span><span class="lbl" style="margin:0" title="來賓開對講麥時導播耳機聽不聽">聽對講</span><span class="lbl" style="margin:0" title="來賓播放影片／分享畫面的聲音進不進節目">回放進節目</span><span class="lbl" style="margin:0" title="導播耳機聽不聽來賓的回放聲音">聽回放</span><span class="lbl" style="margin:0" title="導播耳機聽這位來賓耳機裡聽到的聲音">聽回傳</span>
+          ${order.map(id => { const x = inputs.get(id), g = x.kind === 'guest', tb = guestTalkback(x);
+            return `<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${numOf(x)}. ${esc(x.name)}${tb ? ' <span class="tag icm">對講中</span>' : g && x.state.pgmMic === false ? ' <span class="tag warn">麥克風關</span>' : ''}</span>
+              <button class="btn sm ${x.mute ? 'off' : 'on'}" data-am="${id}" title="關掉＝這一路完全不進節目與 ISO">${x.mute ? 'MUTE' : 'ON'}</button>
+              <button class="btn sm ${x.afv !== false ? 'on' : ''}" data-aa="${id}" title="AFV＝ON AIR 時才有聲音；常開＝一直進節目">${x.afv !== false ? 'AFV' : '常開'}</button>
+              <button class="btn sm ${x.pfl ? 'on' : ''}" data-ap="${id}">PFL</button>
+              ${g ? `<button class="btn sm ${x.icListen ? 'on' : ''}" data-al="${id}" title="來賓開對講麥時，導播耳機要不要聽到">${x.icListen ? '聽' : '不聽'}</button>` : '<span></span>'}
+              ${g ? (x.multi ? `<button class="btn sm ${x.ctl.videoAudio !== false ? 'on' : ''}" data-avp="${id}">${x.ctl.videoAudio !== false ? '送' : '不送'}</button>
+                <button class="btn sm ${x.medListen ? 'on' : ''}" data-avl="${id}">${x.medListen ? '聽' : '不聽'}</button>` : '<span class="note" style="margin:0" title="來賓的網頁是舊版，請來賓重新整理">舊版</span><span></span>') + `
+                <button class="btn sm ${x.retListen ? 'on' : ''}" data-arl="${id}">${x.retListen ? '聽' : '不聽'}</button>` : '<span></span><span></span><span></span>'}`; }).join('') || '<span class="note">還沒有任何來源</span>'}</div></div>
+      <div class="wsec"><h4>來賓端設定（遠端控制，來賓自己也可以改） </h4>
+        <div style="display:grid;grid-template-columns:minmax(90px,1fr) repeat(5,auto);gap:4px 5px;align-items:center;font-size:12px">
+          <span class="lbl" style="margin:0">來賓</span><span class="lbl" style="margin:0">節目麥</span><span class="lbl" style="margin:0">對講麥</span><span class="lbl" style="margin:0" title="來賓開對講麥時，節目麥自動靜音">對講時節目靜音</span><span class="lbl" style="margin:0" title="來賓自己聽不聽自己播放的影片">來賓聽回放</span><span class="lbl" style="margin:0" title="來賓耳機聽不聽導播／節目回傳">來賓聽回傳</span>
+          ${guests().map(x => { const st = x.state, b = (k, on, a, bOff) => `<button class="btn sm ${on ? 'on' : 'off'}" data-gr="${x.id}" data-k="${k}" data-v="${on ? 0 : 1}">${on ? a : bOff}</button>`;
+            return `<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${numOf(x)}. ${esc(x.name)}</span>${b('pgmMic', st.pgmMic !== false, '開', '關')}${b('icMic', !!st.icMic, '開', '關')}${b('icMutesPgm', st.icMutesPgm !== false, '靜音', '不靜音')}${b('monMedia', !!st.monMedia, '聽', '不聽')}${b('retMute', !st.retMute, '聽', '靜音')}`; }).join('') || '<span class="note">還沒有來賓</span>'}</div>
+        <div class="note">「對講時節目靜音」開著時，來賓跟你講悄悄話不會被送上節目。</div></div>
+      <div class="wsec"><h4>回傳給來賓（來賓耳機）</h4>
+        <select class="field full" id="audret"><option value="none">只有導播對講（不回傳節目）</option><option value="program">節目聲音扣掉來賓自己＋導播對講</option>
+        ${order.filter(id => inputs.get(id).kind === 'local').map(id => `<option value="${id}">${esc(inputs.get(id).name)}＋導播對講</option>`).join('')}<option value="screen">分享螢幕的聲音＋導播對講</option></select>
+        ${slider('ret', '回傳音量', RET.vol, '')}</div>`;
+    const B = w.body;
+    $$('[data-mon]', B).forEach(r => r.oninput = () => {
+      const k = r.dataset.mon, v = r.value / 100; r.nextElementSibling.textContent = r.value + '%';
+      if (k === 'all') { monitorBus.gain.value = v; store('wc_monvol', v); }
+      else if (k === 'ret') { RET.vol = v; store('wc_retvol', v); guests().forEach(applyGains); }
+      else { const mk = k === 'retmon' ? 'ret' : k; MON[mk] = v; store('wc_mon_' + mk, v); updMon(); }
+    });
+    $('#auddim', B).onchange = e => { MON.dim = e.target.checked; store('wc_mon_dim', MON.dim ? '1' : '0'); updMon(); };
+    $$('[data-oa]', B).forEach(x => x.onchange = () => { const sl = /^\d+$/.test(x.dataset.oa) ? +x.dataset.oa : x.dataset.oa; setOutAud(sl, x.value); });
+    const tog = (attr, fn) => $$(`[${attr}]`, B).forEach(b => b.onclick = () => { const x = inputs.get(b.getAttribute(attr)); if (!x) return; fn(x); applyGains(x); updateTile(x); renderAud(); renderMix(); });
+    tog('data-am', x => x.mute = !x.mute); tog('data-aa', x => x.afv = x.afv === false); tog('data-ap', x => x.pfl = !x.pfl); tog('data-al', x => { x.icListen = !x.icListen; patchIC(); });
+    tog('data-avp', x => remote(x, { videoAudio: x.ctl.videoAudio === false })); tog('data-avl', x => x.medListen = !x.medListen); tog('data-arl', x => x.retListen = !x.retListen);
+    $$('[data-gr]', B).forEach(b => b.onclick = () => { const x = inputs.get(b.dataset.gr); if (!x) return; const k = b.dataset.k, on = b.dataset.v === '1';
+      remote(x, { [k]: k === 'retMute' ? !on : on }); x.state[k] = k === 'retMute' ? !on : on; setTimeout(() => softRender('aud'), 50); });
+    $('#audret', B).value = RET.src; $('#audret', B).onchange = e => setReturn(e.target.value);
+    const sk = $('#audsink', B);
+    if (ac.setSinkId) devices('audiooutput').then(ds => { sk.innerHTML = '<option value="">預設輸出裝置</option>' + ds.filter(d => d.deviceId !== 'default').map(d => `<option value="${d.deviceId}" ${d.deviceId === store('wc_sink') ? 'selected' : ''}>${esc(d.label || '輸出裝置')}</option>`).join(''); });
+    else sk.disabled = true;
+    sk.onchange = () => ac.setSinkId(sk.value).then(() => { store('wc_sink', sk.value); toast('導播耳機已切換'); }).catch(e => toast('無法切換：' + e.message));
+  }
   function renderMix(){
     const w = WIN.mix; if (!w?.open) return;
     const pct = v => Math.round(v * 100);
@@ -2675,19 +2818,20 @@ function Host(sess){
         <button class="mb ${x.afv !== false ? 'afv' : 'on'}" data-afv title="AFV＝ON AIR 才有聲音；ON＝一直開著">${x.afv !== false ? 'AFV' : 'ON'}</button>
         <button class="mb ${x.fx.comp || x.fx.gate || x.fx.lo || x.fx.mid || x.fx.hi ? 'fxon' : ''}" data-fxb title="EQ／壓縮／噪音閘">FX</button></div>`; }).join('') || '<div class="note" style="padding:10px">還沒有任何來源</div>'}
       <div class="strip master"><span class="num">MON</span><div class="nm">監聽總音量</div>
-        <div class="fwrap"><div class="vu"><i id="mx-pgm"></i></div><input type="range" min="0" max="150" value="${pct(monitorBus.gain.value)}" id="monv"></div>
+        <div class="fwrap"><div class="vu"><i id="mx-mon"></i></div><input type="range" min="0" max="150" value="${pct(monitorBus.gain.value)}" id="monv"></div>
         <span class="db" id="mondb">${pct(monitorBus.gain.value)}%</span>
         <select class="field sm" id="mondev" style="width:100%;padding:0 14px 0 4px" title="監聽輸出裝置"><option value="">預設輸出</option></select></div>
-    </div><div class="row" style="margin-top:6px"><button class="btn sm" id="mxp" style="${PANIC ? 'background:var(--live);color:#fff' : ''}">${ic('micoff')}${PANIC ? '已全部靜音' : '全部靜音'}</button><span class="note" style="margin:0">主音量與限幅器在「切換台設定」。</span></div><div class="note">推桿＝送到節目／OBS 的音量（遠端音量控制）。FX＝等化器、壓縮器、噪音閘。PFL＝只有導播耳機聽得到，不會輸出。綠色表為 PROGRAM 總音量。</div>`;
+    </div><div class="row" style="margin-top:6px"><button class="btn sm" id="mxp" style="${PANIC ? 'background:var(--live);color:#fff' : ''}">${ic('micoff')}${PANIC ? '已全部靜音' : '全部靜音'}</button><button class="btn sm" id="mxr">${ic('headset')}聲音路由（監聽／每個輸出送什麼聲音）</button><span class="note" style="margin:0">主音量與限幅器在「切換台設定」。</span></div><div class="note">推桿＝送到節目／OBS 的音量（遠端音量控制）。FX＝等化器、壓縮器、噪音閘。PFL＝只有導播耳機聽得到，不會輸出。MON 表＝導播耳機實際聽到的音量。</div>`;
     $$('.strip[data-id]', w.body).forEach(s => {
       const x = inputs.get(s.dataset.id);
       $('[data-f]', s).oninput = e => { x.fader = e.target.value / 100; $('[data-db]', s).textContent = e.target.value + '%'; applyGains(x); };
       $('[data-m]', s).onclick = () => { x.mute = !x.mute; applyGains(x); updateTile(x); renderMix(); };
-      $('[data-p]', s).onclick = () => { x.pfl = !x.pfl; applyGains(x); renderMix(); };
+      $('[data-p]', s).onclick = () => { x.pfl = !x.pfl; applyGains(x); renderMix(); softRender('aud'); };
       $('[data-afv]', s).onclick = () => { x.afv = x.afv === false; renderMix(); };
       $('[data-fxb]', s).onclick = () => mixFxPanel(x);
     });
     $('#mxp', w.body).onclick = () => { setPanic(!PANIC); renderMix(); };
+    $('#mxr', w.body).onclick = () => openWin('aud');
     $('#monv', w.body).oninput = e => { monitorBus.gain.value = e.target.value / 100; $('#mondb', w.body).textContent = e.target.value + '%'; store('wc_monvol', monitorBus.gain.value); };
     const md = $('#mondev', w.body);
     if (ac.setSinkId) devices('audiooutput').then(ds => { md.innerHTML = '<option value="">預設輸出</option>' + ds.filter(d => d.deviceId !== 'default').map(d => `<option value="${d.deviceId}" ${d.deviceId === store('wc_sink') ? 'selected' : ''}>${esc(d.label || '輸出裝置')}</option>`).join(''); });
@@ -2709,6 +2853,14 @@ function Host(sess){
       <div class="wsec"><h4>麥克風／鏡頭</h4><div class="row" style="flex-wrap:wrap">
         ${tg('pgmMic', s.pgmMic !== false, '節目麥')}${tg('icMic', !!s.icMic, '對講麥')}${tg('cam', s.cam !== false, '鏡頭')}
         <button class="btn sm" data-a="flip">${ic('flip')}翻轉</button>${s.torch != null ? tg('torch', !!s.torch, '手電筒') : ''}</div></div>
+      <div class="wsec"><h4>聲音（每一條分開） <button class="btn ghost sm" data-a="aud">聲音路由…</button></h4><div class="row" style="flex-wrap:wrap">
+        <button class="btn sm ${s.icMutesPgm !== false ? 'on' : 'off'}" data-snd="icMutesPgm">對講時節目麥靜音${s.icMutesPgm !== false ? ' ON' : ' OFF'}</button>
+        <button class="btn sm ${g.ctl.videoAudio !== false ? 'on' : 'off'}" data-snd="videoAudio">回放聲音進節目${g.ctl.videoAudio !== false ? ' ON' : ' OFF'}</button>
+        <button class="btn sm ${g.medListen ? 'on' : 'off'}" data-snd="medListen">導播聽回放${g.medListen ? ' ON' : ' OFF'}</button>
+        <button class="btn sm ${g.retListen ? 'on' : 'off'}" data-snd="retListen">導播聽回傳${g.retListen ? ' ON' : ' OFF'}</button>
+        <button class="btn sm ${s.monMedia ? 'on' : 'off'}" data-snd="monMedia">來賓聽回放${s.monMedia ? ' ON' : ' OFF'}</button>
+        <button class="btn sm ${!s.retMute ? 'on' : 'off'}" data-snd="retMute">來賓聽回傳${!s.retMute ? ' ON' : ' OFF'}</button></div>
+        ${g.multi ? '' : '<div class="note" style="color:var(--warn)">這位來賓的網頁是舊版（聲音只有一條），請來賓重新整理網頁才能分開。</div>'}</div>
       <div class="wsec"><h4>變焦 <span>${z.hw ? '鏡頭光學／硬體' : '數位'} ${z.min}×～${z.max}×</span></h4>
         <div class="row"><input type="range" min="${Math.round(z.min * 100)}" max="${Math.round(z.max * 100)}" value="${Math.round((z.value || 1) * 100)}" id="cz"><span class="mono" id="czv" style="width:44px;text-align:right">${(z.value || 1).toFixed(1)}×</span></div></div>
       <div class="wsec"><h4>來賓端對齊線</h4><div class="row" style="flex-wrap:wrap">${GUIDE_NAMES.map((n, i) => `<button class="btn sm ${(s.guides || 0) === i ? 'on' : ''}" data-gd="${i}">${n.replace('對齊線：', '')}</button>`).join('')}</div></div>
@@ -2745,6 +2897,14 @@ function Host(sess){
       remote(g, { [k]: !cur });
     });
     $('[data-a="flip"]', B).onclick = () => remote(g, { flip: true });
+    $('[data-a="aud"]', B).onclick = () => openWin('aud');
+    $$('[data-snd]', B).forEach(x => x.onclick = () => {
+      const k = x.dataset.snd;
+      if (k === 'medListen' || k === 'retListen') { g[k] = !g[k]; applyGains(g); toast(`導播耳機${g[k] ? '會' : '不會'}聽到「${g.name}」的${k === 'medListen' ? '回放聲音' : '回傳聲音'}`); }
+      else if (k === 'videoAudio') remote(g, { videoAudio: g.ctl.videoAudio === false });
+      else { const v = k === 'retMute' ? !g.state.retMute : k === 'icMutesPgm' ? g.state.icMutesPgm === false : !g.state[k]; remote(g, { [k]: v }); g.state[k] = v; }
+      renderCtl(); softRender('aud');
+    });
     const cz = $('#cz', B); let zt;
     cz.oninput = () => { $('#czv', B).textContent = (cz.value / 100).toFixed(1) + '×'; clearTimeout(zt); zt = setTimeout(() => remote(g, { zoom: cz.value / 100 }), 60); };
     $$('[data-gd]', B).forEach(x => x.onclick = () => remote(g, { guides: +x.dataset.gd }));
@@ -2866,15 +3026,17 @@ function Host(sess){
   function renderOut(){
     const w = WIN.out; if (!w?.open) return;
     const cnt = s => [...outputs].filter(o => o.slot === s).length;
-    const row = (k, n, d) => `<div class="row" style="margin:3px 0"><span class="mono" style="width:64px">${k.toUpperCase()}</span><span class="grow" style="font-size:12px">${n}${cnt(k) ? ` <span style="color:var(--pvw)">● OBS×${cnt(k)}</span>` : ''}<br><span class="note" style="margin:0">${d}</span></span><button class="btn sm" data-c="${k}">${ic('link')}</button></div>`;
+    const asel = sl => `<select class="field sm" data-oa="${sl}" title="這個輸出送什麼聲音" style="width:118px">${AUD_OPTS(sl).map(([k, n]) => `<option value="${k}" ${outAud(sl) === k ? 'selected' : ''}>🔊 ${AUD_NAME[k]}</option>`).join('')}</select>`;
+    const row = (k, n, d) => `<div class="row" style="margin:3px 0"><span class="mono" style="width:64px">${k.toUpperCase()}</span><span class="grow" style="font-size:12px">${n}${cnt(k) ? ` <span style="color:var(--pvw)">● OBS×${cnt(k)}</span>` : ''}<br><span class="note" style="margin:0">${d}</span></span>${asel(k)}<button class="btn sm" data-c="${k}">${ic('link')}</button></div>`;
     w.body.innerHTML = `<div class="wsec"><h4>PROGRAM 節目輸出 <span>${cnt('pgm') ? '● OBS×' + cnt('pgm') : '未連線'}</span></h4>
-        <div class="linkbox"><input class="field sm" readonly value="${esc(outUrl('pgm'))}"><button class="btn sm" data-c="pgm">複製</button></div>
+        <div class="linkbox"><input class="field sm" readonly value="${esc(outUrl('pgm'))}">${asel('pgm')}<button class="btn sm" data-c="pgm">複製</button></div>
         ${row('pvw', 'PREVIEW 預覽', '下一個要上的畫面')}${row('clean', 'CLEAN FEED', '節目畫面但不含字幕圖層')}${row('mv', 'MULTIVIEW', '所有來源的監看畫面（10 fps）')}
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0">解析度</span><select class="field sm" id="pr">${canvasOpts(SW.res)}</select></div></div>
       <div class="wsec"><h4>ISO 個別輸出（每路獨立） <span>${LINES} 路</span></h4>
-        ${Array.from({ length: LINES }, (_, i) => { const s = i + 1, x = [...inputs.values()].find(v => v.slot === s); return `<div class="row" style="margin:3px 0"><span class="mono" style="width:44px">OUT ${s}</span><span class="grow" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${x ? 'var(--text)' : 'var(--mute)'}">${x ? esc(x.name) : '—'}${cnt(s) ? ` <span style="color:var(--pvw)">● OBS×${cnt(s)}</span>` : ''}</span><button class="btn sm" data-c="${s}">${ic('link')}</button></div>`; }).join('')}</div>
+        ${Array.from({ length: LINES }, (_, i) => { const s = i + 1, x = [...inputs.values()].find(v => v.slot === s); return `<div class="row" style="margin:3px 0"><span class="mono" style="width:44px">OUT ${s}</span><span class="grow" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${x ? 'var(--text)' : 'var(--mute)'}">${x ? esc(x.name) : '—'}${cnt(s) ? ` <span style="color:var(--pvw)">● OBS×${cnt(s)}</span>` : ''}</span>${asel(s)}<button class="btn sm" data-c="${s}">${ic('link')}</button></div>`; }).join('')}</div>
       <div class="note">OBS → 新增「瀏覽器來源」→ 貼上網址 → 寬 1920、高 1080 → 勾選「透過 OBS 控制音訊」。PROGRAM 是切換台的節目畫面；ISO 是單一來賓的乾淨畫面。網址後面加 <span class="mono">&bg=000000</span> 黑底、<span class="mono">&fit=cover</span> 填滿。</div>`;
     $$('[data-c]', w.body).forEach(b => b.onclick = () => copyText(outUrl(b.dataset.c), '已複製輸出網址'));
+    $$('[data-oa]', w.body).forEach(x => x.onchange = () => setOutAud(/^\d+$/.test(x.dataset.oa) ? +x.dataset.oa : x.dataset.oa, x.value));
     $('#pr', w.body).onchange = e => { SW.res = e.target.value; store('wc_pgmres', SW.res); setPgmRes(SW.res); refreshSlot('pgm'); refreshSlot('clean'); $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`; };
   }
   function renderSrc(){
@@ -2987,13 +3149,16 @@ function Host(sess){
     try { o.call?.close(); } catch {}
     o.call = null;
     if (!o.conn.open) return;
-    let stream = null, name = '';
-    if (o.slot === 'pgm') { stream = programStream; name = 'PROGRAM'; }
-    else if (o.slot === 'pvw') { stream = pvwStream; name = 'PREVIEW'; }
-    else if (o.slot === 'clean') { stream = cleanStream; name = 'CLEAN FEED（無字幕）'; }
-    else if (o.slot === 'mv') { stream = mvStream; name = 'MULTIVIEW 多畫面'; }
-    else { const x = [...inputs.values()].find(v => v.slot === o.slot && v.isoStream); if (x) { stream = x.isoStream; name = x.name; } }
-    if (!stream) { o.conn.send({ type: 'empty' }); return; }
+    let vsrc = null, name = '', x = null;
+    if (o.slot === 'pgm') { vsrc = programStream; name = 'PROGRAM'; }
+    else if (o.slot === 'pvw') { vsrc = pvwStream; name = 'PREVIEW'; }
+    else if (o.slot === 'clean') { vsrc = cleanStream; name = 'CLEAN FEED（無字幕）'; }
+    else if (o.slot === 'mv') { vsrc = mvStream; name = 'MULTIVIEW 多畫面'; }
+    else { x = [...inputs.values()].find(v => v.slot === o.slot && v.isoStream); if (x) { vsrc = x.isoStream; name = x.name; } }
+    if (!vsrc) { o.conn.send({ type: 'empty' }); return; }
+    const am = outAud(o.slot);
+    const at = { pgm: programDst.stream, mon: monDst.stream, ic: icDst.stream, iso: x?.isoDst.stream }[am]?.getAudioTracks()[0];
+    const stream = new MediaStream([vsrc.getVideoTracks()[0], at].filter(Boolean));
     o.conn.send({ type: 'source', name });
     o.call = peer.call(o.conn.peer, stream, { metadata: { role: 'feed' } });
     o.call.on('error', () => {});
@@ -3093,6 +3258,7 @@ function Host(sess){
       try { g.call?.close(); } catch {}
       g.call = call;
       call.answer(new MediaStream([retVideoTrack, g.retMix.stream.getAudioTracks()[0]]));
+      g.atracks = call.metadata?.atracks || null;   // 三條聲音各自的軌道 ID
       call.on('stream', s => { setStream(g, s); startStats(g); });
       call.on('close', () => {});
       call.on('error', () => {});
@@ -3109,6 +3275,7 @@ function Host(sess){
     if (d.type === 'state') {
       const wasHand = !!g.state.hand;
       g.state = { ...g.state, ...d.state };
+      if ('videoAudio' in d.state) g.ctl.videoAudio = d.state.videoAudio !== false;   // 來賓自己改的也同步回導播端
       if (!wasHand && g.state.hand) { beep(784, 120); setTimeout(() => beep(1046, 160), 140); toast(`✋「${g.name}」舉手`); }
       if (wasHand !== !!g.state.hand) { updHands(); if (WIN.qa?.open) renderQA(); }
       applyGains(g); updateTile(g);
@@ -3155,7 +3322,7 @@ function Host(sess){
 
   /* =============== NOC 監看（派發平台的監看中心連進來） =============== */
   const mons = new Set();
-  const MON_CTL = ['quality', 'fps', 'codec', 'orient', 'retVol', 'guides', 'pgmMic', 'icMic', 'cam', 'zoom', 'retLayout'];
+  const MON_CTL = ['quality', 'fps', 'codec', 'orient', 'retVol', 'guides', 'pgmMic', 'icMic', 'cam', 'zoom', 'retLayout', 'videoAudio', 'icMutesPgm', 'monMedia', 'retMute'];
   async function acceptMon(conn, md){
     let ok = null, err = '監看憑證無效';
     try { const r = await apiCall({ action: 'verifyMon', ticket: md.ticket, sid: sess.sid }); if (r.ok) ok = r; else err = r.error || err; } catch (e) { err = e.message; }
@@ -3244,7 +3411,8 @@ function Host(sess){
 
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
-  window.__host = { OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite };
+  const icMeterAll = makeAnalyser(icBus);
+  window.__host = { audLevels: () => ({ pgm: pgmMeter(), mon: monMeter(), ic: icMeterAll() }), applyGains, OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite };
 }
 /* ===================== 來賓 ===================== */
 function Guest(){
@@ -3289,6 +3457,13 @@ function GuestMain(inv, roomKey){
   const cidKey = of ? 'wc_cid2_' + of : 'wc_cid';
   const cid = store(cidKey) || (() => { const c = rnd(12); store(cidKey, c); return c; })();
   let stream, camTrack, micTrack, peer, conn, call, joined = false, retryT, statT, callT, wake;
+  // 聲音分三條獨立送給導播：節目麥（micTrack）、對講麥（icTrack，同一支麥克風的複本）、回放聲音（影片／分享畫面，mix.track）
+  let icTrack = null, meterTrack = null, SND = null, sentTracks = null;
+  let icMutesPgm = store('wc_icmute') !== '0', monMedia = false, retMute = false;
+  function audioTracks(){
+    if (micTrack) micTrack.enabled = pgmMic && !(icMic && icMutesPgm);   // 對講時節目麥自動靜音（可以關掉這個設定）
+    if (icTrack) icTrack.enabled = icMic;
+  }
   let facing = 'user', camOn = true, pgmMic = true, icMic = false, torchOn = false, guides = 0;
   let zoom = { hw: false, min: 1, max: 2, step: .1, value: 1 }, torchCap = false;
   let qMode = store('wc_qmode') || 'auto', tier = '720', rec = null, warn = '', retVol = 1;
@@ -3457,13 +3632,14 @@ function GuestMain(inv, roomKey){
     try { s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     catch (e) { delete video.deviceId; delete audio.deviceId; s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     stream = s; camTrack = s.getVideoTracks()[0]; micTrack = s.getAudioTracks()[0];
+    try { icTrack?.stop(); meterTrack?.stop(); } catch {}
+    icTrack = micTrack ? micTrack.clone() : null; meterTrack = micTrack ? micTrack.clone() : null;
     try { camTrack.contentHint = 'motion'; } catch {}
     camTrack.enabled = camOn && !hiddenClosed; fx.camOn = camTrack.enabled;
-    if (micTrack) micTrack.enabled = pgmMic || icMic;
+    audioTracks();
     const fm = camTrack.getSettings().facingMode; if (fm) facing = fm === 'environment' ? 'environment' : 'user';
     camRaw.srcObject = s; camRaw.play().catch(() => {});
-    if (mix) mix.setMic(micTrack);
-    meter = streamMeter(new MediaStream([micTrack].filter(Boolean)));
+    meter = streamMeter(new MediaStream([meterTrack].filter(Boolean)));
     readZoomCaps(); torchOn = false;
     applyOrient(); syncSenders(); sendState();
   }
@@ -3472,15 +3648,15 @@ function GuestMain(inv, roomKey){
   function syncSenders(){
     if (!camTrack) return;
     const vt = fx.outputTrack() || camTrack;
-    const at = mix?.active ? mix.track : micTrack;
     if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
     selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
     setTimeout(fitSelf, 50);
-    const pc = call?.peerConnection;
-    if (pc) pc.getSenders().forEach(snd => {
-      const k = snd.track?.kind; const t = k === 'video' ? vt : k === 'audio' ? at : null;
-      if (t && snd.track !== t) snd.replaceTrack(t).catch(() => {});
-    });
+    const pc = call?.peerConnection; if (!pc) return;
+    // 第一次：記下每個 sender 是哪一條（之後換鏡頭／麥克風才知道要換哪一條）
+    if (!SND && sentTracks) { SND = {}; pc.getSenders().forEach(snd => { const r = Object.keys(sentTracks).find(k => sentTracks[k] === snd.track); if (r) SND[r] = snd; }); }
+    if (!SND) return;
+    const want = { video: vt, pgm: micTrack, ic: icTrack, media: mix?.track };
+    Object.entries(SND).forEach(([r, snd]) => { const t = want[r]; if (t && snd.track !== t) snd.replaceTrack(t).catch(() => {}); });
   }
   function syncButtons(){
     const set = (id, off, iconOn, iconOff) => { const b = $(id); b.classList.toggle('off', off); $('svg', b).outerHTML = ic(off ? iconOff : iconOn); };
@@ -3488,8 +3664,8 @@ function GuestMain(inv, roomKey){
     $('#bi').classList.toggle('icon-on', icMic);
     const bs = $('#bsh'); if (bs) { bs.classList.toggle('icon-on', !!share); $('span:last-child', bs).textContent = share ? '分享中' : '分享畫面'; }
   }
-  function setPgmMic(on, by){ pgmMic = on; if (micTrack) micTrack.enabled = pgmMic || icMic; mix?.update(); syncButtons(); sendState(); toast(`${by ? '導播已' : ''}${on ? '開啟' : '關閉'}節目麥克風`); }
-  function setIcMic(on, by){ icMic = on; if (micTrack) micTrack.enabled = pgmMic || icMic; mix?.update(); syncButtons(); sendState(); toast(`${by ? '導播已' : ''}${on ? '開啟對講麥克風（只有導播聽得到）' : '關閉對講麥克風'}`); }
+  function setPgmMic(on, by){ pgmMic = on; audioTracks(); syncButtons(); sendState(); toast(`${by ? '導播已' : ''}${on ? '開啟' : '關閉'}節目麥克風`); }
+  function setIcMic(on, by){ icMic = on; audioTracks(); syncButtons(); sendState(); toast(`${by ? '導播已' : ''}${on ? '開啟對講麥克風（只有導播聽得到）' : '關閉對講麥克風'}`); }
   function setCam(on, by){ camOn = on; if (camTrack) camTrack.enabled = on && !hiddenClosed; fx.camOn = camTrack?.enabled ?? on; syncButtons(); sendState(); toast(`${by ? '導播已' : ''}${on ? '開啟' : '關閉'}鏡頭`); }
   $('#bm').onclick = () => setPgmMic(!pgmMic);
   $('#bi').onclick = () => setIcMic(!icMic);
@@ -3607,17 +3783,15 @@ function GuestMain(inv, roomKey){
   function ensureMix(){
     if (mix) return mix;
     const ac = audioCtx(), dst = ac.createMediaStreamDestination();
-    const micG = ac.createGain(), mediaG = ac.createGain(), monG = ac.createGain(); monG.gain.value = 0;
-    micG.connect(dst); mediaG.connect(dst); mediaG.connect(monG); monG.connect(ac.destination);
-    let micSrc = null, fileSrc = null, shareSrc = null;
+    const mediaG = ac.createGain(), monG = ac.createGain(); monG.gain.value = 0;
+    mediaG.connect(dst); mediaG.connect(monG); monG.connect(ac.destination);
+    let fileSrc = null, shareSrc = null;
     mix = {
       active: false, track: dst.stream.getAudioTracks()[0], monG, mediaG,
-      setMic(t){ try { micSrc?.disconnect(); } catch {} micSrc = t ? ac.createMediaStreamSource(new MediaStream([t])) : null; micSrc?.connect(micG); },
       useFile(){ if (!fileSrc) fileSrc = ac.createMediaElementSource(fileV); fileSrc.disconnect(); fileSrc.connect(mediaG); },
       useShare(s){ try { shareSrc?.disconnect(); } catch {} shareSrc = s && s.getAudioTracks().length ? ac.createMediaStreamSource(s) : null; shareSrc?.connect(mediaG); },
-      update(){ micG.gain.value = (pgmMic || icMic) ? 1 : 0; mediaG.gain.value = ctl.videoAudio || share ? 1 : 0; this.active = (filePlaying && ctl.videoAudio) || !!(share && shareSrc); syncSenders(); },
+      update(){ mediaG.gain.value = 1; monG.gain.value = monMedia ? .8 : 0; this.active = filePlaying || !!(share && shareSrc); $('#plm')?.classList.toggle('on', monMedia); },
     };
-    mix.setMic(micTrack);
     return mix;
   }
 
@@ -3686,7 +3860,7 @@ function GuestMain(inv, roomKey){
   fileV.ontimeupdate = updPlayer; fileV.onplay = fileV.onpause = updPlayer; fileV.onended = () => { updPlayer(); };
   $('#plp').onclick = () => fileV.paused ? fileV.play() : fileV.pause();
   $('#pls').oninput = e => { if (fileV.duration) fileV.currentTime = e.target.value / 1000 * fileV.duration; };
-  $('#plm').onclick = () => { if (!mix) return; const on = mix.monG.gain.value === 0; mix.monG.gain.value = on ? .8 : 0; $('#plm').classList.toggle('on', on); toast(on ? '自己也聽得到影片聲音（請戴耳機）' : '關閉自己聽影片聲音'); };
+  $('#plm').onclick = () => { const on = !monMedia; setMonMedia(on);  toast(on ? '自己也聽得到影片聲音（請戴耳機）' : '關閉自己聽影片聲音'); };
   $('#plx').onclick = stopVideo;
 
   /* ---------- 離開網頁時：自動子母畫面 或 關閉畫面 ---------- */
@@ -3879,6 +4053,12 @@ function GuestMain(inv, roomKey){
         <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">耳機／喇叭（聽導播）</span><select class="field" id="dspk"></select></div>
+        <div class="full"><span class="lbl">聲音（每一條都分開，導播也可以遠端設定）</span>
+          <div class="srow" style="grid-template-columns:1fr auto"><span>對講時，節目麥克風自動靜音</span>${segc('dicm', [['1', '靜音'], ['0', '不靜音']], icMutesPgm ? '1' : '0')}</div>
+          <div class="srow" style="grid-template-columns:1fr auto"><span>播放影片／分享畫面的聲音送進節目</span>${segc('dva', [['1', '送'], ['0', '不送']], ctl.videoAudio !== false ? '1' : '0')}</div>
+          <div class="srow" style="grid-template-columns:1fr auto"><span>自己聽播放的影片聲音</span>${segc('dmm', [['1', '聽'], ['0', '不聽']], monMedia ? '1' : '0')}</div>
+          <div class="srow" style="grid-template-columns:1fr auto"><span>聽導播／節目回傳</span>${segc('drm', [['0', '聽'], ['1', '靜音']], retMute ? '1' : '0')}</div>
+          <div class="tip" style="margin-top:2px">對講麥克風的聲音只有導播聽得到，不會進節目。</div></div>
         <div class="full"><span class="lbl">導播聲音音量</span><div class="srow" style="grid-template-columns:1fr 40px"><input type="range" id="rv" min="0" max="100" value="${Math.round(retVol * 100)}"><span>${Math.round(retVol * 100)}</span></div>
           <div class="hmeter"><i id="retlv"></i></div><button class="btn sm" id="tone" style="margin-top:8px">${ic('speaker')}${toneA && !toneA.paused ? '停止測試聲音' : '測試耳機聲音'}</button></div>
         <div class="full"><span class="lbl">畫質　目前 ${QUALITY[tier].label}${rec ? '・網路建議 ' + QUALITY[rec].label : ''}</span>${segc('dq', qOpts(), qMode)}</div>
@@ -3897,8 +4077,12 @@ function GuestMain(inv, roomKey){
       $('#dcam', sh).onchange = e => getMedia({ deviceId: e.target.value }).catch(err => toast(err.message));
       $('#dmic', sh).onchange = e => getMedia({ micId: e.target.value }).catch(err => toast(err.message));
       $('#dspk', sh).onchange = e => { retA.setSinkId?.(e.target.value).then(() => { store('wc_gsink', e.target.value); toast('已切換輸出裝置'); }).catch(err => toast(err.message)); };
-      $('#rv', sh).oninput = e => { retVol = e.target.value / 100; retA.volume = retVol; e.target.nextElementSibling.textContent = e.target.value; };
+      $('#rv', sh).oninput = e => { retVol = e.target.value / 100; retA.volume = retVol; e.target.nextElementSibling.textContent = e.target.value; sendStateSoon(); };
       $('#tone', sh).onclick = testTone;
+      $$('#dicm button', sh).forEach(b => b.addEventListener('click', () => setIcMutesPgm(b.dataset.v === '1')));
+      $$('#dva button', sh).forEach(b => b.addEventListener('click', () => setVideoAudio(b.dataset.v === '1')));
+      $$('#dmm button', sh).forEach(b => b.addEventListener('click', () => setMonMedia(b.dataset.v === '1')));
+      $$('#drm button', sh).forEach(b => b.addEventListener('click', () => setRetMute(b.dataset.v === '1')));
       $$('#dq button', sh).forEach(b => b.addEventListener('click', () => setQualityMode(b.dataset.v)));
       $$('#dl button', sh).forEach(b => b.addEventListener('click', () => { leaveMode = b.dataset.v; store('wc_leave', leaveMode); sendState(); }));
       const lv = () => { const el = $('#retlv', sh); if (!el || sheetName !== 'set') return; el.style.width = (retMeter() * 100) + '%'; requestAnimationFrame(lv); }; lv();
@@ -3915,6 +4099,10 @@ function GuestMain(inv, roomKey){
     for (let i = 0; i < len; i++) v.setInt16(44 + i * 2, clamp(d[i], -1, 1) * 32767, true);
     return toneUrl.u = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
   }
+  function setIcMutesPgm(on, by){ icMutesPgm = on; store('wc_icmute', on ? '1' : '0'); audioTracks(); sendState(); if (by) toast(`導播設定：對講時節目麥${on ? '自動靜音' : '保持開啟'}`); if (sheetName === 'set') sheetSettings(); }
+  function setMonMedia(on, by){ monMedia = on; mix?.update(); sendState(); if (by) toast(`導播設定：你${on ? '會' : '不會'}聽到自己播放的影片聲音`); if (sheetName === 'set') sheetSettings(); }
+  function setRetMute(on, by){ retMute = on; retA.muted = on; sendState(); if (by) toast(on ? '導播把回傳聲音靜音了' : '導播打開了回傳聲音'); if (sheetName === 'set') sheetSettings(); }
+  function setVideoAudio(on){ ctl.videoAudio = on; mix?.update(); sendState(); toast(on ? '影片／分享畫面的聲音會送進節目' : '影片／分享畫面的聲音不送節目（導播還是可以監聽）'); }
   function testTone(){
     const btn = $('#tone');
     const done = () => { if (btn?.isConnected) btn.innerHTML = ic('speaker') + '測試耳機聲音'; };
@@ -4005,7 +4193,8 @@ function GuestMain(inv, roomKey){
   function stateObj(){
     return { pgmMic, icMic, cam: camOn, zoom: { hw: zoom.hw, min: zoom.min, max: zoom.max, value: zoom.value }, torch: torchCap ? torchOn : null, guides,
       quality: { mode: qMode, tier, rec, warn }, beauty: { ...fx.beauty }, fxStatus: fx.status, share: !!share, playing: filePlaying,
-      mediaAudio: !!mix?.active, hidden: isHidden, leaveMode, canShare, portrait: isPortrait(),
+      mediaAudio: !!mix?.active, videoAudio: ctl.videoAudio !== false, icMutesPgm, monMedia, retMute, retVol,
+      atracks: sentTracks ? { pgm: sentTracks.pgm?.id, ic: sentTracks.ic?.id, media: sentTracks.media?.id } : null, hidden: isHidden, leaveMode, canShare, portrait: isPortrait(),
       bg: { ...fx.bg }, bgImgs: [...fx.bgImgs.keys()].filter(k => k.startsWith('c:') && !k.startsWith('c:me-')), hand, handT,
       perf: { cpu, cores: navigator.hardwareConcurrency || 0, pressure, dev: deviceName() }, net: netQ, cc: ccWant, second: !!of,
       fps: fpsPref, codec: codecPref, codecs: videoCodecs(), orient: orientMode, orientLock, retLayout, battery,
@@ -4025,12 +4214,15 @@ function GuestMain(inv, roomKey){
     if ('quality' in d) setQualityMode(d.quality, true);
     if (d.beauty) { applyBeauty({ ...d.beauty }); toast('導播調整了美顏設定'); if (sheetName === 'beauty') sheetBeauty(); }
     if ('retVol' in d) { retVol = clamp(+d.retVol, 0, 1); retA.volume = retVol; }
+    if ('icMutesPgm' in d) setIcMutesPgm(!!d.icMutesPgm, true);
+    if ('monMedia' in d) setMonMedia(!!d.monMedia, true);
+    if ('retMute' in d) setRetMute(!!d.retMute, true);
     if (d.bg) { applyBg({ ...d.bg }); toast('導播調整了背景設定'); if (sheetName === 'bg') sheetBg(); }
     if ('hand' in d) setHand(!!d.hand, true);
     if ('cc' in d) d.cc ? startCC() : stopCC();
     ['notifySound', 'allowVideo', 'videoAudio'].forEach(k => { if (k in d) ctl[k] = !!d[k]; });
     if ('allowVideo' in d && !d.allowVideo && filePlaying) { stopVideo(); toast('導播已停止影片播放'); }
-    if ('videoAudio' in d) mix?.update();
+    if ('videoAudio' in d) { mix?.update(); toast(`導播設定：影片／分享畫面的聲音${ctl.videoAudio ? '會' : '不會'}送進節目`); if (sheetName === 'set') sheetSettings(); }
     if ('leaveMode' in d) { leaveMode = d.leaveMode; store('wc_leave', leaveMode); }
     if ('orient' in d) setOrient(d.orient, true);
     if ('fps' in d) { fpsPref = clamp(+d.fps || 30, 5, 60); store('wc_fps', fpsPref); camTrack?.applyConstraints({ frameRate: { ideal: fpsPref } }).catch(() => {}); toast(`導播設定 ${fpsPref} fps`); }
@@ -4078,8 +4270,14 @@ function GuestMain(inv, roomKey){
   function makeCall(){
     const hid = hostPeerId(roomKey), name = of ? '第二機位' : (store('wc_name') || '來賓');
     {
-      const out = new MediaStream([fx.outputTrack() || camTrack, (mix?.active ? mix.track : micTrack)].filter(Boolean));
-      call = peer.call(hid, out, { metadata: { role: 'guest', name } });
+      ensureMix();
+      // 四條：畫面、節目麥、對講麥、回放聲音（順序固定，導播端也會用軌道 ID 對應）
+      sentTracks = { video: fx.outputTrack() || camTrack, pgm: micTrack, ic: icTrack, media: mix.track };
+      Object.keys(sentTracks).forEach(k => { if (!sentTracks[k]) delete sentTracks[k]; });
+      SND = null;
+      const out = new MediaStream(Object.values(sentTracks));
+      call = peer.call(hid, out, { metadata: { role: 'guest', name, atracks: { pgm: micTrack?.id, ic: icTrack?.id, media: mix.track.id } } });
+      syncSenders();
       call.on('stream', s => {
         retA.srcObject = new MediaStream(s.getAudioTracks()); ensureRetPlaying();
         retMeter = streamMeter(new MediaStream(s.getAudioTracks()));
@@ -4164,7 +4362,7 @@ function GuestMain(inv, roomKey){
   tier = initialTier();
   sheetJoin();
   getMedia().then(() => st('', '預覽中')).catch(e => { st('bad', '無法開啟相機／麥克風'); toast(e.message); });
-  window.__guest = { fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
+  window.__guest = { get mix(){ return ensureMix(); }, setIcMutesPgm, setMonMedia, setRetMute, setVideoAudio, setPgmMic, setIcMic, fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
 }
 /* ===================== 首頁：導播登入 → 房間代碼 → 來賓邀請代碼 ===================== */
 function Home(msg){
