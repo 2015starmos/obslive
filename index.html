@@ -723,7 +723,8 @@ function guidesSVG(mode){
 }
 function fitGuides(box, video, ov){
   const cw = box.clientWidth, ch = box.clientHeight, vw = video.videoWidth || 16, vh = video.videoHeight || 9;
-  const k = Math.min(cw / vw, ch / vh), w = vw * k, h = vh * k;
+  const cover = getComputedStyle(video).objectFit === 'cover';
+  const k = (cover ? Math.max : Math.min)(cw / vw, ch / vh), w = vw * k, h = vh * k;
   Object.assign(ov.style, { left: (cw - w) / 2 + 'px', top: (ch - h) / 2 + 'px', width: w + 'px', height: h + 'px' });
 }
 function setupGuides(box, video, ov){
@@ -3305,6 +3306,16 @@ function GuestMain(inv, roomKey){
   </div>`;
   const selfV = $('#self'), retA = $('#retA'), retV = $('#retV'), camRaw = $('#camRaw'), fileV = $('#fileV'), shareV = $('#shareV');
   const fx = new GuestFX(camRaw);
+  const onCamSize = () => { syncSenders(); fitSelf(); };
+  camRaw.addEventListener('loadedmetadata', onCamSize); camRaw.addEventListener('resize', onCamSize);
+  // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
+  function fitSelf(){
+    const v = selfV, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
+    const same = (vh > vw) === (innerHeight > innerWidth);
+    v.style.objectFit = same && joined ? 'cover' : 'contain';
+    fitG();
+  }
+  selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf); addEventListener('resize', () => setTimeout(fitSelf, 300));
   fx.onStatus = s => { if (s) toast(s); sendState(); };
   const st = (cls, t) => $('#gst').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`;
   const fitG = setupGuides($('#stage'), selfV, $('#gd'));
@@ -3385,7 +3396,8 @@ function GuestMain(inv, roomKey){
   }
   async function getMedia(o = {}){
     const [w, h] = tierDims(tier);
-    const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: fpsPref } };
+    const video = o.big ? { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: fpsPref } }
+      : { width: { ideal: w }, height: { ideal: h }, aspectRatio: { ideal: w / h }, frameRate: { ideal: fpsPref } };
     if (o.facing) video.facingMode = o.facing;
     else if (o.deviceId || camTrack?.getSettings().deviceId) video.deviceId = { exact: o.deviceId || camTrack.getSettings().deviceId };
     else if (isMobile) video.facingMode = facing;
@@ -3396,6 +3408,7 @@ function GuestMain(inv, roomKey){
     try { s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     catch (e) { delete video.deviceId; delete audio.deviceId; s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     stream = s; camTrack = s.getVideoTracks()[0]; micTrack = s.getAudioTracks()[0];
+    { const st = camTrack.getSettings(); if (isMobile && !o.big && st.width && st.height && (st.height > st.width) !== wantPortrait() && Math.max(st.width, st.height) < 1500) { s.getTracks().forEach(t => t.stop()); return getMedia({ ...o, big: true }); } }
     camTrack.enabled = camOn && !hiddenClosed; fx.camOn = camTrack.enabled;
     if (micTrack) micTrack.enabled = pgmMic || icMic;
     const fm = camTrack.getSettings().facingMode; if (fm) facing = fm === 'environment' ? 'environment' : 'user';
@@ -3413,6 +3426,7 @@ function GuestMain(inv, roomKey){
     const at = mix?.active ? mix.track : micTrack;
     if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
     selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
+    setTimeout(fitSelf, 50);
     const pc = call?.peerConnection;
     if (pc) pc.getSenders().forEach(snd => {
       const k = snd.track?.kind; const t = k === 'video' ? vt : k === 'audio' ? at : null;
@@ -4060,7 +4074,7 @@ function GuestMain(inv, roomKey){
     if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
     joined = true;
     $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
-    layoutStage(); renderZoomUI(); keepAwake(); connect();
+    layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
   }
   $('#bl').onclick = async () => { if (await uiConfirm('離開連線', '確定要離開？', '離開')) leave(); };
 
@@ -4070,8 +4084,9 @@ function GuestMain(inv, roomKey){
     layoutStage(); layoutRet(); applyOrient();
     if (!isMobile || !camTrack) return;
     const s = camTrack.getSettings(); if (!s.width) return;
-    if ((s.height > s.width) !== isPortrait()) applyTier(tier);
-    setTimeout(() => { const s2 = camTrack?.getSettings(); if (s2 && camTrack.readyState === 'live' && (s2.height > s2.width) !== isPortrait()) getMedia().catch(() => {}); }, 700);
+    if ((s.height > s.width) !== wantPortrait()) applyTier(tier);
+    setTimeout(() => { const s2 = camTrack?.getSettings(); if (s2 && camTrack.readyState === 'live' && (s2.height > s2.width) !== wantPortrait()) getMedia().catch(() => {}); }, 700);
+    setTimeout(() => { syncSenders(); fitSelf(); }, 1200);
   }, 450); };
   screen.orientation?.addEventListener?.('change', onOrient);
   // 手機實際橫拿、但畫面沒有轉＝使用者鎖定了直向 → 照手機設定送直的畫面
