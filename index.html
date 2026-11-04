@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0b0d10">
 <title>WebCall 連線導播台</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <script>
 /* 從 LINE／FB／IG／Messenger 等 App 內建瀏覽器打開時，自動改用手機預設瀏覽器
  * LINE：加上 openExternalBrowser=1（LINE 官方支援，會用 Safari／Chrome 開啟）
@@ -27,21 +27,24 @@
   if (isLine && p.get('openExternalBrowser') !== '1') { p.set('openExternalBrowser', '1'); location.replace(u.toString()); return; }
   if (!isLine) {
     if (isAndroid) location.href = 'intent://' + clean.host + clean.pathname + clean.search + clean.hash + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(clean.toString()) + ';end';
-    else if (isIOS) setTimeout(function(){ location.href = 'x-safari-' + clean.toString(); }, 50);
+
   }
   // 自動跳轉失敗時的說明畫面
   document.addEventListener('DOMContentLoaded', function(){
+    // iPhone：先顯示說明，再嘗試用 x-safari- 叫出 Safari（iOS 17 以上），失敗也不會卡住頁面
+    if (isIOS && !isLine) setTimeout(function(){ var a = document.createElement('a'); a.href = 'x-safari-' + clean.toString(); a.click(); }, 600);
     setTimeout(function(){
       if (document.hidden) return;
       var d = document.createElement('div'); d.className = 'inapp';
       var stay = new URL(clean.toString()); stay.searchParams.set('stay', '1');
       d.innerHTML = '<div class="arrow">↗</div><div class="b"><div style="font-size:40px">🌐</div><h2>請用' + (isIOS ? ' Safari ' : ' Chrome ') + '開啟</h2>'
         + '<p>App 內建的瀏覽器無法使用相機與麥克風連線。<br>請點右上角 <b>⋯</b> 或 <b>分享</b>，選擇「' + (isIOS ? '在 Safari 中開啟' : '在瀏覽器中開啟') + '」。</p>'
+        + (isIOS ? '<a href="x-safari-' + clean.toString().replace(/"/g, '&quot;') + '" style="display:block;width:100%;height:44px;line-height:44px;border-radius:8px;background:#22c55e;color:#04140a;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:10px">用 Safari 開啟</a>' : '')
         + '<button id="inappCopy" style="width:100%;height:44px;border-radius:8px;border:0;background:#4c8dff;color:#fff;font-size:15px;font-weight:600">複製連結</button>'
         + '<a href="' + stay.toString().replace(/"/g, '&quot;') + '" style="display:block;margin-top:14px;color:#8a93a3;font-size:13px">仍要在這裡開啟</a></div>';
       document.body.appendChild(d);
       document.getElementById('inappCopy').onclick = function(){ var t = clean.toString(); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ this.textContent = '已複製，貼到 Safari／Chrome 打開'; }.bind(this)).catch(function(){ prompt('複製這個連結：', t); }); };
-    }, 1200);
+    }, 300);
   });
 })();
 </script>
@@ -848,6 +851,13 @@ function videoCodecs(){
   P.createAnswer = function(...x){ try { apply(this); } catch {} return a.apply(this, x); };
 })();
 
+/* ---------- 低延遲播放：所有接收端把緩衝壓到最低（直播畫面、回看、OBS 輸出、監看） ---------- */
+(function lowLatency(){
+  if (!window.RTCPeerConnection) return;
+  const P = RTCPeerConnection.prototype, srd = P.setRemoteDescription;
+  const tune = pc => { try { pc.getReceivers().forEach(r => { try { if ('jitterBufferTarget' in r) r.jitterBufferTarget = 0; if ('playoutDelayHint' in r) r.playoutDelayHint = 0; } catch {} }); } catch {} };
+  P.setRemoteDescription = function(...a){ const p = srd.apply(this, a); Promise.resolve(p).then(() => tune(this)).catch(() => {}); return p; };
+})();
 async function apiCall(body){
   if (!CONFIG.API_URL) throw new Error('尚未設定代碼平台網址（index.html 的 CONFIG.API_URL）');
   const r = await fetch(CONFIG.API_URL, { method: 'POST', body: JSON.stringify(body) });
@@ -1235,7 +1245,7 @@ function Host(sess){
   const cleanStream = new MediaStream([cleanCanvas.captureStream(30).getVideoTracks()[0], programDst.stream.getAudioTracks()[0]]);
   const mvCanvas = Object.assign(document.createElement('canvas'), { width: 1920, height: 1080 }), mvCtx = mvCanvas.getContext('2d');
   const mvStream = new MediaStream([mvCanvas.captureStream(10).getVideoTracks()[0]]);
-  const VIEW0 = { fit: 'blur', cl: 0, cr: 0, ct: 0, cb: 0, br: 0, co: 0, sa: 0, freeze: false };
+  const VIEW0 = { fit: 'contain', cl: 0, cr: 0, ct: 0, cb: 0, br: 0, co: 0, sa: 0, freeze: false };
   /* ---------- 字幕圖層（DSK） ---------- */
   const OV = (() => {
     const d = { fade: 400,
@@ -3223,8 +3233,13 @@ async function roomOpen(k){
 }
 async function GuestGate(inv, k, ended){
   app.innerHTML = `<div class="closedv"><div>${brand()}<div class="spin"></div><p style="margin-top:14px">確認房間狀態…</p></div></div>`;
-  let r = ended ? { open: false } : await roomOpen(k);
-  if (r.open) return GuestMain(inv, k);
+  // 不等後端：0.8 秒內確認不了就先進畫面，背景繼續檢查；確認房間沒開而且還沒加入才擋下來
+  let r = ended ? { open: false } : await Promise.race([roomOpen(k), new Promise(res => setTimeout(() => res({ open: true, slow: true }), 800))]);
+  if (r.open) {
+    GuestMain(inv, k);
+    if (r.slow) roomOpen(k).then(x => { if (!x.open && !x.unknown && !window.__gJoined) GuestGate(inv, k); });
+    return;
+  }
   const paint = () => { app.innerHTML = `<div class="closedv"><div style="max-width:360px">${brand()}
     <div style="font-size:44px;margin-top:18px">🔒</div><h1>${ended ? '連線已結束' : '房間尚未開啟'}</h1>
     <p>${ended ? '導播已結束這個房間，這個連結已經失效。' : '導播台還沒有啟動，或這個房間已經關閉。'}</p>
@@ -3311,8 +3326,7 @@ function GuestMain(inv, roomKey){
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
   function fitSelf(){
     const v = selfV, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
-    const same = (vh > vw) === (innerHeight > innerWidth);
-    v.style.objectFit = same && joined ? 'cover' : 'contain';
+    v.style.objectFit = 'contain';   // 照鏡頭原本的畫面完整顯示，不裁切、不放大
     fitG();
   }
   selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf); addEventListener('resize', () => setTimeout(fitSelf, 300));
@@ -3384,7 +3398,7 @@ function GuestMain(inv, roomKey){
   const wantPortrait = () => orientMode === 'portrait' ? true : orientMode === 'landscape' ? false : (isMobile && isPortrait());
   function tierDims(t){ const q = QUALITY[t]; return wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }
   function applyOrient(){
-    fx.aspect = orientMode === 'auto' && !isMobile ? null : (wantPortrait() ? 9 / 16 : 16 / 9);
+    fx.aspect = orientMode === 'auto' ? null : (wantPortrait() ? 9 / 16 : 16 / 9);   // 跟隨手機＝不裁切不放大，照鏡頭原本的畫面
     fx.maxLong = QUALITY[tier].w;
     syncSenders();
   }
@@ -3396,8 +3410,7 @@ function GuestMain(inv, roomKey){
   }
   async function getMedia(o = {}){
     const [w, h] = tierDims(tier);
-    const video = o.big ? { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: fpsPref } }
-      : { width: { ideal: w }, height: { ideal: h }, aspectRatio: { ideal: w / h }, frameRate: { ideal: fpsPref } };
+    const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: fpsPref } };
     if (o.facing) video.facingMode = o.facing;
     else if (o.deviceId || camTrack?.getSettings().deviceId) video.deviceId = { exact: o.deviceId || camTrack.getSettings().deviceId };
     else if (isMobile) video.facingMode = facing;
@@ -3408,7 +3421,7 @@ function GuestMain(inv, roomKey){
     try { s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     catch (e) { delete video.deviceId; delete audio.deviceId; s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     stream = s; camTrack = s.getVideoTracks()[0]; micTrack = s.getAudioTracks()[0];
-    { const st = camTrack.getSettings(); if (isMobile && !o.big && st.width && st.height && (st.height > st.width) !== wantPortrait() && Math.max(st.width, st.height) < 1500) { s.getTracks().forEach(t => t.stop()); return getMedia({ ...o, big: true }); } }
+    try { camTrack.contentHint = 'motion'; } catch {}
     camTrack.enabled = camOn && !hiddenClosed; fx.camOn = camTrack.enabled;
     if (micTrack) micTrack.enabled = pgmMic || icMic;
     const fm = camTrack.getSettings().facingMode; if (fm) facing = fm === 'environment' ? 'environment' : 'user';
@@ -4072,7 +4085,7 @@ function GuestMain(inv, roomKey){
     audioCtx();
     retA.srcObject = new MediaStream(); retA.play().catch(() => {});   // 先用使用者的點擊解鎖播放
     if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
-    joined = true;
+    joined = true; window.__gJoined = true;
     $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
     layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
   }
