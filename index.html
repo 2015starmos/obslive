@@ -4091,7 +4091,17 @@ function GuestMain(inv, roomKey){
 /* ===================== 首頁：導播登入 → 房間代碼 → 來賓邀請代碼 ===================== */
 function Home(msg){
   const hashCode = (() => { const m = /[#&]c=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : ''; })();
-  if (hashCode) { sstore('wc_prefill', hashCode); history.replaceState(null, '', location.pathname); }
+  const hashTok = (() => { const m = /[#&]t=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : ''; })();
+  if (hashCode || hashTok) { if (hashCode) sstore('wc_prefill', hashCode); history.replaceState(null, '', location.pathname); }
+  // 從派發平台按「開啟導播台」：沿用平台的登入狀態，不用再輸入帳密
+  if (hashTok) {
+    app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>登入中…</h1></div></div>`;
+    apiCall({ action: 'me', token: hashTok }).then(r => {
+      if (!r.ok) throw new Error(r.error);
+      sstore('wc_tok', hashTok); sstore('wc_me', JSON.stringify(r.me)); HostSetup(hashTok, r.me);
+    }).catch(() => Home('派發平台的登入已失效，請重新登入'));
+    return;
+  }
   let me = null; try { me = JSON.parse(sstore('wc_me') || 'null'); } catch {}
   const tok = sstore('wc_tok');
   if (tok && me) return HostSetup(tok, me, msg);
