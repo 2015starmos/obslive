@@ -644,6 +644,8 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const rnd = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const baseUrl = () => location.origin + location.pathname;
+// 給來賓／OBS 的連結：在 WebCall 軟體裡執行時，用公開的網頁網址（軟體內的畫面是本機檔案，別人打不開）
+const shareBase = () => (window.wcShell && window.wcShell.publicUrl) || baseUrl();
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
 const fmtTime = ms => { const d = new Date(ms); const p = n => String(n).padStart(2, '0'); return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
 const fmtDate = ms => { if (!ms) return ''; const d = new Date(Number(ms)); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
@@ -1233,8 +1235,8 @@ class GuestFX {
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
   let invite = sess.invite, roomKey = sess.key;
-  let guestUrl = `${baseUrl()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
-  let outUrl = s => `${baseUrl()}?mode=out&o=${roomKey}&slot=${s}`;
+  let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
+  let outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
   const outputs = new Set();
@@ -3019,8 +3021,8 @@ function Host(sess){
   const invite_open = () => inviteModal();
   async function changeInvite(inv){
     invite = normInvite(inv); roomKey = await inviteKey(invite);
-    guestUrl = `${baseUrl()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
-    outUrl = s => `${baseUrl()}?mode=out&o=${roomKey}&slot=${s}`;
+    guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
+    outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
     sess.invite = invite; sess.key = roomKey; sstore('wc_host', JSON.stringify(sess));
     $('#invc').textContent = invite;
     guests().forEach(g => { g.bye = true; try { g.conn?.send({ type: 'kick' }); } catch {} });
