@@ -3499,6 +3499,46 @@ function Host(sess){
     $('#sim', w.body).onchange = e => { [...e.target.files].forEach(addImage); e.target.value = ''; };
     $('#smd', w.body).onchange = e => { [...e.target.files].forEach(addMedia); e.target.value = ''; };
   }
+  /* 內建設定：自訂快捷鍵與 Web MIDI。無浮動按鈕。 */
+  const WC_ACTIONS = {CUT:'Space',AUTO:'Enter',MIX:'KeyX',QA:'KeyQ',KEYS:'KeyK',RECORD:'Shift+KeyR'};
+  const WC_LABELS = {CUT:'CUT 切換',AUTO:'AUTO 轉場',MIX:'開啟混音台',QA:'開啟舉手／投票',KEYS:'快捷鍵設定',RECORD:'錄影開始／停止'};
+  const WC_STORE = 'webcall_custom_keys_v5', WC_MIDI_STORE = 'webcall_midi_v5';
+  let wcCustom = {}, wcMidiMap = {}, wcMidiAccess = null, wcMidiLearn = '', wcMidiEnabled = false;
+  try { wcCustom = JSON.parse(localStorage.getItem(WC_STORE)||'{}'); } catch {}
+  try { wcMidiMap = JSON.parse(localStorage.getItem(WC_MIDI_STORE)||'{}'); } catch {}
+  const wcCombo = e => (e.ctrlKey?'Ctrl+':'')+(e.altKey?'Alt+':'')+(e.shiftKey?'Shift+':'')+e.code;
+  const wcRun = action => {
+    if (ROLE.local === 'view') return;
+    if (ROLE.local === 'aud' && !['MIX','KEYS'].includes(action)) return;
+    if (action==='CUT') doCut();
+    else if (action==='AUTO') doAuto();
+    else if (action==='MIX') toggleWin('mix');
+    else if (action==='QA') toggleWin('qa');
+    else if (action==='KEYS') toggleWin('keys');
+    else if (action==='RECORD') toggleRec();
+  };
+  addEventListener('keydown', e => {
+    if (e.repeat || e.isComposing || e.target?.closest?.('input,textarea,select,[contenteditable]')) return;
+    const hit=Object.keys(wcCustom).find(k=>wcCustom[k]===wcCombo(e));
+    if(!hit)return;
+    e.preventDefault();e.stopImmediatePropagation();wcRun(hit);
+  },true);
+  function wcMidiMessage(e){
+    if(!wcMidiEnabled)return;
+    const d=Array.from(e.data||[]),type=(d[0]||0)&0xf0;
+    if(![0x90,0xb0].includes(type)||d.length<3||(type===0x90&&d[2]===0))return;
+    const key=[e.currentTarget.id,d[0],d[1]].join('|');
+    if(wcMidiLearn){wcMidiMap[wcMidiLearn]=key;localStorage.setItem(WC_MIDI_STORE,JSON.stringify(wcMidiMap));wcMidiLearn='';renderKeys();return;}
+    const action=Object.keys(wcMidiMap).find(a=>wcMidiMap[a]===key);
+    if(action)wcRun(action);
+  }
+  function wcBindMidi(){if(!wcMidiAccess)return;wcMidiAccess.inputs.forEach(i=>i.onmidimessage=wcMidiMessage);const status=$('#wc-midi-status',WIN.keys?.body);if(status)status.textContent=`已偵測 ${wcMidiAccess.inputs.size} 個 MIDI 輸入`;}
+  async function wcConnectMidi(){
+    const status=$('#wc-midi-status',WIN.keys?.body);
+    if(!navigator.requestMIDIAccess){if(status)status.textContent='目前瀏覽器不支援 Web MIDI';return;}
+    try{wcMidiAccess=await navigator.requestMIDIAccess({sysex:false});wcMidiEnabled=true;wcMidiAccess.onstatechange=wcBindMidi;wcBindMidi();}
+    catch(err){if(status)status.textContent='無法使用 MIDI：'+err.message;}
+  }
   function renderKeys(){
     const w = WIN.keys; if (!w?.open) return;
     const K = (k, d) => `<tr><td>${k.split(' ').map(x => `<span class="kbd">${x}</span>`).join(' ')}</td><td>${d}</td></tr>`;
@@ -3509,7 +3549,30 @@ function Host(sess){
       ${K('T', '按住：對 PREVIEW（或選取）的來賓說話')}${K('A', '按住：群發給所有來賓')}
       ${K('M', 'PREVIEW 那一路靜音／取消')}${K('L', 'PREVIEW 那一路 PFL 監聽')}${K('G', 'PREVIEW 那一路對齊線（導播端）')}
       ${K('I', 'INTERCOM 對講台')}${K('N', 'MESSAGE 訊息')}${K('X', 'MIXER 混音')}${K('C', 'CONTROL 遠端控制')}${K('Q', 'Q&A 舉手／投票')}${K('R', 'RETURN 回傳')}${K('O', 'OUTPUT 輸出')}${K('S', 'SOURCE 本機來源')}${K('K', '這個說明')}${K('Esc', '關閉最上層視窗')}
-    </table><div class="note">在輸入框打字時快捷鍵不會作用。</div>`;
+    </table><div class="note">在輸入框打字時快捷鍵不會作用。</div>
+    <h3 style="margin:14px 0 8px">自訂快捷鍵</h3>
+    <div class="note">點「設定」，再按鍵盤組合鍵。避免使用瀏覽器或作業系統保留的快捷鍵。</div>
+    <div id="wc-shortcuts">${Object.entries(WC_ACTIONS).map(([a,def])=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="flex:1">${WC_LABELS[a]}</span><code>${wcCustom[a]||def}</code><button class="btn sm" data-wc-bind="${a}">設定</button><button class="btn sm" data-wc-reset="${a}">重設</button></div>`).join('')}</div>
+    <h3 style="margin:16px 0 8px">實體控制器</h3>
+    <div class="note">直接使用電腦已辨識、且可提供 MIDI 訊息的控制器。設備存取需經瀏覽器授權；部分設備只提供音訊驅動而沒有可讀取的控制訊息。</div>
+    <button class="btn sm" id="wc-midi-connect">連接 MIDI 設備</button>
+    <button class="btn sm" id="wc-midi-disable">停用</button>
+    <div id="wc-midi-status" class="note">${wcMidiEnabled?'已啟用':'尚未連接'}</div>
+    <div>${Object.entries(WC_LABELS).map(([a,label])=>`<button class="btn sm" style="margin:4px" data-wc-midi="${a}">學習 ${label}</button>`).join('')}</div>`;
+    w.body.querySelectorAll('[data-wc-bind]').forEach(b=>b.onclick=()=>{
+      const action=b.dataset.wcBind;const code=b.previousElementSibling;code.textContent='請按快捷鍵…';
+      const capture=e=>{e.preventDefault();e.stopImmediatePropagation();
+        if(['Shift','Control','Alt','Meta'].includes(e.key))return;
+        if(e.code==='Escape'){window.removeEventListener('keydown',capture,true);renderKeys();return;}
+        const combo=wcCombo(e);if(Object.values(wcCustom).includes(combo)){code.textContent='此組合已被使用';window.removeEventListener('keydown',capture,true);return;}
+        wcCustom[action]=combo;localStorage.setItem(WC_STORE,JSON.stringify(wcCustom));window.removeEventListener('keydown',capture,true);renderKeys();
+      };window.addEventListener('keydown',capture,true);
+    });
+    w.body.querySelectorAll('[data-wc-reset]').forEach(b=>b.onclick=()=>{delete wcCustom[b.dataset.wcReset];localStorage.setItem(WC_STORE,JSON.stringify(wcCustom));renderKeys();});
+    $('#wc-midi-connect',w.body).onclick=wcConnectMidi;
+    $('#wc-midi-disable',w.body).onclick=()=>{wcMidiEnabled=false;wcMidiLearn='';$('#wc-midi-status',w.body).textContent='已停用';};
+    w.body.querySelectorAll('[data-wc-midi]').forEach(b=>b.onclick=()=>{wcMidiLearn=b.dataset.wcMidi;$('#wc-midi-status',w.body).textContent='請按下實體設備上要對應的按鍵：'+WC_LABELS[wcMidiLearn];});
+    if(wcMidiEnabled)wcBindMidi();
   }
 
   /* =============== 鍵盤快捷鍵 =============== */
@@ -6432,30 +6495,5 @@ else {   // 網路慢、CDN 被擋時再試一次備用來源
   sc.onload = sc.onerror = route; document.head.appendChild(sc);
 }
 </script>
-<script>
-/* WebCall Universal Device Bridge - browser Web MIDI baseline.
- * No claim of compatibility with proprietary devices. Operator must explicitly enable.
- * Mapping is local to this browser; only CUT/AUTO actions are wired in this prototype.
- */
-(()=>{'use strict';const KEY='wc4_midi_map';let access=null,learning=null,enabled=false;
-let map={};try{map=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{}
-const el=id=>document.getElementById(id);const status=s=>{if(el('wc4-device-status'))el('wc4-device-status').textContent=s};
-function onMessage(e){if(!enabled)return;const d=[...e.data];if(d.length<2)return;const type=d[0]&0xf0;
- if(type!==0x90&&type!==0xb0)return;if(type===0x90&&d[2]===0)return;
- const key=`${e.currentTarget.id}|${d[0]}|${d[1]}`;
- if(learning){map[learning]=key;localStorage.setItem(KEY,JSON.stringify(map));status(`${learning} 已學習 ${key}`);learning=null;return}
- for(const [action,k] of Object.entries(map)){if(k!==key)continue;const h=window.__host;if(!h)return;
- // Delegate to the original switcher's UI, retaining its permission/PGM safety checks.
- const btn=el(action==='CUT'?'cut':action==='AUTO'?'auto':'');if(btn&&!btn.disabled)btn.click();}
-}
-function bind(){if(!access)return;for(const input of access.inputs.values()){input.onmidimessage=onMessage}status(`已連接 MIDI 輸入：${access.inputs.size} 台`)}
-async function connect(){if(!navigator.requestMIDIAccess){status('此瀏覽器不支援 Web MIDI；請使用桌面 Bridge 或相容瀏覽器');return}
- try{access=await navigator.requestMIDIAccess({sysex:false});enabled=true;bind();access.onstatechange=bind}catch(e){status('MIDI 連接失敗：'+e.message)}}
-function panel(){if(el('wc4-device-panel')){el('wc4-device-panel').remove();return}const box=document.createElement('section');box.id='wc4-device-panel';box.style.cssText='position:fixed;right:12px;bottom:190px;z-index:2147483645;background:#111d2d;color:#f1f5f9;padding:16px;border:1px solid #55718d;border-radius:12px;font:13px system-ui;max-width:340px;box-shadow:0 12px 36px #000a';box.innerHTML='<h3>通用實體控制器（測試版）</h3><p>Web MIDI 學習模式。需由使用者允許設備存取；不支援的廠牌須另裝協定適配器。</p><button id="wc4-connect">啟用 MIDI</button> <button id="wc4-cut">學習 CUT</button> <button id="wc4-auto">學習 AUTO</button> <button id="wc4-off">停用</button><p id="wc4-device-status" role="status">尚未啟用</p>';
- document.body.appendChild(box);el('wc4-connect').onclick=connect;el('wc4-cut').onclick=()=>{learning='CUT';status('請按實體 CUT 按鍵')};el('wc4-auto').onclick=()=>{learning='AUTO';status('請按實體 AUTO 按鍵')};el('wc4-off').onclick=()=>{enabled=false;learning=null;status('已停用控制')};}
-function boot(){if(el('wc4-device-launch'))return;const b=document.createElement('button');b.id='wc4-device-launch';b.textContent='DEVICE V4';b.style.cssText='position:fixed;right:12px;bottom:150px;z-index:2147483644;background:#334155;color:white;padding:8px;border-radius:8px;border:1px solid #94a3b8;cursor:pointer';b.onclick=panel;document.body.appendChild(b)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})();
 
-</script>
 </body></html>
