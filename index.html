@@ -6451,4 +6451,23 @@ const boot=setInterval(()=>{if(host()){clearInterval(boot);init()}},800);setTime
 })();
 
 </script>
+
+<script>
+/* V2 read-only production-node adapter. No remote media control, no auto takeover. */
+(()=>{'use strict';
+const K='wc_control_v2',read=()=>{try{return JSON.parse(localStorage.getItem(K)||'{}')}catch{return {}}};
+let c={url:'',roomId:'',nodeToken:'',epoch:0,...read()},busy=false,fail=0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const nodeId=()=>{try{const d=JSON.parse(localStorage.getItem('wc_enterprise_v1')||'{}');return d.nodeId||''}catch{return ''}};
+const h=()=>window.__host&&window.__host.programStream?window.__host:null;
+function report(message){const el=document.getElementById('wcv2-status');if(el)el.textContent=message}
+async function beat(){if(busy||!c.url||!c.nodeToken||!c.roomId||!h()||!nodeId())return;busy=true;const host=h();const s=[...host.inputs.values()];const ctl=new AbortController();const timeout=setTimeout(()=>ctl.abort(),4000);
+try{const res=await fetch(c.url.replace(/\/$/,'')+'/api/v2/heartbeat',{method:'POST',headers:{'Authorization':'Bearer '+c.nodeToken,'Content-Type':'application/json'},body:JSON.stringify({nodeId:nodeId(),roomId:c.roomId,epoch:c.epoch,pgm:host.SW?.pgm||'',pvw:host.SW?.pvw||'',connected:s.filter(x=>!x.lost).length,lost:s.filter(x=>x.lost).length,recording:host.REC?.size||0}),signal:ctl.signal});if(!res.ok)throw Error('HTTP '+res.status);const d=await res.json();fail=0;report('MCR V2 已連線 · '+(d.authorizedPrimary?'本節點持有有效主控租約':'監控節點（沒有主控租約）')+' · Epoch '+d.room.epoch);
+// Epoch is NOT adopted automatically; an operator must verify and explicitly set it.
+}catch(e){fail++;if(fail===1||fail%6===0)report('MCR V2 連線失敗：'+e.message)}finally{clearTimeout(timeout);busy=false}}
+function open(){if(document.getElementById('wcv2-panel')){document.getElementById('wcv2-panel').remove();return}const p=document.createElement('div');p.id='wcv2-panel';p.style.cssText='position:fixed;right:20px;bottom:70px;width:min(400px,90vw);max-height:75vh;overflow:auto;background:#10243a;color:white;padding:16px;border:1px solid #6da5df;border-radius:10px;z-index:2147483602;font:13px system-ui;box-shadow:0 8px 30px #0009';p.innerHTML='<strong>WebCall Control Plane V2 · 節點連接</strong><p>本面板只回報監測狀態；不會接管或切換直播輸出。</p><label>控制服務 HTTPS URL<input id="wcv2-url"></label><label>Room ID<input id="wcv2-room"></label><label>Node Token<input id="wcv2-token" type="password"></label><label>租約 Epoch（由管理端指派）<input id="wcv2-epoch" type="number" min="0"></label><p><button id="wcv2-save">儲存並連線</button><button id="wcv2-close">關閉</button></p><div id="wcv2-status"></div><small>Token 存在此瀏覽器 localStorage，僅供封閉測試；正式部署須換成短效憑證。</small>';document.body.appendChild(p);const $=x=>p.querySelector('#'+x);['url','room','token','epoch'].forEach((x,i)=>$("wcv2-"+x).value=[c.url,c.roomId,c.nodeToken,c.epoch][i]);$('wcv2-close').onclick=()=>p.remove();$('wcv2-save').onclick=()=>{const url=$('wcv2-url').value.trim();if(!/^https:\/\//.test(url)&&!/^http:\/\/localhost(?::\d+)?$/.test(url)&&!/^http:\/\/127\.0\.0\.1(?::\d+)?$/.test(url)){alert('請使用 HTTPS 或本機測試網址');return}const roomId=$('wcv2-room').value.trim();if(!/^[a-zA-Z0-9_-]{4,80}$/.test(roomId)){alert('Room ID 格式不正確');return}c={url,roomId,nodeToken:$('wcv2-token').value.trim(),epoch:Number($('wcv2-epoch').value)||0};localStorage.setItem(K,JSON.stringify(c));report('設定已儲存，正在連線…');beat()}}
+const timer=setInterval(()=>{if(!h()||document.getElementById('wcv2-launch'))return;const b=document.createElement('button');b.id='wcv2-launch';b.textContent='CONTROL V2';b.style.cssText='position:fixed;right:15px;bottom:60px;z-index:2147483600;background:#154a70;color:white;border:1px solid #79b5dc;border-radius:7px;padding:8px;cursor:pointer';b.onclick=open;document.body.appendChild(b);clearInterval(timer);beat();setInterval(beat,5000)},900);
+})();
+
+</script>
 </body></html>
