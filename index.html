@@ -3665,10 +3665,16 @@ function GuestMain(inv, roomKey){
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
   function fitSelf(){
     const v = selfV, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
-        v.style.objectFit = 'contain';   // 跟舊版一樣：完整顯示鏡頭畫面，不裁切
+    // 照鏡頭實際的畫面大小（videoWidth／videoHeight）決定直或橫，不套固定比例：
+    // 直拿＝直的畫面放到最大、完整顯示；橫拿＝橫的畫面放到最大、完整顯示；不裁切、不壓扁
+    const box = $('#stage'), bw = box.clientWidth || innerWidth, bh = box.clientHeight || innerHeight;
+    const k = Math.min(bw / vw, bh / vh), w = Math.round(vw * k), h = Math.round(vh * k);
+    Object.assign(v.style, { objectFit: 'contain', inset: 'auto', left: Math.round((bw - w) / 2) + 'px', top: Math.round((bh - h) / 2) + 'px', width: w + 'px', height: h + 'px' });
+    $('#gp')?.classList.toggle('vport', vh > vw);
     fitG();
   }
   selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf);
+  try { new ResizeObserver(() => fitSelf()).observe($('#stage')); } catch {}   // 轉手機、畫面區域變大變小時重新排版
   // 有些瀏覽器換鏡頭／換畫面來源時不會發出 resize 事件：每秒檢查一次實際大小，變了就重新排版
   let selfDims = '';
   setInterval(() => { if (document.hidden) return; const st = $('#stage'); const d = [selfV.videoWidth, selfV.videoHeight, joined, st?.clientWidth, st?.clientHeight, !!fx.base].join(); if (d !== selfDims) { selfDims = d; fitSelf(); } }, 1000); addEventListener('resize', () => setTimeout(fitSelf, 300));
@@ -3719,7 +3725,7 @@ function GuestMain(inv, roomKey){
     openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}</h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 戴不戴耳機都可以使用（戴耳機收音最乾淨）</div>
       <div class="g2">
         <div class="full"><span class="lbl">你的名字（導播看得到）</span><input class="field" id="nm" value="${esc(store('wc_name') || '')}" placeholder="例：王小明／台中現場" maxlength="30"></div>
-        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
+        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">畫質</span>${segc('dq', qOpts(), qMode)}<div class="tip" style="margin-top:4px">「自動」會依照你的網路速度調整，建議使用。</div></div>
         <div class="full"><span class="lbl">麥克風音量</span><div class="meterline"><i id="lvl"></i></div></div>
@@ -3766,7 +3772,7 @@ function GuestMain(inv, roomKey){
     if (orientMode !== 'auto' && !isMobile) video.aspectRatio = { ideal: w / h };   // 手機不加比例限制：iOS 會改用裁切過的感光模式，畫面變很大
     if (o.facing) video.facingMode = o.facing;
     else if (o.deviceId || camTrack?.getSettings().deviceId) video.deviceId = { exact: o.deviceId || camTrack.getSettings().deviceId };
-    else if (isMobile) video.facingMode = facing;
+    else if (isMobile && camTrack) video.facingMode = facing;   // 第一次開鏡頭不指定前後鏡頭，跟舊版一樣用手機預設的鏡頭（指定 user 時 iOS 可能挑到視角較窄的那顆）
     const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
     const mid = o.micId || micTrack?.getSettings().deviceId; if (mid) audio.deviceId = { exact: mid };
     stream?.getTracks().forEach(t => t.stop());
@@ -3787,6 +3793,13 @@ function GuestMain(inv, roomKey){
     applyOrient(); syncSenders(); sendState();
   }
   let meter = () => 0;
+  // 鏡頭實際狀態（排查畫面大小用）
+  function camInfo(){
+    if (!camTrack) return '';
+    const st = camTrack.getSettings?.() || {}, cp = camTrack.getCapabilities?.() || {};
+    const z = cp.zoom ? ` · 變焦 ${(+st.zoom || 1).toFixed(2)}（${(+cp.zoom.min).toFixed(1)}～${(+cp.zoom.max).toFixed(1)}）` : '';
+    return esc(`${camTrack.label || '鏡頭'} · ${camRaw.videoWidth}×${camRaw.videoHeight} · ${Math.round(st.frameRate || 0)}fps${z}`);
+  }
   // 改每秒張數：手機重新開鏡頭（在開著的鏡頭上改設定，iOS 會把畫面裁切放大）
   function camFps(){ if (!camTrack) return; if (isMobile) getMedia().catch(() => {}); else camTrack.applyConstraints({ frameRate: { ideal: effFps() } }).catch(() => {}); }
   const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
@@ -4198,7 +4211,7 @@ function GuestMain(inv, roomKey){
     openSheet('set', `<h2>設定<button class="btn ghost sm" data-close>${ic('x')}</button></h2>
       <div class="g2" style="margin-top:10px">
         <div class="full"><span class="lbl">你的名字</span><input class="field" id="nm2" value="${esc(store('wc_name') || '')}" maxlength="30"></div>
-        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
+        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">耳機／喇叭（聽導播）</span><select class="field" id="dspk"></select></div>
         <div class="full"><span class="lbl">🔋 省電模式</span>${segc('dsv', [['0', '一般'], ['1', '省電']], saver ? '1' : '0')}<div class="tip" style="margin-top:4px">省電：畫質最高 480p、每秒 20 張、不接收回傳畫面（只聽聲音）。美顏、虛擬背景也會比較耗電。</div></div>
@@ -4475,7 +4488,7 @@ function GuestMain(inv, roomKey){
         try { retScope = s.getAudioTracks().length ? makeScope(audioCtx().createMediaStreamSource(new MediaStream(s.getAudioTracks()))) : null; } catch { retScope = null; }
         retV.srcObject = new MediaStream(s.getVideoTracks()); retV.play().catch(() => {});
         if (saver) s.getVideoTracks().forEach(t => t.enabled = false);
-        retUpd = () => { $('#rw').classList.toggle('hidden', saver || !retShow || !retV.videoWidth); layoutRet(); };
+        retUpd = () => { const el = $('#rw'); if (retV.videoWidth) el.style.aspectRatio = retV.videoWidth + ' / ' + retV.videoHeight; el.classList.toggle('hidden', saver || !retShow || !retV.videoWidth); layoutRet(); };   // 回傳框也照畫面實際比例
         retV.onresize = retUpd; setTimeout(retUpd, 1500);
         setTimeout(() => { if (retA.paused) $('#gau').classList.remove('hidden'); }, 2000);
       });
