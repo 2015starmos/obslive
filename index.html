@@ -6470,4 +6470,55 @@ const timer=setInterval(()=>{if(!h()||document.getElementById('wcv2-launch'))ret
 })();
 
 </script>
+<!-- Enterprise V3: optional media integration; existing PeerJS production remains unchanged. -->
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.17.0/dist/livekit-client.umd.min.js"></script>
+<script>/* Opt-in LiveKit SFU adapter. Include livekit-client UMD before this file.
+   Does not replace legacy PeerJS signalling without explicit per-source migration. */
+(function(global){'use strict';
+class WebCallSFU {
+ constructor(){this.room=null;this.streams=new Map();this.onTrack=()=>{};this.onDisconnect=()=>{}}
+ async connect(url,token){if(!global.LivekitClient)throw Error('livekit-client SDK not loaded');
+  const LK=global.LivekitClient;this.room=new LK.Room({adaptiveStream:true,dynacast:true});
+  this.room.on(LK.RoomEvent.TrackSubscribed,(track,pub,participant)=>{const id=participant.identity+':'+pub.trackSid;const stream=new MediaStream([track.mediaStreamTrack]);this.streams.set(id,stream);this.onTrack({id,stream,participant:participant.identity,kind:track.kind});});
+  this.room.on(LK.RoomEvent.TrackUnsubscribed,(track,pub,participant)=>{this.streams.delete(participant.identity+':'+pub.trackSid)});
+  this.room.on(LK.RoomEvent.Disconnected,()=>this.onDisconnect());await this.room.connect(url,token,{autoSubscribe:true});return this.room;
+ }
+ async publish(stream){if(!this.room)throw Error('not connected');for(const track of stream.getTracks())await this.room.localParticipant.publishTrack(track,{simulcast:track.kind==='video'});}
+ async close(){if(this.room)await this.room.disconnect();this.room=null;this.streams.clear()}
+}
+global.WebCallSFU=WebCallSFU;
+})(window);
+</script>
+<script>/* Browser-side chunked ISO upload, explicitly NOT a server-side recording worker.
+   Caller provides real MediaStream per source and server-issued ingest credential. */
+(function(global){'use strict';
+class IsoUploader {
+ constructor({endpoint,token,room,source,session,onStatus=()=>{}}){Object.assign(this,{endpoint,token,room,source,session,onStatus});this.seq=0;this.pending=Promise.resolve();this.recorder=null;this.failed=false;}
+ async start(stream){if(this.recorder)throw Error('already recording');if(!MediaRecorder.isTypeSupported('video/webm'))throw Error('WebM MediaRecorder unsupported');
+  const rec=new MediaRecorder(stream,{mimeType:'video/webm'});this.recorder=rec;
+  rec.ondataavailable=e=>{if(!e.data.size)return;const index=this.seq++;this.pending=this.pending.then(()=>this.send(e.data,index)).catch(err=>{this.failed=true;this.onStatus({error:err.message,index});throw err});};
+  rec.onerror=e=>this.onStatus({error:e.error?.message||'recorder error'});rec.start(5000);this.onStatus({state:'recording'});}
+ async send(blob,index){const bytes=await blob.arrayBuffer();const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(b=>b.toString(16).padStart(2,'0')).join('');
+  for(let attempt=0;attempt<3;attempt++){try{const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),15000);let response;try{response=await fetch(this.endpoint.replace(/\/$/,'')+'/api/media/iso/chunk',{method:'POST',signal:ctl.signal,headers:{Authorization:'Bearer '+this.token,'X-Room-ID':this.room,'X-Source-ID':this.source,'X-Session-ID':this.session,'X-Chunk-Index':String(index),'X-SHA256':hash,'Content-Type':'video/webm'},body:bytes});}finally{clearTimeout(timer)}if(!response.ok)throw Error('upload HTTP '+response.status);this.onStatus({state:'uploaded',index,bytes:bytes.byteLength});return;}catch(e){if(attempt===2)throw e;await new Promise(r=>setTimeout(r,500*(attempt+1)))}}
+ }
+ async stop(){if(!this.recorder)return;const rec=this.recorder;await new Promise(resolve=>{rec.addEventListener('stop',resolve,{once:true});rec.stop()});await this.pending;this.recorder=null;this.onStatus({state:'stopped',failed:this.failed})}
+}
+global.WebCallIsoUploader=IsoUploader;
+})(window);
+</script>
+<script>/* Optional, operator-driven SFU and ISO integration. Existing WebCall engine untouched. */
+(()=>{'use strict';let sfu=null,iso=null,stream=null;const $=id=>document.getElementById(id);
+function status(s){const el=$('wc3-status');if(el)el.textContent=s}
+function mount(){if($('wc3-launch'))return;const b=document.createElement('button');b.id='wc3-launch';b.textContent='MEDIA V3';Object.assign(b.style,{position:'fixed',right:'12px',bottom:'106px',zIndex:'2147483640',background:'#155e75',color:'white',padding:'10px 14px',border:'1px solid #38bdf8',borderRadius:'9px',cursor:'pointer'});b.onclick=panel;document.body.appendChild(b)}
+function panel(){if($('wc3-panel')){$('wc3-panel').remove();return}const el=document.createElement('section');el.id='wc3-panel';Object.assign(el.style,{position:'fixed',right:'12px',bottom:'155px',width:'min(410px,95vw)',maxHeight:'75vh',overflow:'auto',zIndex:'2147483641',background:'#0f172a',color:'#e2e8f0',border:'1px solid #475569',borderRadius:'12px',padding:'16px',boxShadow:'0 12px 40px #0009',font:'13px system-ui'});
+el.innerHTML=`<h3>WebCall Media V3 <button id="wc3-close" style="float:right">×</button></h3><p>實驗性 LiveKit SFU 訂閱與瀏覽器 ISO 分段上傳。僅供測試。</p><label>LiveKit WSS URL <input id="wc3-url" placeholder="wss://..." style="width:100%"></label><label>短效入會 JWT <input id="wc3-jwt" type="password" placeholder="不會保存" style="width:100%"></label><p><button id="wc3-connect">連線 SFU</button> <button id="wc3-disconnect">中斷 SFU</button></p><div id="wc3-feeds"></div><hr><label>Media Gateway HTTPS URL <input id="wc3-api" placeholder="https://..." style="width:100%"></label><label>錄影上傳 Token <input id="wc3-token" type="password" style="width:100%"></label><label>Room ID <input id="wc3-room" value="room001" style="width:100%"></label><label>Session ID <input id="wc3-session" value="session001" style="width:100%"></label><p><button id="wc3-rec">開始 PGM ISO 測試</button> <button id="wc3-stop">停止錄影</button></p><div id="wc3-status" role="status">待命</div>`;
+document.body.appendChild(el);$('wc3-close').onclick=panel;
+$('wc3-connect').onclick=async()=>{try{if(!window.WebCallSFU)throw Error('缺少 LiveKit SDK / adapter');if(sfu)await sfu.close();sfu=new WebCallSFU();sfu.onTrack=x=>{const box=document.createElement('div');box.dataset.track=x.id;box.textContent=x.participant+' / '+x.kind;const media=document.createElement(x.kind==='audio'?'audio':'video');media.autoplay=true;media.playsInline=true;media.controls=true;media.muted=x.kind==='video';media.srcObject=x.stream;media.style.maxWidth='100%';box.appendChild(media);$('wc3-feeds')?.appendChild(box)};await sfu.connect($('wc3-url').value.trim(),$('wc3-jwt').value.trim());status('SFU 已連線（獨立訂閱，不影響原 PeerJS）')}catch(e){status('SFU 失敗：'+e.message)}};
+$('wc3-disconnect').onclick=async()=>{await sfu?.close();sfu=null;$('wc3-feeds').replaceChildren();status('SFU 已中斷')};
+$('wc3-rec').onclick=async()=>{try{if(iso)throw Error('錄影已啟動');stream=window.__host?.programStream;if(!(stream instanceof MediaStream)||!stream.getTracks().length)throw Error('PGM MediaStream 尚未準備好');const room=$('wc3-room').value,session=$('wc3-session').value;if(!/^[A-Za-z0-9_-]{1,80}$/.test(room)||!/^[A-Za-z0-9_-]{1,80}$/.test(session))throw Error('Room / Session ID 格式錯誤');iso=new WebCallIsoUploader({endpoint:$('wc3-api').value.trim(),token:$('wc3-token').value,room,session,source:'pgm',onStatus:x=>status(JSON.stringify(x))});await iso.start(stream)}catch(e){iso=null;status('錄影失敗：'+e.message)}};
+$('wc3-stop').onclick=async()=>{try{await iso?.stop();iso=null}catch(e){status('上傳未完成：'+e.message)}};
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+})();
+</script>
 </body></html>
