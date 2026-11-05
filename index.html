@@ -352,6 +352,10 @@ input[type=checkbox]{accent-color:var(--accent)}
 .zoomui button.on{background:#ffffff26;color:#ffd34d}
 .zoombig{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:3;font:800 34px var(--mono);color:#ffd34d;text-shadow:0 2px 10px #000;pointer-events:none;opacity:0;transition:opacity .2s}
 .zoombig.show{opacity:1}
+.gscope{position:absolute;left:12px;top:calc(54px + var(--sat));z-index:3;background:#000a;border:1px solid #ffffff1f;border-radius:8px;backdrop-filter:blur(8px);cursor:pointer;padding:4px}
+.gscope canvas{display:block;width:176px;height:90px}
+.gscope.min canvas{display:none}.gscope.min::after{content:'〰 音波';display:block;font-size:11px;color:#cfd3da;padding:2px 6px}
+.gp.msg .gscope{top:calc(110px + var(--sat))}
 .gbar{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:30px 6px calc(12px + var(--sab));background:linear-gradient(transparent,#000d);display:flex;justify-content:center;gap:clamp(4px,2vw,14px)}
 .cbtn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;color:#e5e7eb;font-size:10.5px;padding:0;min-width:48px}
 .cbtn .c{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#ffffff26;backdrop-filter:blur(10px);border:1px solid #ffffff22;transition:background .12s;position:relative}
@@ -781,6 +785,12 @@ function makeAnalyser(node, rms){
   const buf = new Float32Array(an.fftSize);
   if (rms) return () => { an.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i]; return 10 * Math.log10(s / buf.length || 1e-12); };
   return () => { an.getFloatTimeDomainData(buf); let p = 0; for (let i = 0; i < buf.length; i++) { const v = Math.abs(buf[i]); if (v > p) p = v; } return clamp((20 * Math.log10(p || 1e-6) + 60) / 60, 0, 1); };
+}
+// 音波：讀聲音波形（-1～1）
+function makeScope(node){
+  const an = audioCtx().createAnalyser(); an.fftSize = 1024; node.connect(an);
+  const buf = new Float32Array(an.fftSize);
+  return { read(){ an.getFloatTimeDomainData(buf); return buf; } };
 }
 function streamMeter(stream){
   if (!stream?.getAudioTracks().length) return () => 0;
@@ -1483,10 +1493,22 @@ function Host(sess){
   // 分享畫面（獨立按鈕）：回傳給來賓看，或當作節目來源
   $('#shk').onclick = () => {
     const scr = order.map(id => inputs.get(id)).find(x => x.kind === 'local' && x.isScreen);
-    if (RET.src === 'screen' || scr) {
-      if (RET.src === 'screen') setReturn('none');
-      if (scr) removeInput(scr.id);
-      $('#shk').classList.remove('on'); return toast('已停止分享畫面');
+    const retOn = RET.src !== 'none', retName = { program: '節目畫面', screen: '導播電腦畫面' }[RET.src] || inputs.get(RET.src)?.name || RET.src;
+    // 正在分享／回傳中：先顯示關閉選項
+    if (retOn || scr) {
+      return uiModal(`<h2>分享導播電腦的畫面</h2><div style="color:var(--dim)">${retOn ? `來賓手機正在顯示：<b>${esc(retName)}</b>` : ''}${retOn && scr ? '<br>' : ''}${scr ? '導播螢幕已加入為節目來源' : ''}</div>
+        <div class="acts" style="flex-direction:column;align-items:stretch">
+        ${retOn ? '<button class="btn danger" data-s="offret">關閉分享（來賓手機不再顯示畫面框）</button>' : ''}
+        ${scr ? '<button class="btn danger" data-s="offsrc">移除節目來源的導播螢幕</button>' : ''}
+        ${retOn && scr ? '<button class="btn danger" data-s="offall">全部關閉</button>' : ''}
+        ${!retOn ? '<button class="btn" data-s="ret">也回傳給來賓看</button>' : ''}
+        <button class="btn ghost" data-close>取消</button></div>`, (m, close) => {
+        const offRet = () => { setReturn('none'); }, offSrc = () => { if (scr) { scr.stream?.getTracks().forEach(t => t.stop()); removeInput(scr.id); } };
+        $('[data-s=offret]', m)?.addEventListener('click', () => { close(); offRet(); toast('已關閉分享，來賓手機不再顯示畫面框'); });
+        $('[data-s=offsrc]', m)?.addEventListener('click', () => { close(); offSrc(); $('#shk').classList.toggle('on', RET.src !== 'none'); toast('已移除導播螢幕'); });
+        $('[data-s=offall]', m)?.addEventListener('click', () => { close(); offRet(); offSrc(); $('#shk').classList.remove('on'); toast('已停止分享畫面'); });
+        $('[data-s=ret]', m)?.addEventListener('click', async () => { close(); await setReturn('screen'); if (RET.src === 'screen') toast('來賓現在看得到你分享的畫面'); });
+      });
     }
     uiModal(`<h2>分享導播電腦的畫面</h2><div style="color:var(--dim)">選擇畫面要給誰看。可以選 OBS 的投影視窗、整個螢幕或單一分頁（分頁可以一起分享聲音）。</div>
       <div class="acts" style="flex-direction:column;align-items:stretch"><button class="btn primary" data-s="ret">回傳給所有來賓看（來賓手機右下角）</button><button class="btn" data-s="src">加入為節目來源（可以切到 PROGRAM／OBS）</button><button class="btn ghost" data-close>取消</button></div>`, (m, close) => {
@@ -1808,7 +1830,7 @@ function Host(sess){
         <select class="field full" id="drs"><option value="none">不回傳（只有對講聲音）</option><option value="program">節目畫面＋聲音（扣除來賓自己）</option>
         ${order.filter(id => inputs.get(id).kind === 'local').map(id => `<option value="${id}">${esc(inputs.get(id).name)}</option>`).join('')}<option value="screen">分享螢幕／OBS 投影視窗…</option></select>
         <span class="lbl" style="margin-top:10px">回傳音量</span><div class="row"><input type="range" min="0" max="100" value="${Math.round(RET.vol * 100)}" id="drv" style="flex:1"><span class="mono" id="drvv" style="width:38px;text-align:right">${Math.round(RET.vol * 100)}%</span></div>
-        <p class="note">請來賓戴耳機，避免回授。</p></div>`;
+        <p class="note">來賓戴不戴耳機都可以；沒戴耳機時回傳音量不要開太大，避免回音。</p></div>`;
     $$('[data-c]', d).forEach(b => b.onclick = () => copyText(outUrl(b.dataset.c), b.dataset.c === 'pgm' ? '已複製 PGM 輸出網址' : `已複製輸出 ${b.dataset.c} 網址`));
     $('#dsnap', d).onclick = () => snapshot('pgm'); renderDsk();
     $('#drs', d).value = RET.src; $('#drs', d).onchange = e => setReturn(e.target.value);
@@ -2255,6 +2277,7 @@ function Host(sess){
     const pc = g.call?.peerConnection; if (!pc) return;
     const off = g.state.saver || g.state.hidden || RET.src === 'none';
     const want = off ? retBlack : retVideoTrack;
+    if (g.conn?.open && g.retShown !== !off) { g.retShown = !off; g.conn.send({ type: 'retshow', on: !off, src: RET.src }); }   // 明確告訴來賓要不要顯示回傳畫面框（沒分享就不顯示）
     pc.getSenders().forEach(snd => {
       if (snd.track?.kind !== 'video') return;
       if (snd.track !== want) snd.replaceTrack(want).catch(() => {});
@@ -3326,7 +3349,7 @@ function Host(sess){
       } else if (g.lost) toast(`✅「${g.name}」重新連線`);
       g.peer = conn.peer; g.conn = conn;
       conn.on('open', () => {
-        conn.send({ type: 'hello', lines: LINES, ...g.ctl }); conn.send({ type: 'tally', state: g.tally }); if (g.talk || IC.all) conn.send({ type: 'ic', talk: true });
+        conn.send({ type: 'hello', lines: LINES, ...g.ctl }); conn.send({ type: 'tally', state: g.tally }); g.retShown = undefined; setTimeout(() => tuneReturn(g), 1000); if (g.talk || IC.all) conn.send({ type: 'ic', talk: true });
         if (parent && !g._muted2) { g._muted2 = true; remote(g, { pgmMic: false }); }   // 第二機位預設不收音，避免兩支手機的聲音重疊
         if (g.ccOn) conn.send({ type: 'ctl', cc: true });
         renderAll();
@@ -3546,16 +3569,41 @@ function GuestMain(inv, roomKey){
   // 省電模式：畫質最高 480p、每秒 20 張、不接收回傳畫面（只聽聲音）、背景處理降到最低
   let saver = store('wc_saver') === '1', saverAsked = false;
   let icMutesPgm = store('wc_icmute') !== '0', monMedia = false, retMute = false;
-  function audioTracks(){
-    if (micTrack) micTrack.enabled = pgmMic && !(icMic && icMutesPgm);   // 對講時節目麥自動靜音（可以關掉這個設定）
-    if (icTrack) icTrack.enabled = icMic;
+  // 聲音：同一支麥克風用 Web Audio 分成「節目」「對講」兩路，各自用音量開關。
+  // 不去關麥克風本身：iOS 上關掉其中一條（或用複製的麥克風）常常讓對講送不出聲音，只有戴耳機時才正常。
+  let AUD = null, rawMode = true;
+  function wireMic(){
+    const ac = audioCtx();
+    if (!AUD) {
+      AUD = { in: ac.createGain(), pgmG: ac.createGain(), icG: ac.createGain(), pgmDst: ac.createMediaStreamDestination(), icDst: ac.createMediaStreamDestination(), src: null };
+      AUD.in.connect(AUD.pgmG); AUD.in.connect(AUD.icG); AUD.pgmG.connect(AUD.pgmDst); AUD.icG.connect(AUD.icDst);
+      AUD.pgmT = AUD.pgmDst.stream.getAudioTracks()[0]; AUD.icT = AUD.icDst.stream.getAudioTracks()[0];
+      AUD.scIn = makeScope(AUD.in); AUD.scPgm = makeScope(AUD.pgmG); AUD.scIc = makeScope(AUD.icG);
+      meter = makeAnalyser(AUD.in);
+    }
+    try { AUD.src?.disconnect(); } catch {}
+    AUD.src = micTrack ? ac.createMediaStreamSource(new MediaStream([micTrack])) : null;
+    AUD.src?.connect(AUD.in);
   }
+  const pgmSend = () => rawMode || !AUD ? micTrack : AUD.pgmT;   // 送給導播的節目麥
+  const icSend = () => rawMode || !AUD ? icTrack : AUD.icT;     // 送給導播的對講麥
+  function audioTracks(){
+    rawMode = !(AC && AC.state === 'running' && AUD);   // Web Audio 被系統暫停時，改回直接送麥克風
+    const pOn = pgmMic && !(icMic && icMutesPgm);         // 對講時節目麥自動靜音（可以關掉這個設定）
+    if (AUD) { const t = AUD.pgmG.context.currentTime; AUD.pgmG.gain.setTargetAtTime(pOn ? 1 : 0, t, .015); AUD.icG.gain.setTargetAtTime(icMic ? 1 : 0, t, .015); }
+    if (micTrack) micTrack.enabled = rawMode ? pOn : true;
+    if (icTrack) icTrack.enabled = rawMode ? icMic : false;
+  }
+  // iOS 遇到來電、Siri、切到背景會暫停 Web Audio：回到畫面或點一下就恢復；恢復前先直接送麥克風
+  setInterval(() => { if (!micTrack) return; const was = rawMode; if (AC?.state === 'suspended' || AC?.state === 'interrupted') AC.resume().catch(() => {}); audioTracks(); if (was !== rawMode) syncSenders(); }, 1000);
+  ['touchend', 'click'].forEach(ev => document.addEventListener(ev, () => { if (AC && AC.state !== 'running') AC.resume().catch(() => {}); }, { passive: true }));
   let facing = 'user', camOn = true, pgmMic = true, icMic = false, torchOn = false, guides = 0;
   let zoom = { hw: false, min: 1, max: 2, step: .1, value: 1 }, torchCap = false;
   let qMode = store('wc_qmode') || 'auto', tier = '720', rec = null, warn = '', retVol = 1;
   let ctl = { notifySound: false, allowVideo: true, videoAudio: true };
   let leaveMode = store('wc_leave') || 'ask', hiddenClosed = false, isHidden = false, askAfterReturn = false;
   let share = null, filePlaying = false, mix = null, tallyState = 'off', icOn = false;
+  let retShow = false, retUpd = () => {};   // 回傳畫面框：導播說要顯示才顯示
   let hand = false, handT = 0, poll = null, netQ = {}, cpu = 0, pressure = '';
   let orientMode = store('wc_orient3') || 'auto', fpsPref = +(store('wc_fps') || 30), hostWarn = '', orientLock = false, battery = null;
   let retLayout = (() => { try { return { size: 'm', pos: 'tr', ...JSON.parse(store('wc_ret') || '{}') }; } catch { return { size: 'm', pos: 'tr' }; } })();
@@ -3586,6 +3634,7 @@ function GuestMain(inv, roomKey){
     <div class="gccpill hidden" id="gcc">● 字幕辨識中</div>
     <div class="ret hidden" id="rw"><video id="retV" autoplay playsinline muted></video><span>RETURN 回看</span><div class="rb"><button id="rwm" title="縮小">－</button><button id="rwp" title="放大">＋</button></div><div class="rz" id="rwz"></div></div>
     <audio id="retA" autoplay playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
+    <div class="gscope hidden" id="gsc" title="麥克風音波（點一下縮小／展開）"><canvas id="gscC" width="352" height="180"></canvas></div>
     <div class="zoombig" id="zb">1.0×</div>
     <div class="zoomui hidden" id="zui"></div>
     <div class="player hidden" id="pl">
@@ -3616,12 +3665,13 @@ function GuestMain(inv, roomKey){
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
   function fitSelf(){
     const v = selfV, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
-    const box = v.parentElement, bw = box?.clientWidth || innerWidth, bh = box?.clientHeight || innerHeight;
-    // 手機：畫面方向跟螢幕一樣就滿版（跟手機相機 App 的錄影預覽一樣），方向不同才完整顯示
-    v.style.objectFit = isMobile && joined && ((vw > vh) === (bw > bh)) && !fx.base ? 'cover' : 'contain';
+        v.style.objectFit = 'contain';   // 跟舊版一樣：完整顯示鏡頭畫面，不裁切
     fitG();
   }
-  selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf); addEventListener('resize', () => setTimeout(fitSelf, 300));
+  selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf);
+  // 有些瀏覽器換鏡頭／換畫面來源時不會發出 resize 事件：每秒檢查一次實際大小，變了就重新排版
+  let selfDims = '';
+  setInterval(() => { if (document.hidden) return; const st = $('#stage'); const d = [selfV.videoWidth, selfV.videoHeight, joined, st?.clientWidth, st?.clientHeight, !!fx.base].join(); if (d !== selfDims) { selfDims = d; fitSelf(); } }, 1000); addEventListener('resize', () => setTimeout(fitSelf, 300));
   fx.onStatus = s => { if (s) toast(s); sendState(); };
   const st = (cls, t) => $('#gst').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`;
   const fitG = setupGuides($('#stage'), selfV, $('#gd'));
@@ -3666,7 +3716,7 @@ function GuestMain(inv, roomKey){
   }
 
   function sheetJoin(){
-    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}</h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 請戴耳機，避免回音</div>
+    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}</h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 戴不戴耳機都可以使用（戴耳機收音最乾淨）</div>
       <div class="g2">
         <div class="full"><span class="lbl">你的名字（導播看得到）</span><input class="field" id="nm" value="${esc(store('wc_name') || '')}" placeholder="例：王小明／台中現場" maxlength="30"></div>
         <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
@@ -3690,7 +3740,7 @@ function GuestMain(inv, roomKey){
   const wantPortrait = () => orientMode === 'portrait' ? true : orientMode === 'landscape' ? false : (isMobile && isPortrait());
   // 手機一律用橫式數字要求（1280×720）：iOS／Android 直拿時會自動給直的完整畫面（720×1280）。
   // 如果改要求 720×1280，iOS 會從感光元件中間裁一塊出來，1× 看起來就像放大好幾倍。
-  function tierDims(t){ const q = QUALITY[t]; return isMobile ? [q.w, q.h] : wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }
+  function tierDims(t){ const q = isMobile ? QUALITY['720'] : QUALITY[t]; return isMobile ? [q.w, q.h] : wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }   // 手機固定用 1280×720 開鏡頭（跟舊版一樣），畫質高低只調傳輸量
   function applyOrient(){
     fx.aspect = orientMode === 'auto' ? null : (wantPortrait() ? 9 / 16 : 16 / 9);   // 跟隨手機＝不裁切不放大，照鏡頭原本的畫面
     fx.maxLong = QUALITY[tier].w;
@@ -3724,41 +3774,21 @@ function GuestMain(inv, roomKey){
     try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch {}   // iOS：開麥克風時導播聲音從手機喇叭出來，不用戴耳機
     try { s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     catch (e) { delete video.deviceId; delete audio.deviceId; s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
-    // 手機：鏡頭畫面方向要跟手機拿的方向一樣（直拿＝直的完整畫面）。
-    // 各家瀏覽器（Safari、LINE／Facebook 內建瀏覽器、Chrome）對尺寸的解讀不同，所以實際看鏡頭給的畫面，不對就換一種要求方式重開。
-    if (isMobile) {
-      const tries = [{ width: { ideal: h }, height: { ideal: w } }, {}];   // 第二次：直的數字；第三次：完全不指定尺寸（用鏡頭原生畫面）
-      for (let i = 0; i <= tries.length; i++) {
-        const d = await frameDims(s);
-        if (!d || (d[1] > d[0]) === isPortrait() || i === tries.length) break;
-        const v2 = { ...video }; delete v2.width; delete v2.height; Object.assign(v2, tries[i]);
-        s.getTracks().forEach(t => t.stop());
-        try { s = await navigator.mediaDevices.getUserMedia({ video: v2, audio }); } catch { s = await navigator.mediaDevices.getUserMedia({ video, audio }); break; }
-      }
-    }
     stream = s; camTrack = s.getVideoTracks()[0]; micTrack = s.getAudioTracks()[0];
     try { icTrack?.stop(); meterTrack?.stop(); } catch {}
-    icTrack = micTrack ? micTrack.clone() : null; meterTrack = micTrack ? micTrack.clone() : null;
+    icTrack = micTrack ? micTrack.clone() : null; meterTrack = null;   // icTrack：Web Audio 不能用時的備用對講
+    wireMic();
     try { camTrack.contentHint = 'motion'; } catch {}
     camTrack.enabled = camOn && !hiddenClosed; fx.camOn = camTrack.enabled;
     audioTracks();
     const fm = camTrack.getSettings().facingMode; if (fm) facing = fm === 'environment' ? 'environment' : 'user';
     camRaw.srcObject = s; camRaw.play().catch(() => {});
-    meter = streamMeter(new MediaStream([meterTrack].filter(Boolean)));
     readZoomCaps(); torchOn = false;
     applyOrient(); syncSenders(); sendState();
   }
   let meter = () => 0;
-  // 讀鏡頭實際給的畫面大小（寬、高）
-  function frameDims(s){
-    return new Promise(res => {
-      const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', '');
-      let done = false; const fin = d => { if (done) return; done = true; clearInterval(t); v.srcObject = null; res(d); };
-      v.srcObject = new MediaStream(s.getVideoTracks()); v.play().catch(() => {});
-      const t = setInterval(() => { if (v.videoWidth) fin([v.videoWidth, v.videoHeight]); }, 50);
-      setTimeout(() => fin(null), 2500);
-    });
-  }
+  // 改每秒張數：手機重新開鏡頭（在開著的鏡頭上改設定，iOS 會把畫面裁切放大）
+  function camFps(){ if (!camTrack) return; if (isMobile) getMedia().catch(() => {}); else camTrack.applyConstraints({ frameRate: { ideal: effFps() } }).catch(() => {}); }
   const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
@@ -3770,7 +3800,7 @@ function GuestMain(inv, roomKey){
     // 第一次：記下每個 sender 是哪一條（之後換鏡頭／麥克風才知道要換哪一條）
     if (!SND && sentTracks) { SND = {}; pc.getSenders().forEach(snd => { const r = Object.keys(sentTracks).find(k => sentTracks[k] === snd.track); if (r) SND[r] = snd; }); }
     if (!SND) return;
-    const want = { video: vt, pgm: micTrack, ic: icTrack, media: mix?.track };
+    const want = { video: vt, pgm: pgmSend(), ic: icSend(), media: mix?.track };
     Object.entries(SND).forEach(([r, snd]) => { const t = want[r]; if (t && snd.track !== t) snd.replaceTrack(t).catch(() => {}); });
   }
   function syncButtons(){
@@ -3796,8 +3826,6 @@ function GuestMain(inv, roomKey){
     const caps = camTrack.getCapabilities?.() || {};
     torchCap = !!caps.torch;
     if (caps.zoom && caps.zoom.max > caps.zoom.min) { zoom = { hw: true, min: +caps.zoom.min.toFixed(2), max: +caps.zoom.max.toFixed(2), step: caps.zoom.step || .1, value: camTrack.getSettings().zoom || caps.zoom.min };
-      const z1 = clamp(1, zoom.min, zoom.max);   // 每次開鏡頭都回到手機原生 1×
-      if (Math.abs(zoom.value - z1) > .01) { zoom.value = z1; camTrack.applyConstraints({ advanced: [{ zoom: z1 }] }).catch(() => {}); }
       fx.zoom = 1;
     } else { const s = camTrack.getSettings(); const L = Math.max(s.width || 1280, s.height || 720); zoom = { hw: false, min: 1, max: clamp(Math.round(L / 480 * 10) / 10, 2, 4), step: .1, value: 1 }; fx.zoom = 1; }
     renderZoomUI();
@@ -4190,7 +4218,7 @@ function GuestMain(inv, roomKey){
         <div class="full"><span class="lbl">離開網頁時</span>${segc('dl', [['ask', '每次詢問'], ['pip', '自動子母畫面'], ['close', '關閉畫面']], leaveMode)}</div>
       </div>`, sh => {
       $$('#dor button', sh).forEach(b => b.addEventListener('click', () => setOrient(b.dataset.v)));
-      $$('#dfps button', sh).forEach(b => b.addEventListener('click', () => { fpsPref = +b.dataset.v; store('wc_fps', fpsPref); camTrack?.applyConstraints({ frameRate: { ideal: fpsPref } }).catch(() => {}); sendState(); }));
+      $$('#dfps button', sh).forEach(b => b.addEventListener('click', () => { fpsPref = +b.dataset.v; store('wc_fps', fpsPref); camFps(); sendState(); }));
       $$('#drs button', sh).forEach(b => b.addEventListener('click', () => setRetLayout({ size: b.dataset.v })));
       $$('#drp button', sh).forEach(b => b.addEventListener('click', () => setRetLayout({ pos: b.dataset.v })));
       fillDevSelects(sh);
@@ -4225,7 +4253,7 @@ function GuestMain(inv, roomKey){
   function setSaver(on, by){
     saver = on; store('wc_saver', on ? '1' : '0');
     if (on && tIdx(tier) > maxTier()) applyTier(TIERS[maxTier()]);
-    camTrack?.applyConstraints({ frameRate: { ideal: effFps() } }).catch(() => {});
+    camFps();
     if (on) { retV.srcObject?.getVideoTracks().forEach(t => t.enabled = false); $('#rw').classList.add('hidden'); } else retV.srcObject?.getVideoTracks().forEach(t => t.enabled = true);
     $('#bsave')?.classList.toggle('on', on);
     sendState(); toast(on ? `🔋 省電模式${by ? '（導播設定）' : ''}：畫質最高 480p、不顯示回傳畫面` : '已關閉省電模式'); if (sheetName === 'set') sheetSettings();
@@ -4312,7 +4340,38 @@ function GuestMain(inv, roomKey){
   })();
 
   /* ---------- 導播聲音 ---------- */
-  let retMeter = () => 0;
+  let retMeter = () => 0, retScope = null;
+  /* ---------- 麥克風音波（節目麥、對講麥、導播聲音） ---------- */
+  let scopeMin = store('wc_scope') === 'min';
+  $('#gsc').onclick = () => { scopeMin = !scopeMin; store('wc_scope', scopeMin ? 'min' : ''); $('#gsc').classList.toggle('min', scopeMin); };
+  $('#gsc').classList.toggle('min', scopeMin);
+  (function drawScope(){
+    const el = $('#gsc'); if (!el) return;
+    requestAnimationFrame(drawScope);
+    if (!joined || document.hidden || scopeMin) return;
+    const n = performance.now(); if (n - (drawScope.t || 0) < 50) return; drawScope.t = n;
+    const c = $('#gscC'), g = c.getContext('2d'), W = c.width, H = c.height, rh = H / 3;
+    g.clearRect(0, 0, W, H);
+    const rows = [
+      ['節目麥', AUD?.scPgm, pgmMic && !(icMic && icMutesPgm), '#22c55e'],
+      ['對講麥', AUD?.scIc, icMic, '#a78bfa'],
+      ['導播', retScope, true, '#4c8dff'],
+    ];
+    g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; g.textBaseline = 'middle';
+    rows.forEach(([lb, sc, on, col], i) => {
+      const y0 = i * rh, cy = y0 + rh / 2, x0 = 84;
+      g.fillStyle = on ? '#e5e7eb' : '#6b7280'; g.fillText(lb, 6, cy);
+      g.strokeStyle = '#ffffff14'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, cy); g.lineTo(W - 4, cy); g.stroke();
+      if (!on) { g.fillStyle = '#6b7280'; g.font = '500 18px ' + getComputedStyle(document.body).fontFamily; g.fillText('關閉', x0 + 6, cy); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; return; }
+      if (!sc) return;
+      const d = sc.read(); let pk = 0;
+      g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath();
+      const step = d.length / (W - 4 - x0);
+      for (let x = 0; x < W - 4 - x0; x++) { const v = d[Math.floor(x * step)] || 0; pk = Math.max(pk, Math.abs(v)); const yy = cy - Math.max(-1, Math.min(1, v * 2.2)) * (rh / 2 - 4); x ? g.lineTo(x0 + x, yy) : g.moveTo(x0 + x, yy); }
+      g.stroke();
+      if (pk < .003) { g.fillStyle = '#f5a524'; g.font = '500 16px ' + getComputedStyle(document.body).fontFamily; g.fillText('沒有聲音', W - 74, y0 + 14); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; }
+    });
+  })();
   function ensureRetPlaying(){
     if (!retA.srcObject) return;
     retA.volume = retVol;
@@ -4357,7 +4416,7 @@ function GuestMain(inv, roomKey){
     if ('videoAudio' in d) { mix?.update(); toast(`導播設定：影片／分享畫面的聲音${ctl.videoAudio ? '會' : '不會'}送進節目`); if (sheetName === 'set') sheetSettings(); }
     if ('leaveMode' in d) { leaveMode = d.leaveMode; store('wc_leave', leaveMode); }
     if ('orient' in d) setOrient(d.orient, true);
-    if ('fps' in d) { fpsPref = clamp(+d.fps || 30, 5, 60); store('wc_fps', fpsPref); camTrack?.applyConstraints({ frameRate: { ideal: fpsPref } }).catch(() => {}); toast(`導播設定 ${fpsPref} fps`); }
+    if ('fps' in d) { fpsPref = clamp(+d.fps || 30, 5, 60); store('wc_fps', fpsPref); camFps(); toast(`導播設定 ${fpsPref} fps`); }
     if ('codec' in d && d.codec !== codecPref) { codecPref = d.codec || 'auto'; store('wc_codec', codecPref); toast(`導播改用 ${CODEC_NAMES[codecPref] || codecPref} 編碼`); redial(); }
     if (d.retLayout) { setRetLayout(d.retLayout); toast('導播調整了回看畫面'); }
     if (d.stopShare) stopShare();
@@ -4404,19 +4463,20 @@ function GuestMain(inv, roomKey){
     {
       ensureMix();
       // 四條：畫面、節目麥、對講麥、回放聲音（順序固定，導播端也會用軌道 ID 對應）
-      sentTracks = { video: fx.outputTrack() || camTrack, pgm: micTrack, ic: icTrack, media: mix.track };
+      audioTracks(); sentTracks = { video: fx.outputTrack() || camTrack, pgm: pgmSend(), ic: icSend(), media: mix.track };
       Object.keys(sentTracks).forEach(k => { if (!sentTracks[k]) delete sentTracks[k]; });
       SND = null;
       const out = new MediaStream(Object.values(sentTracks));
-      call = peer.call(hid, out, { metadata: { role: 'guest', name, atracks: { pgm: micTrack?.id, ic: icTrack?.id, media: mix.track.id } } });
+      call = peer.call(hid, out, { metadata: { role: 'guest', name, atracks: { pgm: sentTracks.pgm?.id, ic: sentTracks.ic?.id, media: mix.track.id } } });
       syncSenders();
       call.on('stream', s => {
         retA.srcObject = new MediaStream(s.getAudioTracks()); ensureRetPlaying();
         retMeter = streamMeter(new MediaStream(s.getAudioTracks()));
+        try { retScope = s.getAudioTracks().length ? makeScope(audioCtx().createMediaStreamSource(new MediaStream(s.getAudioTracks()))) : null; } catch { retScope = null; }
         retV.srcObject = new MediaStream(s.getVideoTracks()); retV.play().catch(() => {});
         if (saver) s.getVideoTracks().forEach(t => t.enabled = false);
-        const upd = () => { $('#rw').classList.toggle('hidden', saver || !(retV.videoWidth > 330)); layoutRet(); };
-        retV.onresize = upd; setTimeout(upd, 1500);
+        retUpd = () => { $('#rw').classList.toggle('hidden', saver || !retShow || !retV.videoWidth); layoutRet(); };
+        retV.onresize = retUpd; setTimeout(retUpd, 1500);
         setTimeout(() => { if (retA.paused) $('#gau').classList.remove('hidden'); }, 2000);
       });
       call.on('error', () => {});
@@ -4429,6 +4489,7 @@ function GuestMain(inv, roomKey){
       if (d.type === 'warn' && d.from === 'host') { hostWarn = d.clear ? '' : String(d.text || ''); showWarn(); if (hostWarn) notify(); }
       if (d.type === 'hello') { ['notifySound', 'allowVideo', 'videoAudio'].forEach(k => { if (k in d) ctl[k] = !!d[k]; }); if ('retVol' in d) { retVol = +d.retVol; retA.volume = retVol; } }
       if (d.type === 'tally') showTally(d.state);
+      if (d.type === 'retshow') { retShow = !!d.on; retUpd(); }   // 導播有分享／回傳才顯示畫面框
       if (d.type === 'ic') showIntercom(!!d.talk);
       if (d.type === 'msg') {
         const m = $('#gmsg'); m.textContent = d.text; m.classList.toggle('hidden', !d.text);
@@ -4455,7 +4516,7 @@ function GuestMain(inv, roomKey){
     try { conn?.close(); } catch {} try { call?.close(); } catch {} try { peer?.destroy(); } catch {}
     peer = null; call = null; conn = null; wake?.release?.().catch(() => {});
     stopShare(); if (filePlaying) stopVideo();
-    ['#gbar', '#tally', '#rw', '#gq', '#gmsg', '#gic', '#gw', '#gau', '#zui', '#pollc'].forEach(s => $(s).classList.add('hidden'));
+    ['#gbar', '#tally', '#rw', '#gq', '#gmsg', '#gic', '#gw', '#gau', '#zui', '#pollc', '#gsc'].forEach(s => $(s).classList.add('hidden'));
     hand = false; $('#bh').classList.remove('hand-on');
     icOn = false; tallyState = 'off'; paintFrame();
     sheetJoin(); st('', msg || '已離開'); wcIdle();
@@ -4467,7 +4528,7 @@ function GuestMain(inv, roomKey){
     retA.srcObject = new MediaStream(); retA.play().catch(() => {});   // 先用使用者的點擊解鎖播放
     if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
     joined = true; window.__gJoined = true; setTimeout(fitSelf, 60); window.__WC_BUSY = true;
-    $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
+    $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden'); $('#gsc').classList.remove('hidden');
     layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
   }
   $('#bl').onclick = async () => { if (await uiConfirm('離開連線', '確定要離開？', '離開')) leave(); };
@@ -4477,12 +4538,11 @@ function GuestMain(inv, roomKey){
   const onOrient = () => { clearTimeout(orientT); orientT = setTimeout(() => {
     layoutStage(); layoutRet(); applyOrient();
     if (!isMobile || !camTrack) return;
-    const s = camTrack.getSettings(); if (!s.width) return;
-    if (!isMobile && (s.height > s.width) !== wantPortrait()) applyTier(tier);
-    setTimeout(() => { const s2 = camTrack?.getSettings(); if (s2 && camTrack.readyState === 'live' && (s2.height > s2.width) !== isPortrait()) getMedia().catch(() => {}); }, 700);   // 鏡頭方向跟手機拿的方向不同才重開
+    // 不重開鏡頭：手機轉向時系統會自己把鏡頭畫面轉正（跟舊版一樣）
     setTimeout(() => { syncSenders(); fitSelf(); }, 1200);
   }, 450); };
   screen.orientation?.addEventListener?.('change', onOrient);
+  try { window.matchMedia('(orientation: portrait)').addEventListener('change', onOrient); } catch {}   // 舊版 iOS 沒有 screen.orientation
   // 手機實際橫拿、但畫面沒有轉＝使用者鎖定了直向 → 照手機設定送直的畫面
   let orientT0 = 0;
   const onTilt = e => { if (e.gamma == null) return; const n = Date.now(); if (n - orientT0 < 500) return; orientT0 = n; const physLand = Math.abs(e.gamma) > 60 && Math.abs(e.beta) < 35; const lock = physLand && isPortrait(); if (lock !== orientLock) { orientLock = lock; sendStateSoon(); } };
@@ -4501,7 +4561,7 @@ function GuestMain(inv, roomKey){
   tier = initialTier();
   sheetJoin();
   getMedia().then(() => st('', '預覽中')).catch(e => { st('bad', '無法開啟相機／麥克風'); toast(e.message); });
-  window.__guest = { get mix(){ return ensureMix(); }, setIcMutesPgm, setMonMedia, setRetMute, setVideoAudio, setPgmMic, setIcMic, fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
+  window.__guest = { get aud(){ return { AUD, rawMode, pgm: pgmSend(), ic: icSend() }; }, get mix(){ return ensureMix(); }, setIcMutesPgm, setMonMedia, setRetMute, setVideoAudio, setPgmMic, setIcMic, fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
 }
 /* ===================== 首頁：導播登入 → 房間代碼 → 來賓邀請代碼 ===================== */
 function Home(msg){
