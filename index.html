@@ -1052,7 +1052,14 @@ class GuestFX {
     if (need && !this.ticker) this.ticker = makeTicker(30, () => this.frame());
     else if (!need && this.ticker) { this.ticker.stop(); this.ticker = null; }
   }
-  cropNeeded(){ const v = this.cam; if (!this.aspect || !v.videoWidth) return false; return Math.abs(v.videoWidth / v.videoHeight - this.aspect) / this.aspect > .04; }
+  cropNeeded(){
+    const v = this.cam; if (!this.aspect || !v.videoWidth) return false;
+    const r = v.videoWidth / v.videoHeight;
+    // 鏡頭給的方向跟要的方向不同（橫的畫面要變直的）時不裁切：中間切一條會變成 3 倍放大，1× 就不是手機原本的 1×
+    if ((r > 1) !== (this.aspect > 1)) return false;
+    const keep = Math.min(r, this.aspect) / Math.max(r, this.aspect);   // 裁切後保留的比例
+    return keep < .96 && keep > .8;   // 只修小差距（例如 4:3→16:9 會被略過以免放大）
+  }
   needsGL(){ return this.glOk && (this.beauty.on || this.bg.mode !== 'none' || this.zoom > 1.01 || this.cropNeeded()); }
   needsSeg(){ return this.bg.mode === 'blur' || this.bg.mode === 'image'; }
   outputTrack(){ this.syncTicker(); return this.base ? this.cmpTrack : this.needsGL() ? this.glTrack : null; }   // null = 直接送原始鏡頭
@@ -3550,7 +3557,7 @@ function GuestMain(inv, roomKey){
   let leaveMode = store('wc_leave') || 'ask', hiddenClosed = false, isHidden = false, askAfterReturn = false;
   let share = null, filePlaying = false, mix = null, tallyState = 'off', icOn = false;
   let hand = false, handT = 0, poll = null, netQ = {}, cpu = 0, pressure = '';
-  let orientMode = store('wc_orient2') || (isMobile ? 'portrait' : 'auto'), fpsPref = +(store('wc_fps') || 30), hostWarn = '', orientLock = false, battery = null;
+  let orientMode = store('wc_orient3') || 'auto', fpsPref = +(store('wc_fps') || 30), hostWarn = '', orientLock = false, battery = null;
   let retLayout = (() => { try { return { size: 'm', pos: 'tr', ...JSON.parse(store('wc_ret') || '{}') }; } catch { return { size: 'm', pos: 'tr' }; } })();
   codecPref = store('wc_codec') || 'auto';
   if (isMobile && videoCodecs().includes('H264')) window.__hwCodec = 'H264';   // 自動＝手機用硬體 H.264（省電、不發燙）
@@ -3587,7 +3594,7 @@ function GuestMain(inv, roomKey){
       <button class="btn sm danger" id="plx">${ic('stop')}</button></div>
     <div class="gbar hidden" id="gbar">
       <button class="cbtn" id="bm"><span class="c"><span class="lv" id="mlv"></span>${ic('mic')}</span><span>節目麥克風</span></button>
-      <button class="cbtn" id="bi"><span class="c">${ic('headset')}</span><span>對講麥克風</span></button>
+      <button class="cbtn" id="bi"><span class="c">${ic('talk')}</span><span>對講麥克風</span></button>
       <button class="cbtn" id="bc"><span class="c">${ic('cam')}</span><span>鏡頭</span></button>
       <button class="cbtn" id="bcall"><span class="c">${ic('bell')}</span><span>呼叫導播</span></button>
       <button class="cbtn" id="bh"><span class="c">${ic('hand')}</span><span>舉手</span></button>
@@ -3609,7 +3616,9 @@ function GuestMain(inv, roomKey){
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
   function fitSelf(){
     const v = selfV, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
-    v.style.objectFit = 'contain';   // 照鏡頭原本的畫面完整顯示，不裁切、不放大
+    const box = v.parentElement, bw = box?.clientWidth || innerWidth, bh = box?.clientHeight || innerHeight;
+    // 手機：畫面方向跟螢幕一樣就滿版（跟手機相機 App 的錄影預覽一樣），方向不同才完整顯示
+    v.style.objectFit = isMobile && joined && ((vw > vh) === (bw > bh)) && !fx.base ? 'cover' : 'contain';
     fitG();
   }
   selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf); addEventListener('resize', () => setTimeout(fitSelf, 300));
@@ -3617,7 +3626,7 @@ function GuestMain(inv, roomKey){
   const st = (cls, t) => $('#gst').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`;
   const fitG = setupGuides($('#stage'), selfV, $('#gd'));
   const setGuides = g => { guides = g; $('#gd').innerHTML = guidesSVG(g); fitG(); sendState(); };
-  const isPortrait = () => { const t = screen.orientation?.type; return t ? t.startsWith('portrait') : innerHeight > innerWidth; };
+  const isPortrait = () => { const mq = window.matchMedia?.('(orientation: portrait)'); if (mq) return mq.matches; const t = screen.orientation?.type; return t ? t.startsWith('portrait') : innerHeight > innerWidth; };   // 用畫面實際的長寬判斷（LINE／Facebook 內建瀏覽器的 screen.orientation 不準）
   const notify = (f = 1046) => { navigator.vibrate?.([60, 40, 60]); if (ctl.notifySound) beep(f, 120); };
 
   /* ---------- 面板 ---------- */
@@ -3679,7 +3688,9 @@ function GuestMain(inv, roomKey){
   /* ---------- 鏡頭與麥克風 ---------- */
   // 畫面方向：auto＝跟隨手機（鎖定直向時就是直的）；portrait／landscape＝導播強制
   const wantPortrait = () => orientMode === 'portrait' ? true : orientMode === 'landscape' ? false : (isMobile && isPortrait());
-  function tierDims(t){ const q = QUALITY[t]; return wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }
+  // 手機一律用橫式數字要求（1280×720）：iOS／Android 直拿時會自動給直的完整畫面（720×1280）。
+  // 如果改要求 720×1280，iOS 會從感光元件中間裁一塊出來，1× 看起來就像放大好幾倍。
+  function tierDims(t){ const q = QUALITY[t]; return isMobile ? [q.w, q.h] : wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }
   function applyOrient(){
     fx.aspect = orientMode === 'auto' ? null : (wantPortrait() ? 9 / 16 : 16 / 9);   // 跟隨手機＝不裁切不放大，照鏡頭原本的畫面
     fx.maxLong = QUALITY[tier].w;
@@ -3694,7 +3705,7 @@ function GuestMain(inv, roomKey){
   $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '畫面固定為直式'); };
   setTimeout(paintRot, 0);
   function setOrient(m, by){
-    orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient2', orientMode); paintRot();
+    orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient3', orientMode); paintRot();
     applyOrient(); applyTier(tier);
     if (by) toast(`導播設定畫面方向：${{ auto: '跟隨手機旋轉', portrait: '直式', landscape: '橫式' }[orientMode]}`);
     sendState();
@@ -3702,7 +3713,7 @@ function GuestMain(inv, roomKey){
   async function getMedia(o = {}){
     const [w, h] = tierDims(tier);
     const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } };
-    if (orientMode !== 'auto') video.aspectRatio = { ideal: w / h };   // 固定直式／橫式時，請鏡頭直接給這個比例，減少裁切
+    if (orientMode !== 'auto' && !isMobile) video.aspectRatio = { ideal: w / h };   // 手機不加比例限制：iOS 會改用裁切過的感光模式，畫面變很大
     if (o.facing) video.facingMode = o.facing;
     else if (o.deviceId || camTrack?.getSettings().deviceId) video.deviceId = { exact: o.deviceId || camTrack.getSettings().deviceId };
     else if (isMobile) video.facingMode = facing;
@@ -3710,8 +3721,21 @@ function GuestMain(inv, roomKey){
     const mid = o.micId || micTrack?.getSettings().deviceId; if (mid) audio.deviceId = { exact: mid };
     stream?.getTracks().forEach(t => t.stop());
     let s;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch {}   // iOS：開麥克風時導播聲音從手機喇叭出來，不用戴耳機
     try { s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     catch (e) { delete video.deviceId; delete audio.deviceId; s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
+    // 手機：鏡頭畫面方向要跟手機拿的方向一樣（直拿＝直的完整畫面）。
+    // 各家瀏覽器（Safari、LINE／Facebook 內建瀏覽器、Chrome）對尺寸的解讀不同，所以實際看鏡頭給的畫面，不對就換一種要求方式重開。
+    if (isMobile) {
+      const tries = [{ width: { ideal: h }, height: { ideal: w } }, {}];   // 第二次：直的數字；第三次：完全不指定尺寸（用鏡頭原生畫面）
+      for (let i = 0; i <= tries.length; i++) {
+        const d = await frameDims(s);
+        if (!d || (d[1] > d[0]) === isPortrait() || i === tries.length) break;
+        const v2 = { ...video }; delete v2.width; delete v2.height; Object.assign(v2, tries[i]);
+        s.getTracks().forEach(t => t.stop());
+        try { s = await navigator.mediaDevices.getUserMedia({ video: v2, audio }); } catch { s = await navigator.mediaDevices.getUserMedia({ video, audio }); break; }
+      }
+    }
     stream = s; camTrack = s.getVideoTracks()[0]; micTrack = s.getAudioTracks()[0];
     try { icTrack?.stop(); meterTrack?.stop(); } catch {}
     icTrack = micTrack ? micTrack.clone() : null; meterTrack = micTrack ? micTrack.clone() : null;
@@ -3725,6 +3749,16 @@ function GuestMain(inv, roomKey){
     applyOrient(); syncSenders(); sendState();
   }
   let meter = () => 0;
+  // 讀鏡頭實際給的畫面大小（寬、高）
+  function frameDims(s){
+    return new Promise(res => {
+      const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', '');
+      let done = false; const fin = d => { if (done) return; done = true; clearInterval(t); v.srcObject = null; res(d); };
+      v.srcObject = new MediaStream(s.getVideoTracks()); v.play().catch(() => {});
+      const t = setInterval(() => { if (v.videoWidth) fin([v.videoWidth, v.videoHeight]); }, 50);
+      setTimeout(() => fin(null), 2500);
+    });
+  }
   const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
@@ -3761,8 +3795,11 @@ function GuestMain(inv, roomKey){
   function readZoomCaps(){
     const caps = camTrack.getCapabilities?.() || {};
     torchCap = !!caps.torch;
-    if (caps.zoom && caps.zoom.max > caps.zoom.min) zoom = { hw: true, min: +caps.zoom.min.toFixed(2), max: +caps.zoom.max.toFixed(2), step: caps.zoom.step || .1, value: camTrack.getSettings().zoom || caps.zoom.min };
-    else { const s = camTrack.getSettings(); const L = Math.max(s.width || 1280, s.height || 720); zoom = { hw: false, min: 1, max: clamp(Math.round(L / 480 * 10) / 10, 2, 4), step: .1, value: 1 }; fx.zoom = 1; }
+    if (caps.zoom && caps.zoom.max > caps.zoom.min) { zoom = { hw: true, min: +caps.zoom.min.toFixed(2), max: +caps.zoom.max.toFixed(2), step: caps.zoom.step || .1, value: camTrack.getSettings().zoom || caps.zoom.min };
+      const z1 = clamp(1, zoom.min, zoom.max);   // 每次開鏡頭都回到手機原生 1×
+      if (Math.abs(zoom.value - z1) > .01) { zoom.value = z1; camTrack.applyConstraints({ advanced: [{ zoom: z1 }] }).catch(() => {}); }
+      fx.zoom = 1;
+    } else { const s = camTrack.getSettings(); const L = Math.max(s.width || 1280, s.height || 720); zoom = { hw: false, min: 1, max: clamp(Math.round(L / 480 * 10) / 10, 2, 4), step: .1, value: 1 }; fx.zoom = 1; }
     renderZoomUI();
   }
   let zApplyT = 0, zPending = null;
@@ -3810,7 +3847,7 @@ function GuestMain(inv, roomKey){
   }
   function applyTier(t){
     tier = t; const [w, h] = tierDims(t);
-    camTrack?.applyConstraints({ width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } }).catch(() => {});
+    if (!isMobile) camTrack?.applyConstraints({ width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } }).catch(() => {});   // 手機不在開著的鏡頭上改尺寸：iOS 會直接裁切畫面（變大）。畫質改用位元率與輸出縮放控制
     fx.maxLong = QUALITY[t].w;
     setBitrate(call?.peerConnection, QUALITY[t].kbps);
     sendState();
@@ -4429,7 +4466,7 @@ function GuestMain(inv, roomKey){
     audioCtx();
     retA.srcObject = new MediaStream(); retA.play().catch(() => {});   // 先用使用者的點擊解鎖播放
     if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
-    joined = true; window.__gJoined = true; window.__WC_BUSY = true;
+    joined = true; window.__gJoined = true; setTimeout(fitSelf, 60); window.__WC_BUSY = true;
     $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
     layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
   }
@@ -4441,8 +4478,8 @@ function GuestMain(inv, roomKey){
     layoutStage(); layoutRet(); applyOrient();
     if (!isMobile || !camTrack) return;
     const s = camTrack.getSettings(); if (!s.width) return;
-    if ((s.height > s.width) !== wantPortrait()) applyTier(tier);
-    setTimeout(() => { const s2 = camTrack?.getSettings(); if (s2 && camTrack.readyState === 'live' && (s2.height > s2.width) !== wantPortrait()) getMedia().catch(() => {}); }, 700);
+    if (!isMobile && (s.height > s.width) !== wantPortrait()) applyTier(tier);
+    setTimeout(() => { const s2 = camTrack?.getSettings(); if (s2 && camTrack.readyState === 'live' && (s2.height > s2.width) !== isPortrait()) getMedia().catch(() => {}); }, 700);   // 鏡頭方向跟手機拿的方向不同才重開
     setTimeout(() => { syncSenders(); fitSelf(); }, 1200);
   }, 450); };
   screen.orientation?.addEventListener?.('change', onOrient);
