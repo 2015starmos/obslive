@@ -355,9 +355,9 @@ input[type=checkbox]{accent-color:var(--accent)}
 .zoomui button.on{background:#ffffff26;color:#ffd34d}
 .zoombig{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:3;font:800 34px var(--mono);color:#ffd34d;text-shadow:0 2px 10px #000;pointer-events:none;opacity:0;transition:opacity .2s}
 .zoombig.show{opacity:1}
-.gscope{position:absolute;left:12px;top:calc(54px + var(--sat));z-index:3;background:#000a;border:1px solid #ffffff1f;border-radius:8px;backdrop-filter:blur(8px);cursor:pointer;padding:4px}
-.gscope canvas{display:block;width:176px;height:90px}
-.gscope.min canvas{display:none}.gscope.min::after{content:'〰 音波';display:block;font-size:11px;color:#cfd3da;padding:2px 6px}
+.gscope{box-shadow:0 8px 30px #0009,inset 0 1px #ffffff12;position:absolute;left:12px;top:calc(54px + var(--sat));z-index:3;background:#000a;border:1px solid #ffffff1f;border-radius:8px;backdrop-filter:blur(8px);cursor:pointer;padding:4px}
+.gscope canvas{display:block;width:min(300px,calc(100vw - 24px));height:auto;aspect-ratio:44/19}
+.gscope.min canvas{display:none}.gscope.min::after{content:'▥ AUDIO · dBFS';display:block;font-size:11px;color:#cfd3da;padding:2px 6px}
 .gp.msg .gscope{top:calc(110px + var(--sat))}
 .gbar{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:30px 6px calc(12px + var(--sab));background:linear-gradient(transparent,#000d);display:flex;justify-content:center;gap:clamp(4px,2vw,14px)}
 .cbtn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;color:#e5e7eb;font-size:10.5px;padding:0;min-width:48px}
@@ -5106,7 +5106,7 @@ function GuestMain(inv, roomKey){
     <div class="gccpill hidden" id="gcc">● 字幕辨識中</div>
     <div class="ret hidden" id="rw"><video id="retV" autoplay playsinline muted></video><span>RETURN 回看</span><div class="rb"><button id="rwm" title="縮小">－</button><button id="rwp" title="放大">＋</button></div><div class="rz" id="rwz"></div></div>
     <audio id="retA" autoplay playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
-    <div class="gscope hidden" id="gsc" title="麥克風音波（點一下縮小／展開）"><canvas id="gscC" width="352" height="180"></canvas></div>
+    <div class="gscope hidden" id="gsc" title="麥克風音波（點一下縮小／展開）"><canvas id="gscC" width="440" height="190"></canvas></div>
     <div class="zoombig" id="zb">1.0×</div>
     <div class="zoomui hidden" id="zui"></div>
     <div class="player hidden" id="pl">
@@ -5117,6 +5117,7 @@ function GuestMain(inv, roomKey){
       <button class="cbtn" id="bm"><span class="c"><span class="lv" id="mlv"></span>${ic('mic')}</span><span>節目麥克風</span></button>
       <button class="cbtn" id="bi"><span class="c">${ic('headset')}</span><span>對講麥克風</span></button>
       <button class="cbtn" id="bc"><span class="c">${ic('cam')}</span><span>鏡頭</span></button>
+      ${isMobile ? `<button class="cbtn" id="bflip" title="切換前後鏡頭"><span class="c">${ic('flip')}</span><span>翻轉鏡頭</span></button>` : ''}
       <button class="cbtn" id="bcall"><span class="c">${ic('bell')}</span><span>呼叫導播</span></button>
       <button class="cbtn" id="bh"><span class="c">${ic('hand')}</span><span>舉手</span></button>
       ${canShare ? `<button class="cbtn" id="bsh"><span class="c">${ic('screen')}</span><span>分享畫面</span></button>` : ''}
@@ -5298,6 +5299,7 @@ function GuestMain(inv, roomKey){
   $('#bm').onclick = () => setPgmMic(!pgmMic);
   $('#bi').onclick = () => setIcMic(!icMic);
   $('#bc').onclick = () => setCam(!camOn);
+  $('#bflip') && ($('#bflip').onclick = () => flip());
   async function flip(){ facing = facing === 'user' ? 'environment' : 'user'; try { await getMedia({ facing }); } catch (e) { toast(e.message); } }
   async function setTorch(on){
     if (!torchCap) return toast('這支手機的鏡頭不支援手電筒');
@@ -5529,13 +5531,12 @@ function GuestMain(inv, roomKey){
   function sheetMore(){
     const t = (id, icon, label, on, dis) => `<button class="tilebtn ${on ? 'on' : ''}" id="${id}" ${dis ? 'disabled' : ''}>${ic(icon)}${label}</button>`;
     openSheet('more', `<h2>更多功能<button class="btn ghost sm" data-close>${ic('x')}</button></h2><div class="tiles" style="margin-top:12px">
-      ${t('mflip', 'flip', '翻轉鏡頭', false, !isMobile)}${t('mshare', 'screen', share ? '分享中' : '分享畫面', !!share, !canShare)}
+      ${t('mshare', 'screen', share ? '分享中' : '分享畫面', !!share, !canShare)}
       ${t('mvid', 'film', filePlaying ? '影片播放中' : '播放影片', filePlaying, !ctl.allowVideo)}${t('mbeauty', 'sparkle', '美顏', fx.beauty.on)}
       ${t('mgd', 'grid', GUIDE_NAMES[guides].replace('對齊線：', '對齊線 '), !!guides)}${t('mpip', 'pip', '子母畫面')}
       ${t('mtorch', 'torch', torchOn ? '手電筒開' : '手電筒', torchOn, !torchCap)}${t('mchat', 'chat', '傳訊息')}
       ${t('mzoom', 'zoom', zoom.value.toFixed(1) + '× 變焦')}${t('msave', 'torch', saver ? '省電中' : '省電模式', saver)}${t('mset', 'gear', '設定')}</div>
       <div class="tip">雙指縮放＝變焦（${zoom.hw ? '鏡頭硬體' : '數位'} ${zoom.min}×～${zoom.max}×），點兩下回到 1×。</div>`, sh => {
-      $('#mflip', sh).onclick = () => { flip(); closeSheet(); };
       $('#mshare', sh).onclick = sheetShare;
       $('#mvid', sh).onclick = () => filePlaying ? stopVideo() : playVideo();
       $('#mbeauty', sh).onclick = sheetBeauty;
@@ -5828,32 +5829,42 @@ function GuestMain(inv, roomKey){
   let scopeMin = store('wc_scope') === 'min';
   $('#gsc').onclick = () => { scopeMin = !scopeMin; store('wc_scope', scopeMin ? 'min' : ''); $('#gsc').classList.toggle('min', scopeMin); };
   $('#gsc').classList.toggle('min', scopeMin);
+  // Broadcast-style peak programme meters (dBFS). Values are estimated from waveform peaks.
   (function drawScope(){
     const el = $('#gsc'); if (!el) return;
     requestAnimationFrame(drawScope);
     if (!joined || document.hidden || scopeMin) return;
-    const n = performance.now(); if (n - (drawScope.t || 0) < 50) return; drawScope.t = n;
-    const c = $('#gscC'), g = c.getContext('2d'), W = c.width, H = c.height, rh = H / 3;
-    g.clearRect(0, 0, W, H);
-    const rows = [
-      ['節目麥', AUD?.scPgm, pgmMic && !(icMic && icMutesPgm), '#22c55e'],
-      ['對講麥', AUD?.scIc, icMic, '#a78bfa'],
-      ['導播', retScope, true, '#4c8dff'],
+    const now = performance.now(); if (now - (drawScope.t || 0) < 65) return; drawScope.t = now;
+    const c = $('#gscC'), g = c.getContext('2d'), W = c.width, H = c.height;
+    const tracks = [
+      ['PGM', '節目麥', AUD?.scPgm, pgmMic && !(icMic && icMutesPgm), '#35d88c'],
+      ['TALK', '對講麥', AUD?.scIc, icMic, '#b4a0ff'],
+      ['RETURN', '導播回傳', retScope, !!retScope, '#6fb5ff']
     ];
-    g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; g.textBaseline = 'middle';
-    rows.forEach(([lb, sc, on, col], i) => {
-      const y0 = i * rh, cy = y0 + rh / 2, x0 = 84;
-      g.fillStyle = on ? '#e5e7eb' : '#6b7280'; g.fillText(lb, 6, cy);
-      g.strokeStyle = '#ffffff14'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, cy); g.lineTo(W - 4, cy); g.stroke();
-      if (!on) { g.fillStyle = '#6b7280'; g.font = '500 18px ' + getComputedStyle(document.body).fontFamily; g.fillText('關閉', x0 + 6, cy); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; return; }
-      if (!sc) return;
-      const d = sc.read(); let pk = 0;
-      g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath();
-      const step = d.length / (W - 4 - x0);
-      for (let x = 0; x < W - 4 - x0; x++) { const v = d[Math.floor(x * step)] || 0; pk = Math.max(pk, Math.abs(v)); const yy = cy - Math.max(-1, Math.min(1, v * 2.2)) * (rh / 2 - 4); x ? g.lineTo(x0 + x, yy) : g.moveTo(x0 + x, yy); }
-      g.stroke();
-      if (pk < .003) { g.fillStyle = '#f5a524'; g.font = '500 16px ' + getComputedStyle(document.body).fontFamily; g.fillText('沒有聲音', W - 74, y0 + 14); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; }
+    const font = '"JetBrains Mono",Consolas,monospace';
+    g.clearRect(0,0,W,H); g.fillStyle='#0b111a'; g.fillRect(0,0,W,H);
+    g.fillStyle='#8c9aac'; g.font='bold 12px '+font; g.fillText('AUDIO MONITOR  /  dBFS',12,17);
+    g.fillStyle='#536173'; g.fillText('PK',W-30,17);
+    const x0=102, x1=W-45, count=28, gap=2, seg=(x1-x0)/count;
+    tracks.forEach(([id,label,sc,on,color],i)=>{
+      const y=30+i*45, center=y+19;
+      g.fillStyle='#d6e0ed'; g.font='bold 14px '+font; g.fillText(id,12,y+13);
+      g.fillStyle='#7e8da2'; g.font='11px sans-serif'; g.fillText(label,12,y+29);
+      let peak=0;
+      if(on && sc){ try { const samples=sc.read(); for(let j=0;j<samples.length;j+=2) peak=Math.max(peak,Math.abs(samples[j]||0)); }catch(e){} }
+      const db=peak>0 ? Math.max(-60,20*Math.log10(peak)) : -60;
+      const active=on ? Math.max(0,Math.min(count,Math.round((db+60)/60*count))) : 0;
+      for(let j=0;j<count;j++){
+        const threshold=-60+(j+1)*60/count;
+        g.fillStyle=j>=active?'#202b38':threshold>=-6?'#f05b5b':threshold>=-18?'#f4c65b':color;
+        g.fillRect(x0+j*seg,center-9,Math.max(2,seg-gap),16);
+      }
+      g.fillStyle= !on?'#69798d':db>=-6?'#ff7777':'#dce6f3';
+      g.font='bold 13px '+font; g.textAlign='right'; g.fillText(!on?'OFF':db<=-60?'-∞':db.toFixed(0),W-8,center+4); g.textAlign='left';
+      g.fillStyle='#425063'; g.fillRect(10,y+40,W-20,1);
     });
+    g.font='10px '+font; g.fillStyle='#738399';
+    [-60,-40,-20,-12,-6,0].forEach(v=>{ const x=x0+(v+60)/60*(x1-x0); g.textAlign='center'; g.fillText(String(v),x,H-4); });g.textAlign='left';
   })();
   function ensureRetPlaying(){
     if (!retA.srcObject) return;
