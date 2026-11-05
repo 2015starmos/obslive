@@ -2,24 +2,13 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1105.2100">
+<meta name="webcall-version" content="2026.1105.2200">
 <script>
-/* 自動更新載入器：系統管理員在派發平台發布的新版本會先存在這台裝置（wc_pkg），開啟時直接換成新版本
- * 網址加 ?builtin=1 可以強制使用這個檔案內建的版本（新版本有問題時救援用） */
+/* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  var ms = document.querySelectorAll('meta[name="webcall-version"]'), me = ms.length ? ms[ms.length - 1].content : '';
-  if (window.__WC_PKG) { window.WC_VER = window.__WC_PKG; return; }
-  window.WC_VER = me;
-  if (/[?&]builtin=1/.test(location.search)) { window.WC_BUILTIN = true; return; }
-  var p = null; try { p = JSON.parse(localStorage.getItem('wc_pkg') || 'null'); } catch (e) {}
-  // 只在下載的版本「比這個檔案新」時才換：之前只要版本不同就換，導致舊版一直蓋掉 GitHub 上的新檔案
-  var newer = function(a, b){ a = String(a).split(/\D+/).map(Number); b = String(b).split(/\D+/).map(Number); for (var i = 0; i < Math.max(a.length, b.length); i++) { var x = a[i] || 0, y = b[i] || 0; if (x !== y) return x > y; } return false; };
-  window.WC_NEWER = newer;
-  if (!p || !p.v || !p.html || !newer(p.v, me)) { if (p && p.v && !newer(p.v, me)) { try { localStorage.removeItem('wc_pkg'); } catch (e) {} } return; }
-  window.__WC_PKG = p.v;
-  // 新版本 15 秒內沒有正常啟動 → 丟掉它，改用內建版本
-  setTimeout(function(){ if (!window.__WC_OK) { try { localStorage.removeItem('wc_pkg'); localStorage.setItem('wc_badpkg', p.v); } catch (e) {} location.reload(); } }, 15000);
-  document.write(p.html + '<plaintext style="display:none">');
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1105.2200';
+  window.WC_BUILTIN = true;
+  try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -6419,9 +6408,9 @@ async function checkAppUpdate(){
 }
 // 導播結束、來賓離開後，如果有強制更新就套用
 function wcIdle(){ window.__WC_BUSY = false; if (updPending?.force) setTimeout(() => !wcBusy() && location.reload(), 1500); }
-setTimeout(checkAppUpdate, 2500);
-setInterval(checkAppUpdate, 5 * 60000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - (checkAppUpdate.t || 0) > 60000) { checkAppUpdate.t = Date.now(); checkAppUpdate(); } });
+/* 精簡固定版：停用遠端自動更新 */
+/* 精簡固定版：停用遠端定時更新 */
+/* 精簡固定版：停用返回前景時的遠端版本檢查 */
 
 /* ===================== 路由 ===================== */
 function route(){
