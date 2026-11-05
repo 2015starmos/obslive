@@ -355,9 +355,9 @@ input[type=checkbox]{accent-color:var(--accent)}
 .zoomui button.on{background:#ffffff26;color:#ffd34d}
 .zoombig{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:3;font:800 34px var(--mono);color:#ffd34d;text-shadow:0 2px 10px #000;pointer-events:none;opacity:0;transition:opacity .2s}
 .zoombig.show{opacity:1}
-.gscope{box-shadow:0 8px 30px #0009,inset 0 1px #ffffff12;position:absolute;left:12px;top:calc(54px + var(--sat));z-index:3;background:#000a;border:1px solid #ffffff1f;border-radius:8px;backdrop-filter:blur(8px);cursor:pointer;padding:4px}
-.gscope canvas{display:block;width:min(300px,calc(100vw - 24px));height:auto;aspect-ratio:44/19}
-.gscope.min canvas{display:none}.gscope.min::after{content:'▥ AUDIO · dBFS';display:block;font-size:11px;color:#cfd3da;padding:2px 6px}
+.gscope{position:absolute;left:12px;top:calc(54px + var(--sat));z-index:3;background:#000a;border:1px solid #ffffff1f;border-radius:8px;backdrop-filter:blur(8px);cursor:pointer;padding:4px}
+.gscope canvas{display:block;width:176px;height:90px}
+.gscope.min canvas{display:none}.gscope.min::after{content:'〰 音波';display:block;font-size:11px;color:#cfd3da;padding:2px 6px}
 .gp.msg .gscope{top:calc(110px + var(--sat))}
 .gbar{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:30px 6px calc(12px + var(--sab));background:linear-gradient(transparent,#000d);display:flex;justify-content:center;gap:clamp(4px,2vw,14px)}
 .cbtn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;color:#e5e7eb;font-size:10.5px;padding:0;min-width:48px}
@@ -5106,7 +5106,7 @@ function GuestMain(inv, roomKey){
     <div class="gccpill hidden" id="gcc">● 字幕辨識中</div>
     <div class="ret hidden" id="rw"><video id="retV" autoplay playsinline muted></video><span>RETURN 回看</span><div class="rb"><button id="rwm" title="縮小">－</button><button id="rwp" title="放大">＋</button></div><div class="rz" id="rwz"></div></div>
     <audio id="retA" autoplay playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
-    <div class="gscope hidden" id="gsc" title="麥克風音波（點一下縮小／展開）"><canvas id="gscC" width="440" height="190"></canvas></div>
+    <div class="gscope hidden" id="gsc" title="麥克風音波（點一下縮小／展開）"><canvas id="gscC" width="352" height="180"></canvas></div>
     <div class="zoombig" id="zb">1.0×</div>
     <div class="zoomui hidden" id="zui"></div>
     <div class="player hidden" id="pl">
@@ -5117,7 +5117,6 @@ function GuestMain(inv, roomKey){
       <button class="cbtn" id="bm"><span class="c"><span class="lv" id="mlv"></span>${ic('mic')}</span><span>節目麥克風</span></button>
       <button class="cbtn" id="bi"><span class="c">${ic('headset')}</span><span>對講麥克風</span></button>
       <button class="cbtn" id="bc"><span class="c">${ic('cam')}</span><span>鏡頭</span></button>
-      ${isMobile ? `<button class="cbtn" id="bflip" title="切換前後鏡頭"><span class="c">${ic('flip')}</span><span>翻轉鏡頭</span></button>` : ''}
       <button class="cbtn" id="bcall"><span class="c">${ic('bell')}</span><span>呼叫導播</span></button>
       <button class="cbtn" id="bh"><span class="c">${ic('hand')}</span><span>舉手</span></button>
       ${canShare ? `<button class="cbtn" id="bsh"><span class="c">${ic('screen')}</span><span>分享畫面</span></button>` : ''}
@@ -5299,7 +5298,6 @@ function GuestMain(inv, roomKey){
   $('#bm').onclick = () => setPgmMic(!pgmMic);
   $('#bi').onclick = () => setIcMic(!icMic);
   $('#bc').onclick = () => setCam(!camOn);
-  $('#bflip') && ($('#bflip').onclick = () => flip());
   async function flip(){ facing = facing === 'user' ? 'environment' : 'user'; try { await getMedia({ facing }); } catch (e) { toast(e.message); } }
   async function setTorch(on){
     if (!torchCap) return toast('這支手機的鏡頭不支援手電筒');
@@ -5531,12 +5529,13 @@ function GuestMain(inv, roomKey){
   function sheetMore(){
     const t = (id, icon, label, on, dis) => `<button class="tilebtn ${on ? 'on' : ''}" id="${id}" ${dis ? 'disabled' : ''}>${ic(icon)}${label}</button>`;
     openSheet('more', `<h2>更多功能<button class="btn ghost sm" data-close>${ic('x')}</button></h2><div class="tiles" style="margin-top:12px">
-      ${t('mshare', 'screen', share ? '分享中' : '分享畫面', !!share, !canShare)}
+      ${t('mflip', 'flip', '翻轉鏡頭', false, !isMobile)}${t('mshare', 'screen', share ? '分享中' : '分享畫面', !!share, !canShare)}
       ${t('mvid', 'film', filePlaying ? '影片播放中' : '播放影片', filePlaying, !ctl.allowVideo)}${t('mbeauty', 'sparkle', '美顏', fx.beauty.on)}
       ${t('mgd', 'grid', GUIDE_NAMES[guides].replace('對齊線：', '對齊線 '), !!guides)}${t('mpip', 'pip', '子母畫面')}
       ${t('mtorch', 'torch', torchOn ? '手電筒開' : '手電筒', torchOn, !torchCap)}${t('mchat', 'chat', '傳訊息')}
       ${t('mzoom', 'zoom', zoom.value.toFixed(1) + '× 變焦')}${t('msave', 'torch', saver ? '省電中' : '省電模式', saver)}${t('mset', 'gear', '設定')}</div>
       <div class="tip">雙指縮放＝變焦（${zoom.hw ? '鏡頭硬體' : '數位'} ${zoom.min}×～${zoom.max}×），點兩下回到 1×。</div>`, sh => {
+      $('#mflip', sh).onclick = () => { flip(); closeSheet(); };
       $('#mshare', sh).onclick = sheetShare;
       $('#mvid', sh).onclick = () => filePlaying ? stopVideo() : playVideo();
       $('#mbeauty', sh).onclick = sheetBeauty;
@@ -5829,42 +5828,32 @@ function GuestMain(inv, roomKey){
   let scopeMin = store('wc_scope') === 'min';
   $('#gsc').onclick = () => { scopeMin = !scopeMin; store('wc_scope', scopeMin ? 'min' : ''); $('#gsc').classList.toggle('min', scopeMin); };
   $('#gsc').classList.toggle('min', scopeMin);
-  // Broadcast-style peak programme meters (dBFS). Values are estimated from waveform peaks.
   (function drawScope(){
     const el = $('#gsc'); if (!el) return;
     requestAnimationFrame(drawScope);
     if (!joined || document.hidden || scopeMin) return;
-    const now = performance.now(); if (now - (drawScope.t || 0) < 65) return; drawScope.t = now;
-    const c = $('#gscC'), g = c.getContext('2d'), W = c.width, H = c.height;
-    const tracks = [
-      ['PGM', '節目麥', AUD?.scPgm, pgmMic && !(icMic && icMutesPgm), '#35d88c'],
-      ['TALK', '對講麥', AUD?.scIc, icMic, '#b4a0ff'],
-      ['RETURN', '導播回傳', retScope, !!retScope, '#6fb5ff']
+    const n = performance.now(); if (n - (drawScope.t || 0) < 50) return; drawScope.t = n;
+    const c = $('#gscC'), g = c.getContext('2d'), W = c.width, H = c.height, rh = H / 3;
+    g.clearRect(0, 0, W, H);
+    const rows = [
+      ['節目麥', AUD?.scPgm, pgmMic && !(icMic && icMutesPgm), '#22c55e'],
+      ['對講麥', AUD?.scIc, icMic, '#a78bfa'],
+      ['導播', retScope, true, '#4c8dff'],
     ];
-    const font = '"JetBrains Mono",Consolas,monospace';
-    g.clearRect(0,0,W,H); g.fillStyle='#0b111a'; g.fillRect(0,0,W,H);
-    g.fillStyle='#8c9aac'; g.font='bold 12px '+font; g.fillText('AUDIO MONITOR  /  dBFS',12,17);
-    g.fillStyle='#536173'; g.fillText('PK',W-30,17);
-    const x0=102, x1=W-45, count=28, gap=2, seg=(x1-x0)/count;
-    tracks.forEach(([id,label,sc,on,color],i)=>{
-      const y=30+i*45, center=y+19;
-      g.fillStyle='#d6e0ed'; g.font='bold 14px '+font; g.fillText(id,12,y+13);
-      g.fillStyle='#7e8da2'; g.font='11px sans-serif'; g.fillText(label,12,y+29);
-      let peak=0;
-      if(on && sc){ try { const samples=sc.read(); for(let j=0;j<samples.length;j+=2) peak=Math.max(peak,Math.abs(samples[j]||0)); }catch(e){} }
-      const db=peak>0 ? Math.max(-60,20*Math.log10(peak)) : -60;
-      const active=on ? Math.max(0,Math.min(count,Math.round((db+60)/60*count))) : 0;
-      for(let j=0;j<count;j++){
-        const threshold=-60+(j+1)*60/count;
-        g.fillStyle=j>=active?'#202b38':threshold>=-6?'#f05b5b':threshold>=-18?'#f4c65b':color;
-        g.fillRect(x0+j*seg,center-9,Math.max(2,seg-gap),16);
-      }
-      g.fillStyle= !on?'#69798d':db>=-6?'#ff7777':'#dce6f3';
-      g.font='bold 13px '+font; g.textAlign='right'; g.fillText(!on?'OFF':db<=-60?'-∞':db.toFixed(0),W-8,center+4); g.textAlign='left';
-      g.fillStyle='#425063'; g.fillRect(10,y+40,W-20,1);
+    g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; g.textBaseline = 'middle';
+    rows.forEach(([lb, sc, on, col], i) => {
+      const y0 = i * rh, cy = y0 + rh / 2, x0 = 84;
+      g.fillStyle = on ? '#e5e7eb' : '#6b7280'; g.fillText(lb, 6, cy);
+      g.strokeStyle = '#ffffff14'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, cy); g.lineTo(W - 4, cy); g.stroke();
+      if (!on) { g.fillStyle = '#6b7280'; g.font = '500 18px ' + getComputedStyle(document.body).fontFamily; g.fillText('關閉', x0 + 6, cy); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; return; }
+      if (!sc) return;
+      const d = sc.read(); let pk = 0;
+      g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath();
+      const step = d.length / (W - 4 - x0);
+      for (let x = 0; x < W - 4 - x0; x++) { const v = d[Math.floor(x * step)] || 0; pk = Math.max(pk, Math.abs(v)); const yy = cy - Math.max(-1, Math.min(1, v * 2.2)) * (rh / 2 - 4); x ? g.lineTo(x0 + x, yy) : g.moveTo(x0 + x, yy); }
+      g.stroke();
+      if (pk < .003) { g.fillStyle = '#f5a524'; g.font = '500 16px ' + getComputedStyle(document.body).fontFamily; g.fillText('沒有聲音', W - 74, y0 + 14); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; }
     });
-    g.font='10px '+font; g.fillStyle='#738399';
-    [-60,-40,-20,-12,-6,0].forEach(v=>{ const x=x0+(v+60)/60*(x1-x0); g.textAlign='center'; g.fillText(String(v),x,H-4); });g.textAlign='left';
   })();
   function ensureRetPlaying(){
     if (!retA.srcObject) return;
@@ -6432,5 +6421,34 @@ else {   // 網路慢、CDN 被擋時再試一次備用來源
   const sc = document.createElement('script'); sc.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
   sc.onload = sc.onerror = route; document.head.appendChild(sc);
 }
+</script>
+<script>
+/* WebCall Enterprise Operator Toolkit v0.1 — additive, host-only. No changes to PeerJS/media pipeline. */
+(()=>{'use strict';
+const KEY='wc_enterprise_v1', esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safe=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}};
+let data={nodeId:crypto.randomUUID?.()||('node-'+Date.now()),event:'',items:[],macros:[],endpoint:'',token:'',...safe()};
+const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){warn('無法儲存設定：'+e.message)}};
+let h=null, panel=null, timer=null, beat=0, lastFrame=-1,lastFrameAt=Date.now(), recordingAlert=false, logs=[];
+const warn=m=>{logs.unshift(new Date().toLocaleTimeString()+' '+m);logs=logs.slice(0,50);renderStatus()};
+const host=()=>window.__host&&window.__host.programStream?window.__host:null;
+const sources=()=>h?[...h.inputs.values()].map(x=>({id:x.id,name:x.name||x.id,lost:!!x.lost,kind:x.type||'source'})):[];
+const snap=()=>{const s=sources(),pgm=h?.SW?.pgm;return {nodeId:data.nodeId,event:data.event,ts:Date.now(),version:'enterprise-addon-0.1',pgm:pgm||null,pvw:h?.SW?.pvw||null,sourceCount:s.length,connected:s.filter(x=>!x.lost).length,lost:s.filter(x=>x.lost).length,recording:h?.REC?.size||0,recordings:h?.REC?[...h.REC.values()].map(r=>({key:r.key,bytes:r.size||0,state:r.mr?.state||'unknown'})):[],frame:h?.frameNo||0,role:'director',health:{frozen:Date.now()-lastFrameAt>8000},sources:s.map(x=>({id:x.id,name:x.name,lost:x.lost}))}};
+function renderStatus(){if(!panel)return;let s=snap();const el=panel.querySelector('#wce-status');if(el)el.innerHTML=`<b>節點 ${esc(data.nodeId.slice(0,16))}</b> · 來源 ${s.connected}/${s.sourceCount} · 錄影 ${s.recording} · PGM ${esc(s.pgm||'無')}<br><small>${s.health.frozen?'⚠ 節目畫面可能停止更新':'✓ 節目影格更新中'} · ${data.endpoint?'MCR 遙測已設定':'本機模式（尚未設定 MCR）'}</small>`;const lg=panel.querySelector('#wce-logs');if(lg)lg.textContent=logs.slice(0,7).join('\n')}
+async function heartbeat(){if(!h)return;let s=snap();if(s.frame!==lastFrame){lastFrame=s.frame;lastFrameAt=Date.now()}if(s.health.frozen&&!recordingAlert){warn('PGM 影格長時間未更新，請檢查製播狀態');recordingAlert=true}else if(!s.health.frozen)recordingAlert=false;
+for(const r of h.REC?.values()||[]){if(r.mr?.state==='inactive')warn('錄影器非運作狀態：'+r.key)}
+if(data.endpoint&&/^https?:\/\//.test(data.endpoint)){try{const ctl=new AbortController();const timeout=setTimeout(()=>ctl.abort(),3500);try{const res=await fetch(data.endpoint.replace(/\/$/,'')+'/api/telemetry',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+data.token},body:JSON.stringify(s),signal:ctl.signal});if(!res.ok)throw Error('HTTP '+res.status)}finally{clearTimeout(timeout)}}catch(e){if(Date.now()-beat>30000){warn('MCR 上報失敗：'+e.message);beat=Date.now()}}}
+renderStatus()}
+function renderList(){if(!panel)return;let el=panel.querySelector('#wce-rundown');if(!el)return;el.innerHTML=data.items.map((x,i)=>`<div class="wce-item"><span>${i+1}. ${esc(x.title)} <small>${esc(x.note||'')}</small></span><span><button data-cue="${i}">CUE</button><button data-done="${i}">${x.done?'↶':'✓'}</button><button data-del="${i}">×</button></span></div>`).join('')||'<small>尚未建立 Rundown</small>';
+el.querySelectorAll('[data-cue]').forEach(b=>b.onclick=()=>cue(+b.dataset.cue));el.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>{let x=data.items[+b.dataset.done];x.done=!x.done;persist();renderList()});el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{data.items.splice(+b.dataset.del,1);persist();renderList()})}
+function cue(i){let x=data.items[i];if(!x)return;warn('CUE：'+x.title);if(x.action==='panic'){if(!confirm('確定啟動 PANIC 緊急畫面？'))return;h.setPanic(true)}else if(x.action==='record'){h.startRec(['pgm'],6000).catch(e=>warn('錄影失敗：'+e.message))}else if(x.action==='stop'){if(confirm('確定停止全部錄影？'))h.stopRec()}else if(x.action==='preset'){const n=Number(x.value);if(Number.isInteger(n)&&n>=0&&n<10&&confirm('確定載入場景預設 '+(n+1)+'？'))h.recallPreset(n,false)}else if(x.action==='talk'){warn('請在原有對講／IFB 視窗發送語音指令');h.openWin('ic')}x.done=true;persist();renderList()}
+function exportData(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({schema:1,exported:new Date().toISOString(),data:{...data,token:''}},null,2)],{type:'application/json'}));a.download='WebCall_Enterprise_Backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
+function open(){if(panel){panel.remove();panel=null;return}h=host();if(!h)return;panel=document.createElement('section');panel.id='wce-panel';panel.innerHTML=`<div class="wce-head"><strong>WEBCALL ENTERPRISE · 導播工作站</strong><button id="wce-close">關閉</button></div><div id="wce-status"></div><div class="wce-grid"><div><label>活動名稱<input id="wce-event" maxlength="80" value="${esc(data.event)}"></label><label>MCR API URL（選填）<input id="wce-endpoint" placeholder="https://你的監控伺服器" value="${esc(data.endpoint)}"></label><label>節點授權 Token（不建議共用裝置儲存）<input id="wce-token" type="password" value="${esc(data.token)}"></label><button id="wce-save">儲存節點設定</button><button id="wce-export">匯出設定備份</button><button id="wce-import">匯入設定備份</button><input id="wce-file" type="file" accept="application/json" hidden></div><div><b>錄影工作站（使用既有 MediaRecorder）</b><p><button id="wce-pgm">開始 PGM</button><button id="wce-iso">錄製所有可用 ISO</button><button id="wce-stop">停止全部錄影</button></p><small>ISO 將在此瀏覽器錄製；大量來源請改用專用錄影工作節點。</small><hr><b>導播安全</b><p><button id="wce-panic">啟動 PANIC</button><button id="wce-clear">解除 PANIC</button></p></div></div><hr><b>Rundown / Cue</b><div id="wce-rundown"></div><div class="wce-add"><input id="wce-title" placeholder="節目段落 / Cue 名稱"><select id="wce-action"><option value="note">提示</option><option value="talk">開啟對講</option><option value="record">開始 PGM 錄影</option><option value="stop">停止全部錄影</option><option value="preset">載入場景預設</option><option value="panic">PANIC</option></select><input id="wce-value" placeholder="預設索引 0–9" size="10"><button id="wce-add">新增</button></div><hr><b>事件與健康日誌</b><pre id="wce-logs"></pre>`;
+document.body.appendChild(panel);const $=id=>panel.querySelector('#'+id);$('wce-close').onclick=open;$('wce-save').onclick=()=>{data.event=$('wce-event').value.trim();data.endpoint=$('wce-endpoint').value.trim();data.token=$('wce-token').value.trim();persist();warn('節點設定已儲存')};$('wce-export').onclick=exportData;$('wce-import').onclick=()=>$('wce-file').click();$('wce-file').onchange=async e=>{try{const obj=JSON.parse(await e.target.files[0].text());if(obj.schema!==1||!Array.isArray(obj.data.items))throw Error('格式不符');data={...data,...obj.data,token:data.token};persist();panel.remove();panel=null;open();warn('已匯入設定')}catch(e){alert('匯入失敗：'+e.message)}};
+$('wce-pgm').onclick=()=>h.startRec(['pgm'],6000).then(()=>warn('PGM 錄影啟動')).catch(e=>warn(e.message));$('wce-iso').onclick=()=>{const keys=sources().filter(x=>!x.lost&&h.inputs.get(x.id)?.isoStream).map(x=>x.id);if(!keys.length)return alert('沒有可錄製的 ISO 來源');if(!confirm(`開始錄製 ${keys.length} 路 ISO？這會增加 CPU、記憶體及儲存負載。`))return;h.startRec(keys,3500).then(()=>warn('ISO 錄影啟動：'+keys.length+' 路')).catch(e=>warn(e.message))};$('wce-stop').onclick=()=>{if(confirm('確定停止全部錄影？')){h.stopRec();warn('錄影停止')}};$('wce-panic').onclick=()=>{if(confirm('啟動緊急畫面？'))h.setPanic(true)};$('wce-clear').onclick=()=>h.setPanic(false);$('wce-add').onclick=()=>{let title=$('wce-title').value.trim();if(!title)return;data.items.push({title,action:$('wce-action').value,value:$('wce-value').value.trim(),done:false});persist();$('wce-title').value='';renderList()};renderList();renderStatus()}
+function init(){if(document.getElementById('wce-launch'))return;const style=document.createElement('style');style.textContent=`#wce-launch{position:fixed;right:14px;bottom:14px;z-index:2147483600;background:#1768bb;color:white;border:1px solid #6ca9f2;border-radius:8px;padding:10px 14px;font:600 13px system-ui;cursor:pointer}#wce-panel{position:fixed;inset:6vh 5vw;z-index:2147483601;overflow:auto;background:#101c2d;color:#e7f1ff;border:1px solid #426389;border-radius:12px;padding:18px;font:13px system-ui;box-shadow:0 15px 80px #000c}#wce-panel button,#wce-panel input,#wce-panel select{background:#20354d;color:#eaf2ff;border:1px solid #55718d;border-radius:5px;padding:7px;margin:3px}#wce-panel button{cursor:pointer}#wce-panel label{display:block;margin:8px 0}#wce-panel label input{display:block;width:95%;box-sizing:border-box}#wce-panel .wce-head{display:flex;justify-content:space-between;align-items:center;font-size:16px}#wce-status{background:#1b3048;border-radius:8px;padding:12px;margin:12px 0}#wce-panel .wce-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}#wce-panel .wce-item{display:flex;justify-content:space-between;border-bottom:1px solid #324b65;padding:5px}#wce-panel .wce-add{display:flex;flex-wrap:wrap}#wce-panel pre{white-space:pre-wrap;max-height:100px;overflow:auto;color:#9fc4ec}@media(max-width:700px){#wce-panel .wce-grid{grid-template-columns:1fr}#wce-panel{inset:2vh 2vw}}`;document.head.appendChild(style);const b=document.createElement('button');b.id='wce-launch';b.textContent='MCR / ENTERPRISE';b.onclick=open;document.body.appendChild(b);h=host();warn('Enterprise 工具已載入');timer=setInterval(heartbeat,5000);heartbeat()}
+const boot=setInterval(()=>{if(host()){clearInterval(boot);init()}},800);setTimeout(()=>clearInterval(boot),120000);
+})();
+
 </script>
 </body></html>
