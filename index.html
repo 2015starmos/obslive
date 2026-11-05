@@ -6474,73 +6474,29 @@ const boot=setInterval(()=>{if(host()){clearInterval(boot);init()}},800);setTime
 </script>
 
 <script>
-/* V2 read-only production-node adapter. No remote media control, no auto takeover. */
-(()=>{'use strict';
-const K='wc_control_v2',read=()=>{try{return JSON.parse(localStorage.getItem(K)||'{}')}catch{return {}}};
-let c={url:'',roomId:'',nodeToken:'',epoch:0,...read()},busy=false,fail=0;
-const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const nodeId=()=>{try{const d=JSON.parse(localStorage.getItem('wc_enterprise_v1')||'{}');return d.nodeId||''}catch{return ''}};
-const h=()=>window.__host&&window.__host.programStream?window.__host:null;
-function report(message){const el=document.getElementById('wcv2-status');if(el)el.textContent=message}
-async function beat(){if(busy||!c.url||!c.nodeToken||!c.roomId||!h()||!nodeId())return;busy=true;const host=h();const s=[...host.inputs.values()];const ctl=new AbortController();const timeout=setTimeout(()=>ctl.abort(),4000);
-try{const res=await fetch(c.url.replace(/\/$/,'')+'/api/v2/heartbeat',{method:'POST',headers:{'Authorization':'Bearer '+c.nodeToken,'Content-Type':'application/json'},body:JSON.stringify({nodeId:nodeId(),roomId:c.roomId,epoch:c.epoch,pgm:host.SW?.pgm||'',pvw:host.SW?.pvw||'',connected:s.filter(x=>!x.lost).length,lost:s.filter(x=>x.lost).length,recording:host.REC?.size||0}),signal:ctl.signal});if(!res.ok)throw Error('HTTP '+res.status);const d=await res.json();fail=0;report('MCR V2 已連線 · '+(d.authorizedPrimary?'本節點持有有效主控租約':'監控節點（沒有主控租約）')+' · Epoch '+d.room.epoch);
-// Epoch is NOT adopted automatically; an operator must verify and explicitly set it.
-}catch(e){fail++;if(fail===1||fail%6===0)report('MCR V2 連線失敗：'+e.message)}finally{clearTimeout(timeout);busy=false}}
-function open(){if(document.getElementById('wcv2-panel')){document.getElementById('wcv2-panel').remove();return}const p=document.createElement('div');p.id='wcv2-panel';p.style.cssText='position:fixed;right:20px;bottom:70px;width:min(400px,90vw);max-height:75vh;overflow:auto;background:#10243a;color:white;padding:16px;border:1px solid #6da5df;border-radius:10px;z-index:2147483602;font:13px system-ui;box-shadow:0 8px 30px #0009';p.innerHTML='<strong>WebCall Control Plane V2 · 節點連接</strong><p>本面板只回報監測狀態；不會接管或切換直播輸出。</p><label>控制服務 HTTPS URL<input id="wcv2-url"></label><label>Room ID<input id="wcv2-room"></label><label>Node Token<input id="wcv2-token" type="password"></label><label>租約 Epoch（由管理端指派）<input id="wcv2-epoch" type="number" min="0"></label><p><button id="wcv2-save">儲存並連線</button><button id="wcv2-close">關閉</button></p><div id="wcv2-status"></div><small>Token 存在此瀏覽器 localStorage，僅供封閉測試；正式部署須換成短效憑證。</small>';document.body.appendChild(p);const $=x=>p.querySelector('#'+x);['url','room','token','epoch'].forEach((x,i)=>$("wcv2-"+x).value=[c.url,c.roomId,c.nodeToken,c.epoch][i]);$('wcv2-close').onclick=()=>p.remove();$('wcv2-save').onclick=()=>{const url=$('wcv2-url').value.trim();if(!/^https:\/\//.test(url)&&!/^http:\/\/localhost(?::\d+)?$/.test(url)&&!/^http:\/\/127\.0\.0\.1(?::\d+)?$/.test(url)){alert('請使用 HTTPS 或本機測試網址');return}const roomId=$('wcv2-room').value.trim();if(!/^[a-zA-Z0-9_-]{4,80}$/.test(roomId)){alert('Room ID 格式不正確');return}c={url,roomId,nodeToken:$('wcv2-token').value.trim(),epoch:Number($('wcv2-epoch').value)||0};localStorage.setItem(K,JSON.stringify(c));report('設定已儲存，正在連線…');beat()}}
-const timer=setInterval(()=>{if(!h()||document.getElementById('wcv2-launch'))return;const b=document.createElement('button');b.id='wcv2-launch';b.textContent='CONTROL V2';b.style.cssText='position:fixed;right:15px;bottom:60px;z-index:2147483600;background:#154a70;color:white;border:1px solid #79b5dc;border-radius:7px;padding:8px;cursor:pointer';b.onclick=open;document.body.appendChild(b);clearInterval(timer);beat();setInterval(beat,5000)},900);
+/* WebCall Universal Device Bridge - browser Web MIDI baseline.
+ * No claim of compatibility with proprietary devices. Operator must explicitly enable.
+ * Mapping is local to this browser; only CUT/AUTO actions are wired in this prototype.
+ */
+(()=>{'use strict';const KEY='wc4_midi_map';let access=null,learning=null,enabled=false;
+let map={};try{map=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{}
+const el=id=>document.getElementById(id);const status=s=>{if(el('wc4-device-status'))el('wc4-device-status').textContent=s};
+function onMessage(e){if(!enabled)return;const d=[...e.data];if(d.length<2)return;const type=d[0]&0xf0;
+ if(type!==0x90&&type!==0xb0)return;if(type===0x90&&d[2]===0)return;
+ const key=`${e.currentTarget.id}|${d[0]}|${d[1]}`;
+ if(learning){map[learning]=key;localStorage.setItem(KEY,JSON.stringify(map));status(`${learning} 已學習 ${key}`);learning=null;return}
+ for(const [action,k] of Object.entries(map)){if(k!==key)continue;const h=window.__host;if(!h)return;
+ // Delegate to the original switcher's UI, retaining its permission/PGM safety checks.
+ const btn=el(action==='CUT'?'cut':action==='AUTO'?'auto':'');if(btn&&!btn.disabled)btn.click();}
+}
+function bind(){if(!access)return;for(const input of access.inputs.values()){input.onmidimessage=onMessage}status(`已連接 MIDI 輸入：${access.inputs.size} 台`)}
+async function connect(){if(!navigator.requestMIDIAccess){status('此瀏覽器不支援 Web MIDI；請使用桌面 Bridge 或相容瀏覽器');return}
+ try{access=await navigator.requestMIDIAccess({sysex:false});enabled=true;bind();access.onstatechange=bind}catch(e){status('MIDI 連接失敗：'+e.message)}}
+function panel(){if(el('wc4-device-panel')){el('wc4-device-panel').remove();return}const box=document.createElement('section');box.id='wc4-device-panel';box.style.cssText='position:fixed;right:12px;bottom:190px;z-index:2147483645;background:#111d2d;color:#f1f5f9;padding:16px;border:1px solid #55718d;border-radius:12px;font:13px system-ui;max-width:340px;box-shadow:0 12px 36px #000a';box.innerHTML='<h3>通用實體控制器（測試版）</h3><p>Web MIDI 學習模式。需由使用者允許設備存取；不支援的廠牌須另裝協定適配器。</p><button id="wc4-connect">啟用 MIDI</button> <button id="wc4-cut">學習 CUT</button> <button id="wc4-auto">學習 AUTO</button> <button id="wc4-off">停用</button><p id="wc4-device-status" role="status">尚未啟用</p>';
+ document.body.appendChild(box);el('wc4-connect').onclick=connect;el('wc4-cut').onclick=()=>{learning='CUT';status('請按實體 CUT 按鍵')};el('wc4-auto').onclick=()=>{learning='AUTO';status('請按實體 AUTO 按鍵')};el('wc4-off').onclick=()=>{enabled=false;learning=null;status('已停用控制')};}
+function boot(){if(el('wc4-device-launch'))return;const b=document.createElement('button');b.id='wc4-device-launch';b.textContent='DEVICE V4';b.style.cssText='position:fixed;right:12px;bottom:150px;z-index:2147483644;background:#334155;color:white;padding:8px;border-radius:8px;border:1px solid #94a3b8;cursor:pointer';b.onclick=panel;document.body.appendChild(b)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 
 </script>
-<!-- Enterprise V3: optional media integration; existing PeerJS production remains unchanged. -->
-<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.17.0/dist/livekit-client.umd.min.js"></script>
-<script>/* Opt-in LiveKit SFU adapter. Include livekit-client UMD before this file.
-   Does not replace legacy PeerJS signalling without explicit per-source migration. */
-(function(global){'use strict';
-class WebCallSFU {
- constructor(){this.room=null;this.streams=new Map();this.onTrack=()=>{};this.onDisconnect=()=>{}}
- async connect(url,token){if(!global.LivekitClient)throw Error('livekit-client SDK not loaded');
-  const LK=global.LivekitClient;this.room=new LK.Room({adaptiveStream:true,dynacast:true});
-  this.room.on(LK.RoomEvent.TrackSubscribed,(track,pub,participant)=>{const id=participant.identity+':'+pub.trackSid;const stream=new MediaStream([track.mediaStreamTrack]);this.streams.set(id,stream);this.onTrack({id,stream,participant:participant.identity,kind:track.kind});});
-  this.room.on(LK.RoomEvent.TrackUnsubscribed,(track,pub,participant)=>{this.streams.delete(participant.identity+':'+pub.trackSid)});
-  this.room.on(LK.RoomEvent.Disconnected,()=>this.onDisconnect());await this.room.connect(url,token,{autoSubscribe:true});return this.room;
- }
- async publish(stream){if(!this.room)throw Error('not connected');for(const track of stream.getTracks())await this.room.localParticipant.publishTrack(track,{simulcast:track.kind==='video'});}
- async close(){if(this.room)await this.room.disconnect();this.room=null;this.streams.clear()}
-}
-global.WebCallSFU=WebCallSFU;
-})(window);
-</script>
-<script>/* Browser-side chunked ISO upload, explicitly NOT a server-side recording worker.
-   Caller provides real MediaStream per source and server-issued ingest credential. */
-(function(global){'use strict';
-class IsoUploader {
- constructor({endpoint,token,room,source,session,onStatus=()=>{}}){Object.assign(this,{endpoint,token,room,source,session,onStatus});this.seq=0;this.pending=Promise.resolve();this.recorder=null;this.failed=false;}
- async start(stream){if(this.recorder)throw Error('already recording');if(!MediaRecorder.isTypeSupported('video/webm'))throw Error('WebM MediaRecorder unsupported');
-  const rec=new MediaRecorder(stream,{mimeType:'video/webm'});this.recorder=rec;
-  rec.ondataavailable=e=>{if(!e.data.size)return;const index=this.seq++;this.pending=this.pending.then(()=>this.send(e.data,index)).catch(err=>{this.failed=true;this.onStatus({error:err.message,index});throw err});};
-  rec.onerror=e=>this.onStatus({error:e.error?.message||'recorder error'});rec.start(5000);this.onStatus({state:'recording'});}
- async send(blob,index){const bytes=await blob.arrayBuffer();const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(b=>b.toString(16).padStart(2,'0')).join('');
-  for(let attempt=0;attempt<3;attempt++){try{const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),15000);let response;try{response=await fetch(this.endpoint.replace(/\/$/,'')+'/api/media/iso/chunk',{method:'POST',signal:ctl.signal,headers:{Authorization:'Bearer '+this.token,'X-Room-ID':this.room,'X-Source-ID':this.source,'X-Session-ID':this.session,'X-Chunk-Index':String(index),'X-SHA256':hash,'Content-Type':'video/webm'},body:bytes});}finally{clearTimeout(timer)}if(!response.ok)throw Error('upload HTTP '+response.status);this.onStatus({state:'uploaded',index,bytes:bytes.byteLength});return;}catch(e){if(attempt===2)throw e;await new Promise(r=>setTimeout(r,500*(attempt+1)))}}
- }
- async stop(){if(!this.recorder)return;const rec=this.recorder;await new Promise(resolve=>{rec.addEventListener('stop',resolve,{once:true});rec.stop()});await this.pending;this.recorder=null;this.onStatus({state:'stopped',failed:this.failed})}
-}
-global.WebCallIsoUploader=IsoUploader;
-})(window);
-</script>
-<script>/* Optional, operator-driven SFU and ISO integration. Existing WebCall engine untouched. */
-(()=>{'use strict';let sfu=null,iso=null,stream=null;const $=id=>document.getElementById(id);
-function status(s){const el=$('wc3-status');if(el)el.textContent=s}
-function mount(){if($('wc3-launch'))return;const b=document.createElement('button');b.id='wc3-launch';b.textContent='MEDIA V3';Object.assign(b.style,{position:'fixed',right:'12px',bottom:'106px',zIndex:'2147483640',background:'#155e75',color:'white',padding:'10px 14px',border:'1px solid #38bdf8',borderRadius:'9px',cursor:'pointer'});b.onclick=panel;document.body.appendChild(b)}
-function panel(){if($('wc3-panel')){$('wc3-panel').remove();return}const el=document.createElement('section');el.id='wc3-panel';Object.assign(el.style,{position:'fixed',right:'12px',bottom:'155px',width:'min(410px,95vw)',maxHeight:'75vh',overflow:'auto',zIndex:'2147483641',background:'#0f172a',color:'#e2e8f0',border:'1px solid #475569',borderRadius:'12px',padding:'16px',boxShadow:'0 12px 40px #0009',font:'13px system-ui'});
-el.innerHTML=`<h3>WebCall Media V3 <button id="wc3-close" style="float:right">×</button></h3><p>實驗性 LiveKit SFU 訂閱與瀏覽器 ISO 分段上傳。僅供測試。</p><label>LiveKit WSS URL <input id="wc3-url" placeholder="wss://..." style="width:100%"></label><label>短效入會 JWT <input id="wc3-jwt" type="password" placeholder="不會保存" style="width:100%"></label><p><button id="wc3-connect">連線 SFU</button> <button id="wc3-disconnect">中斷 SFU</button></p><div id="wc3-feeds"></div><hr><label>Media Gateway HTTPS URL <input id="wc3-api" placeholder="https://..." style="width:100%"></label><label>錄影上傳 Token <input id="wc3-token" type="password" style="width:100%"></label><label>Room ID <input id="wc3-room" value="room001" style="width:100%"></label><label>Session ID <input id="wc3-session" value="session001" style="width:100%"></label><p><button id="wc3-rec">開始 PGM ISO 測試</button> <button id="wc3-stop">停止錄影</button></p><div id="wc3-status" role="status">待命</div>`;
-document.body.appendChild(el);$('wc3-close').onclick=panel;
-$('wc3-connect').onclick=async()=>{try{if(!window.WebCallSFU)throw Error('缺少 LiveKit SDK / adapter');if(sfu)await sfu.close();sfu=new WebCallSFU();sfu.onTrack=x=>{const box=document.createElement('div');box.dataset.track=x.id;box.textContent=x.participant+' / '+x.kind;const media=document.createElement(x.kind==='audio'?'audio':'video');media.autoplay=true;media.playsInline=true;media.controls=true;media.muted=x.kind==='video';media.srcObject=x.stream;media.style.maxWidth='100%';box.appendChild(media);$('wc3-feeds')?.appendChild(box)};await sfu.connect($('wc3-url').value.trim(),$('wc3-jwt').value.trim());status('SFU 已連線（獨立訂閱，不影響原 PeerJS）')}catch(e){status('SFU 失敗：'+e.message)}};
-$('wc3-disconnect').onclick=async()=>{await sfu?.close();sfu=null;$('wc3-feeds').replaceChildren();status('SFU 已中斷')};
-$('wc3-rec').onclick=async()=>{try{if(iso)throw Error('錄影已啟動');stream=window.__host?.programStream;if(!(stream instanceof MediaStream)||!stream.getTracks().length)throw Error('PGM MediaStream 尚未準備好');const room=$('wc3-room').value,session=$('wc3-session').value;if(!/^[A-Za-z0-9_-]{1,80}$/.test(room)||!/^[A-Za-z0-9_-]{1,80}$/.test(session))throw Error('Room / Session ID 格式錯誤');iso=new WebCallIsoUploader({endpoint:$('wc3-api').value.trim(),token:$('wc3-token').value,room,session,source:'pgm',onStatus:x=>status(JSON.stringify(x))});await iso.start(stream)}catch(e){iso=null;status('錄影失敗：'+e.message)}};
-$('wc3-stop').onclick=async()=>{try{await iso?.stop();iso=null}catch(e){status('上傳未完成：'+e.message)}};
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
-})();
-</script>
-<script src="client/universal-device-bridge.js"></script>
 </body></html>
