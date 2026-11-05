@@ -644,7 +644,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
-const BUILD = '11/05-v11';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
+const BUILD = '11/05-v12-video-format';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -654,10 +654,11 @@ const QUALITY = {
 const TIERS = ['360', '480', '720', '1080'];
 // 切換台畫布（節目輸出）大小
 const CANVAS = {
+  '4320': { w: 7680, h: 4320, label: '8K UHD 4320p（實驗）' },
   '2160': { w: 3840, h: 2160, label: '4K 2160p' }, '1440': { w: 2560, h: 1440, label: '2K 1440p' }, '1080': { w: 1920, h: 1080, label: '1080p' },
   '720': { w: 1280, h: 720, label: '720p' }, '540': { w: 960, h: 540, label: '540p' }, '480': { w: 854, h: 480, label: '480p' }, '360': { w: 640, h: 360, label: '360p' },
 };
-const CANVAS_KEYS = ['2160', '1440', '1080', '720', '540', '480', '360'];
+const CANVAS_KEYS = ['4320', '2160', '1440', '1080', '720', '540', '480', '360'];
 const canvasOpts = cur => CANVAS_KEYS.map(r => `<option value="${r}" ${String(cur) === r ? 'selected' : ''}>${CANVAS[r].label}（${CANVAS[r].w}×${CANVAS[r].h}）</option>`).join('');
 const TRANS = [['mix', 'MIX 溶接'], ['dip', 'DIP 過場色'], ['wipe', 'WIPE 劃變'], ['push', 'PUSH 推移'], ['slide', 'SLIDE 滑入'], ['zoom', 'ZOOM 縮放'], ['stinger', 'STINGER 轉場影片'], ['cut', 'CUT 直切']];
 const WDIRS = [['lr', '由左到右'], ['rl', '由右到左'], ['tb', '由上到下'], ['bt', '由下到上'], ['circle', '圓形'], ['box', '方形'], ['diag', '斜角']];
@@ -1397,18 +1398,18 @@ function Host(sess){
   // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
   const GROUPS = {
     ic:   { key: '對講／IFB', title: 'INTERCOM 對講台／IFB 返送／倒數', w: 780, h: 620, tabs: ['ic', 'ifb', 'timer'] },
-    msgq: { key: '訊息／投票', title: 'MESSAGE 訊息／舉手投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
-    mixg: { key: '混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
+    msgq: { key: 'Live Interaction｜即時互動中心', title: 'LIVE INTERACTION｜訊息、提問與投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
+    mixg: { key: 'Audio Console｜數位混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
     audg: { key: '聲音路由', title: 'AUDIO ROUTING 聲音路由／回傳', w: 820, h: 780, tabs: ['aud', 'ret'] },
     ctl:  { key: '遠端控制', tabs: ['ctl'] },
-    swg:  { key: '切換台功能', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src', 'vset', 'gfx', 'still', 'scene', 'lay', 'rec', 'set'] },
+    swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src', 'vset', 'gfx', 'still', 'scene', 'lay', 'rec', 'set'] },
     outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['out', 'aux', 'strm'] },
     sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc', 'ops', 'keys'] },
   };
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
   const PROTAB = new Set(['mtx', 'lay', 'aux', 'strm', 'noc']);   // 專業版才顯示的分頁
-  const TABN = { set: '切換台設定', src: '來源', scene: '場景', still: '圖庫', lay: '版面庫', rec: '錄影', mix: '推桿／監聽', mtx: '音頻矩陣', aud: '聲音路由', ic: '對講台', ifb: 'IFB 返送（分組／比例）', ret: '回傳給來賓', gfx: '字幕圖層', timer: '計時倒數', vset: '去背合成', msg: '訊息', qa: '舉手投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const TABN = { set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1452,9 +1453,33 @@ function Host(sess){
   const SW = { pgm: null, pvw: null, t: 0, tpos: 0, base: 0, anim: null, type: store('wc_trans') || 'mix', dur: Number(store('wc_dur') || 800), ftb: 0, ftbOn: false,
     wdir: store('wc_wdir') || 'lr', pdir: store('wc_pdir') || 'l', dipColor: store('wc_dipc') || '#000000', border: Number(store('wc_wb') || 4), borderColor: store('wc_wbc') || '#ffffff',
     prevTrans: false, stingEl: null, stingCut: Number(store('wc_stcut') || .5), ftbDur: Number(store('wc_ftbd') || 1000),
-    pip: { on: false, src: null, pos: store('wc_pip_pos') || 'tr', size: Number(store('wc_pip_size') || .3), audio: false, alpha: 0 }, res: store('wc_pgmres') || '1080' };
+    pip: { on: false, src: null, pos: store('wc_pip_pos') || 'tr', size: Number(store('wc_pip_size') || .3), audio: false, alpha: 0 }, res: (CANVAS[store('wc_pgmres')] && store('wc_pgmres') !== '4320' ? store('wc_pgmres') : '1080') };
   const pgmCanvas = document.createElement('canvas');
-  const setPgmRes = r => { const q = CANVAS[r] || CANVAS['1080']; pgmCanvas.width = q.w; pgmCanvas.height = q.h; };
+  const setPgmRes = r => {
+    const q = CANVAS[r] || CANVAS['1080'];
+    try { pgmCanvas.width = q.w; pgmCanvas.height = q.h; }
+    catch (e) { pgmCanvas.width = 1920; pgmCanvas.height = 1080; throw e; }
+  };
+  const applyProductionResolution = async (r) => {
+    if (!CANVAS[r]) return toast('不支援的製播解析度');
+    if (REC.has('pgm') || REC.has('clean')) return toast('請先停止 PGM／CLEAN 錄影再變更解析度');
+    const q = CANVAS[r];
+    if (q.w >= 7680 && !confirm('8K UHD 為實驗性模式，可能造成瀏覽器當機、掉幀或輸出中斷。確定要嘗試 7680×4320 嗎？')) return;
+    const old = SW.res;
+    try {
+      const test = document.createElement('canvas'); test.width = q.w; test.height = q.h;
+      const ctx = test.getContext('2d');
+      if (!ctx || ctx.getImageData(0, 0, 1, 1).length !== 4) throw Error('瀏覽器無法配置畫布');
+      test.width = test.height = 1;
+      setPgmRes(r); SW.res = r; store('wc_pgmres', r);
+      refreshSlot('pgm'); refreshSlot('clean');
+      const badge = $('#pgmres'); if (badge) badge.textContent = `${q.w}×${q.h} · ${PGMFPS}p`;
+      toast(`製播畫布已設定 ${q.label}（不保證硬體能穩定輸出）`);
+    } catch (e) {
+      setPgmRes(old); SW.res = old; toast('無法套用此解析度：' + e.message);
+    }
+    softRender('set'); softRender('out');
+  };
   setPgmRes(SW.res);
   const pctx = pgmCanvas.getContext('2d');
   let PGMFPS = [24, 25, 30, 50, 60].includes(+store('wc_pgmfps')) ? +store('wc_pgmfps') : 30;
@@ -1987,7 +2012,7 @@ function Host(sess){
     d.innerHTML = `<div class="dsec"><h3>輸出（給 OBS）<span>${outputs.size} 個連線</span></h3>
         <div class="bus"><div class="s pgmrow ${pg ? 'on' : ''}"><span class="n">PGM</span><span class="w ${pg ? '' : 'e'}">${pg ? esc(pg.name) : 'ON AIR 的來賓'}${cnt('pgm') ? `<small>● OBS×${cnt('pgm')}</small>` : ''}</span><button class="btn sm ghost" data-c="pgm" title="複製節目輸出網址">${ic('link')}</button></div>
         ${Array.from({ length: LINES }, (_, i) => { const n = i + 1, x = [...inputs.values()].find(v => v.slot === n); return `<div class="s ${x ? 'on' : ''}"><span class="n">${n}</span><span class="w ${x ? '' : 'e'}">${x ? esc(x.name) : '—'}${cnt(n) ? `<small>● OBS×${cnt(n)}</small>` : ''}</span><button class="btn sm ghost" data-c="${n}" title="複製輸出 ${n} 網址">${ic('link')}</button></div>`; }).join('')}</div>
-        <p class="note">OBS → 新增「瀏覽器來源」→ 貼上輸出網址 → 1920×1080 → 勾選「透過 OBS 控制音訊」。換人只要改來賓的輸出編號，OBS 不用動。PGM＝目前 ON AIR 的那一路。</p></div>
+        <p class="note">OBS → 新增「瀏覽器來源」→ 貼上輸出網址 → 請依節目輸出設定解析度 → 勾選「透過 OBS 控制音訊」。換人只要改來賓的輸出編號，OBS 不用動。PGM＝目前 ON AIR 的那一路。</p></div>
       <div class="dsec"><h3>字幕圖層 <span><button class="btn sm ghost" id="dsnap" title="PGM 截圖">${ic('cam')}截圖</button></span></h3><div class="dskbar" data-dsk></div></div>
       <div class="dsec"><h3>回傳給來賓</h3><span class="lbl">來賓會聽到／看到</span>
         <select class="field full" id="drs"><option value="none">不回傳（只有對講聲音）</option><option value="program">節目畫面＋聲音（扣除來賓自己）</option>
@@ -2928,7 +2953,7 @@ function Host(sess){
       <div class="wsec"><h4>斷線備援畫面</h4><div class="row"><canvas id="sslp" width="160" height="90" style="border-radius:4px;border:1px solid var(--line2)"></canvas>
         <div style="display:grid;gap:6px"><label class="btn sm">${ic('image')}上傳自訂圖卡<input type="file" accept="image/*" id="ssl" hidden></label>${SLATE.img ? '<button class="btn sm" id="sslx">恢復預設</button>' : ''}</div></div>
         <div class="note">來賓斷線時，節目畫面會自動換成這張圖卡，不會黑畫面；2 分鐘內重新連線會自動接回同一路。</div></div>
-      <div class="wsec"><h4>節目輸出</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="note">4K／2K 需要效能較好的電腦，畫面變卡時請調低。</div>
+      <div class="wsec"><h4>製播影像格式 · VIDEO FORMAT</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">PGM 影格率</span><select class="field sm" id="sfps">${[24,25,30,50,60].map(f => `<option value="${f}" ${PGMFPS===f?'selected':''}>${f}p</option>`).join('')}</select></div><div class="note">8K 為實驗性畫布設定；實際輸出能力取決於 GPU、瀏覽器、編碼器與接收端。PVW、MULTIVIEW 與 ISO 可能採不同解析度。請先測試再正式播出。</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">主音量</span><input type="range" min="0" max="150" value="${Math.round(Number(store('wc_master') || 1) * 100)}" id="smv" style="flex:1"><label class="note" style="margin:0"><input type="checkbox" id="slm" ${limiterOn ? 'checked' : ''}> 限幅器（防爆音）</label></div></div>`;
     const B = w.body;
     $$('[data-tt]', B).forEach(b => b.onclick = () => { SW.type = b.dataset.tt; store('wc_trans', SW.type); $('#ttype').value = SW.type; renderTdir(); renderSet(); });
@@ -2940,7 +2965,8 @@ function Host(sess){
     const pc = $('#sslp', B).getContext('2d'); drawSlate(pc, 0, 0, 160, 90, null);
     $('#ssl', B).onchange = e => { const f = e.target.files[0]; if (!f) return; imageFileToDataUrl(f).then(u => { const im = new Image(); im.onload = () => { SLATE.img = im; renderSet(); }; im.src = u; try { store('wc_slate', u); } catch {} toast('斷線圖卡已更新'); }).catch(err => toast(err.message)); };
     const sx = $('#sslx', B); if (sx) sx.onclick = () => { SLATE.img = null; store('wc_slate', null); renderSet(); };
-    $('#spr', B).onchange = e => { SW.res = e.target.value; store('wc_pgmres', SW.res); setPgmRes(SW.res); refreshSlot('pgm'); refreshSlot('clean'); $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`; };
+    $('#spr', B).onchange = e => applyProductionResolution(e.target.value);
+    $('#sfps', B).onchange = e => { setPgmFps(+e.target.value); softRender('set'); };
     $('#smv', B).oninput = e => { const v = e.target.value / 100; store('wc_master', v); if (!PANIC) masterGain.gain.setTargetAtTime(v, ac.currentTime, .02); };
     $('#slm', B).onchange = e => { limiterOn = e.target.checked; store('wc_limit', limiterOn ? '1' : '0'); routeMaster(); };
   }
@@ -3432,12 +3458,12 @@ function Host(sess){
         ${AUX.map(a => row('aux' + (a.i + 1), `AUX ${a.i + 1} · ${esc(a.name)}`, `${CANVAS[a.res]?.w || ''}×${CANVAS[a.res]?.h || ''} ${a.fps}p · ${{ src: '獨立切換', pgm: '跟 PGM', clean: '跟 CLEAN', pvw: '跟 PREVIEW', mv: 'MULTIVIEW' }[a.mode]}`)).join('')}</div>
       <div class="wsec"><h4>ISO 個別輸出（每路獨立） <span>${LINES} 路</span></h4>
         ${Array.from({ length: LINES }, (_, i) => { const s = i + 1, x = [...inputs.values()].find(v => v.slot === s); return `<div class="row" style="margin:3px 0"><span class="mono" style="width:44px">OUT ${s}</span><span class="grow" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${x ? 'var(--text)' : 'var(--mute)'}">${x ? esc(x.name) : '—'}${cnt(s) ? ` <span style="color:var(--pvw)">● OBS×${cnt(s)}</span>` : ''}</span>${asel(s)}<button class="btn sm" data-c="${s}">${ic('link')}</button></div>`; }).join('')}</div>
-      <div class="note">OBS → 新增「瀏覽器來源」→ 貼上網址 → 寬 1920、高 1080 → 勾選「透過 OBS 控制音訊」。PROGRAM 是切換台的節目畫面；ISO 是單一來賓的乾淨畫面。網址後面加 <span class="mono">&bg=000000</span> 黑底、<span class="mono">&fit=cover</span> 填滿。</div>`;
+      <div class="note">OBS → 新增「瀏覽器來源」→ 貼上網址 → 寬 ${pgmCanvas.width}、高 ${pgmCanvas.height}（PGM；ISO 依來源設定）→ 勾選「透過 OBS 控制音訊」。PROGRAM 是切換台的節目畫面；ISO 是單一來賓的乾淨畫面。網址後面加 <span class="mono">&bg=000000</span> 黑底、<span class="mono">&fit=cover</span> 填滿。</div>`;
     $$('[data-c]', w.body).forEach(b => b.onclick = () => copyText(outUrl(b.dataset.c), '已複製輸出網址'));
     $$('[data-oa]', w.body).forEach(x => x.onchange = () => setOutAud(/^\d+$/.test(x.dataset.oa) ? +x.dataset.oa : x.dataset.oa, x.value));
     $('#pfps', w.body).onchange = e => setPgmFps(+e.target.value);
     $('#oaux', w.body).onclick = () => openWin('aux');
-    $('#pr', w.body).onchange = e => { SW.res = e.target.value; store('wc_pgmres', SW.res); setPgmRes(SW.res); refreshSlot('pgm'); refreshSlot('clean'); $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`; };
+    $('#pr', w.body).onchange = e => applyProductionResolution(e.target.value);
   }
   function renderSrc(){
     const w = WIN.src; if (!w?.open) return;
