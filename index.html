@@ -654,12 +654,12 @@ const QUALITY = {
 const TIERS = ['360', '480', '720', '1080'];
 // 切換台畫布（節目輸出）大小
 const CANVAS = {
-  '4320': { w: 7680, h: 4320, label: '8K UHD 4320p（實驗）' },
+  '4320': { w: 7680, h: 4320, label: '8K UHD 4320p' },
   '2160': { w: 3840, h: 2160, label: '4K 2160p' }, '1440': { w: 2560, h: 1440, label: '2K 1440p' }, '1080': { w: 1920, h: 1080, label: '1080p' },
   '720': { w: 1280, h: 720, label: '720p' }, '540': { w: 960, h: 540, label: '540p' }, '480': { w: 854, h: 480, label: '480p' }, '360': { w: 640, h: 360, label: '360p' },
 };
-const CANVAS_KEYS = ['4320', '2160', '1440', '1080', '720', '540', '480', '360'];
-const canvasOpts = cur => CANVAS_KEYS.map(r => `<option value="${r}" ${String(cur) === r ? 'selected' : ''}>${CANVAS[r].label}（${CANVAS[r].w}×${CANVAS[r].h}）</option>`).join('');
+const CANVAS_KEYS = ['custom', '4320', '2160', '1440', '1080', '720', '540', '480', '360'];
+const canvasOpts = cur => CANVAS_KEYS.map(r => r === 'custom' ? `<option value="custom" ${String(cur)==='custom'?'selected':''}>自訂尺寸（Custom）</option>` : `<option value="${r}" ${String(cur) === r ? 'selected' : ''}>${CANVAS[r].label}（${CANVAS[r].w}×${CANVAS[r].h}）</option>`).join('');
 const TRANS = [['mix', 'MIX 溶接'], ['dip', 'DIP 過場色'], ['wipe', 'WIPE 劃變'], ['push', 'PUSH 推移'], ['slide', 'SLIDE 滑入'], ['zoom', 'ZOOM 縮放'], ['stinger', 'STINGER 轉場影片'], ['cut', 'CUT 直切']];
 const WDIRS = [['lr', '由左到右'], ['rl', '由右到左'], ['tb', '由上到下'], ['bt', '由下到上'], ['circle', '圓形'], ['box', '方形'], ['diag', '斜角']];
 const PDIRS = [['l', '向左'], ['r', '向右'], ['u', '向上'], ['d', '向下']];
@@ -1450,10 +1450,12 @@ function Host(sess){
   let retVideoTrack = blackTrack();
 
   /* ---------- 切換台 ---------- */
+  const customSaved = (() => { try { const a=JSON.parse(store('wc_custom_canvas')||'{}'); return {w:Math.max(16,Math.min(7680,Math.round(+a.w)||1920)),h:Math.max(16,Math.min(4320,Math.round(+a.h)||1080))}; } catch {return {w:1920,h:1080};} })();
+  CANVAS.custom = { ...customSaved, label:'自訂畫布' };
   const SW = { pgm: null, pvw: null, t: 0, tpos: 0, base: 0, anim: null, type: store('wc_trans') || 'mix', dur: Number(store('wc_dur') || 800), ftb: 0, ftbOn: false,
     wdir: store('wc_wdir') || 'lr', pdir: store('wc_pdir') || 'l', dipColor: store('wc_dipc') || '#000000', border: Number(store('wc_wb') || 4), borderColor: store('wc_wbc') || '#ffffff',
     prevTrans: false, stingEl: null, stingCut: Number(store('wc_stcut') || .5), ftbDur: Number(store('wc_ftbd') || 1000),
-    pip: { on: false, src: null, pos: store('wc_pip_pos') || 'tr', size: Number(store('wc_pip_size') || .3), audio: false, alpha: 0 }, res: (CANVAS[store('wc_pgmres')] && store('wc_pgmres') !== '4320' ? store('wc_pgmres') : '1080') };
+    pip: { on: false, src: null, pos: store('wc_pip_pos') || 'tr', size: Number(store('wc_pip_size') || .3), audio: false, alpha: 0 }, res: (CANVAS[store('wc_pgmres')] ? store('wc_pgmres') : '1080') };
   const pgmCanvas = document.createElement('canvas');
   const setPgmRes = r => {
     const q = CANVAS[r] || CANVAS['1080'];
@@ -1464,21 +1466,31 @@ function Host(sess){
     if (!CANVAS[r]) return toast('不支援的製播解析度');
     if (REC.has('pgm') || REC.has('clean')) return toast('請先停止 PGM／CLEAN 錄影再變更解析度');
     const q = CANVAS[r];
-    if (q.w >= 7680 && !confirm('8K UHD 為實驗性模式，可能造成瀏覽器當機、掉幀或輸出中斷。確定要嘗試 7680×4320 嗎？')) return;
+    if (q.w*q.h >= 3840*2160 && !confirm(`即將使用 ${q.w}×${q.h} 畫布。高解析度可能導致掉幀或裝置資源不足；請確認輸出端支援。繼續？`)) return;
     const old = SW.res;
     try {
       const test = document.createElement('canvas'); test.width = q.w; test.height = q.h;
       const ctx = test.getContext('2d');
       if (!ctx || ctx.getImageData(0, 0, 1, 1).length !== 4) throw Error('瀏覽器無法配置畫布');
       test.width = test.height = 1;
+      if (q.w*q.h > 1920*1080 && typeof MediaRecorder !== 'undefined' && !MediaRecorder.isTypeSupported('video/webm')) console.warn('目前瀏覽器可能無法錄製 WebM');
       setPgmRes(r); SW.res = r; store('wc_pgmres', r);
       refreshSlot('pgm'); refreshSlot('clean');
       const badge = $('#pgmres'); if (badge) badge.textContent = `${q.w}×${q.h} · ${PGMFPS}p`;
-      toast(`製播畫布已設定 ${q.label}（不保證硬體能穩定輸出）`);
+      toast(`製播畫布已設定 ${q.w}×${q.h}；請檢查實際輸出畫質與掉幀`);
     } catch (e) {
       setPgmRes(old); SW.res = old; toast('無法套用此解析度：' + e.message);
     }
     softRender('set'); softRender('out');
+  };
+  const applyCustomCanvas = async (w,h) => {
+    w = Math.round(Number(w)); h = Math.round(Number(h));
+    if (!Number.isInteger(w)||!Number.isInteger(h)||w<16||h<16||w>7680||h>4320) return toast('自訂尺寸須介於 16×16 與 7680×4320，且寬高為整數');
+    const old={...CANVAS.custom};
+    CANVAS.custom={w,h,label:'自訂畫布'};
+    await applyProductionResolution('custom');
+    if (SW.res==='custom' && pgmCanvas.width===w && pgmCanvas.height===h) store('wc_custom_canvas',JSON.stringify({w,h}));
+    else CANVAS.custom=old;
   };
   setPgmRes(SW.res);
   const pctx = pgmCanvas.getContext('2d');
@@ -2953,7 +2965,7 @@ function Host(sess){
       <div class="wsec"><h4>斷線備援畫面</h4><div class="row"><canvas id="sslp" width="160" height="90" style="border-radius:4px;border:1px solid var(--line2)"></canvas>
         <div style="display:grid;gap:6px"><label class="btn sm">${ic('image')}上傳自訂圖卡<input type="file" accept="image/*" id="ssl" hidden></label>${SLATE.img ? '<button class="btn sm" id="sslx">恢復預設</button>' : ''}</div></div>
         <div class="note">來賓斷線時，節目畫面會自動換成這張圖卡，不會黑畫面；2 分鐘內重新連線會自動接回同一路。</div></div>
-      <div class="wsec"><h4>製播影像格式 · VIDEO FORMAT</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">PGM 影格率</span><select class="field sm" id="sfps">${[24,25,30,50,60].map(f => `<option value="${f}" ${PGMFPS===f?'selected':''}>${f}p</option>`).join('')}</select></div><div class="note">8K 為實驗性畫布設定；實際輸出能力取決於 GPU、瀏覽器、編碼器與接收端。PVW、MULTIVIEW 與 ISO 可能採不同解析度。請先測試再正式播出。</div>
+      <div class="wsec"><h4>製播影像格式 · VIDEO FORMAT</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="row" style="margin-top:6px;flex-wrap:wrap"><span class="note" style="margin:0;width:90px">自訂寬 × 高</span><input class="field sm" id="scw" type="number" min="16" max="7680" step="1" value="${CANVAS.custom.w}" style="width:100px" aria-label="自訂畫布寬度"><span>×</span><input class="field sm" id="sch" type="number" min="16" max="4320" step="1" value="${CANVAS.custom.h}" style="width:100px" aria-label="自訂畫布高度"><button class="btn sm" id="scapply">套用自訂尺寸</button></div><div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">PGM 影格率</span><select class="field sm" id="sfps">${[24,25,30,50,60].map(f => `<option value="${f}" ${PGMFPS===f?'selected':''}>${f}p</option>`).join('')}</select></div><div class="note">PGM／CLEAN 可選預設或自訂尺寸（最高 7680×4320）。實際 FPS、錄影編碼與外部接收端能力取決於設備及瀏覽器；PVW、MULTIVIEW、ISO 可能使用不同規格。</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">主音量</span><input type="range" min="0" max="150" value="${Math.round(Number(store('wc_master') || 1) * 100)}" id="smv" style="flex:1"><label class="note" style="margin:0"><input type="checkbox" id="slm" ${limiterOn ? 'checked' : ''}> 限幅器（防爆音）</label></div></div>`;
     const B = w.body;
     $$('[data-tt]', B).forEach(b => b.onclick = () => { SW.type = b.dataset.tt; store('wc_trans', SW.type); $('#ttype').value = SW.type; renderTdir(); renderSet(); });
@@ -2965,7 +2977,8 @@ function Host(sess){
     const pc = $('#sslp', B).getContext('2d'); drawSlate(pc, 0, 0, 160, 90, null);
     $('#ssl', B).onchange = e => { const f = e.target.files[0]; if (!f) return; imageFileToDataUrl(f).then(u => { const im = new Image(); im.onload = () => { SLATE.img = im; renderSet(); }; im.src = u; try { store('wc_slate', u); } catch {} toast('斷線圖卡已更新'); }).catch(err => toast(err.message)); };
     const sx = $('#sslx', B); if (sx) sx.onclick = () => { SLATE.img = null; store('wc_slate', null); renderSet(); };
-    $('#spr', B).onchange = e => applyProductionResolution(e.target.value);
+    $('#spr', B).onchange = e => e.target.value==='custom' ? applyCustomCanvas($('#scw',B).value,$('#sch',B).value) : applyProductionResolution(e.target.value);
+    $('#scapply',B).onclick=()=>applyCustomCanvas($('#scw',B).value,$('#sch',B).value);
     $('#sfps', B).onchange = e => { setPgmFps(+e.target.value); softRender('set'); };
     $('#smv', B).oninput = e => { const v = e.target.value / 100; store('wc_master', v); if (!PANIC) masterGain.gain.setTargetAtTime(v, ac.currentTime, .02); };
     $('#slm', B).onchange = e => { limiterOn = e.target.checked; store('wc_limit', limiterOn ? '1' : '0'); routeMaster(); };
