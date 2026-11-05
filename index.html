@@ -6483,6 +6483,10 @@ function route(){
     return;
   }
   const mode = Q.get('mode');
+  // 來賓端只提供視訊功能；不初始化或顯示任何實體控制器介面。
+  if (mode === 'guest') {
+    document.querySelectorAll('#wc4-device-launch, #wc4-device-panel, [data-wc-device-launch]').forEach(el => el.remove());
+  }
   if (mode === 'guest') Guest();
   else if (mode === 'out') Output();
   else if (mode === 'op') Operator();
