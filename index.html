@@ -555,6 +555,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
+const BUILD = '11/05-v8';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -1270,7 +1271,7 @@ class GuestFX {
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
   let invite = sess.invite, roomKey = sess.key;
-  let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
+  let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1&v=${BUILD}`;
   let outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
@@ -3292,7 +3293,7 @@ function Host(sess){
   const invite_open = () => inviteModal();
   async function changeInvite(inv){
     invite = normInvite(inv); roomKey = await inviteKey(invite);
-    guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
+    guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1&v=${BUILD}`;
     outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
     sess.invite = invite; sess.key = roomKey; sstore('wc_host', JSON.stringify(sess));
     $('#invc').textContent = invite;
@@ -3718,7 +3719,7 @@ function GuestMain(inv, roomKey){
   }
 
   function sheetJoin(){
-    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}</h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 戴不戴耳機都可以使用（戴耳機收音最乾淨）</div>
+    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}<span class="mono" style="font-size:11px;color:#8a93a3;font-weight:500;margin-left:8px">${BUILD}</span></h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 戴不戴耳機都可以使用（戴耳機收音最乾淨）</div>
       <div class="g2">
         <div class="full"><span class="lbl">你的名字（導播看得到）</span><input class="field" id="nm" value="${esc(store('wc_name') || '')}" placeholder="例：王小明／台中現場" maxlength="30"></div>
         <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
@@ -3744,7 +3745,7 @@ function GuestMain(inv, roomKey){
   // 如果改要求 720×1280，iOS 會從感光元件中間裁一塊出來，1× 看起來就像放大好幾倍。
   function tierDims(t){ const q = isMobile ? QUALITY['720'] : QUALITY[t]; return isMobile ? [q.w, q.h] : wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }   // 手機固定用 1280×720 開鏡頭（跟舊版一樣），畫質高低只調傳輸量
   function applyOrient(){
-    fx.aspect = orientMode === 'auto' ? null : (wantPortrait() ? 9 / 16 : 16 / 9);   // 跟隨手機＝不裁切不放大，照鏡頭原本的畫面
+    fx.aspect = null;   // 永遠不裁切：直式／橫式只照鏡頭真正給的畫面（手機直拿就是直的、橫拿就是橫的）
     fx.maxLong = QUALITY[tier].w;
     syncSenders();
   }
@@ -3754,7 +3755,7 @@ function GuestMain(inv, roomKey){
     b.classList.toggle('hidden', !isMobile && orientMode === 'auto');
     try { updTiltSensor(); } catch {}
   }
-  $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '畫面固定為直式'); };
+  $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '已設為直式：請把手機直拿，鏡頭就是直的完整畫面（不裁切）'); };
   setTimeout(paintRot, 0);
   function setOrient(m, by){
     orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient3', orientMode); paintRot();
@@ -3802,7 +3803,8 @@ function GuestMain(inv, roomKey){
   function syncSenders(){
     if (!camTrack) return;
     const vt = fx.outputTrack() || camTrack;
-    if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
+    const pv = fx.base ? vt : camTrack;   // 預覽一律顯示鏡頭原始畫面（跟 index2 一樣）；只有分享畫面時顯示合成畫面
+    if (selfV.srcObject?.getVideoTracks()[0] !== pv) { selfV.srcObject = new MediaStream([pv]); selfV.play().catch(() => {}); }
     selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
     setTimeout(fitSelf, 50);
     const pc = call?.peerConnection; if (!pc) return;
@@ -4204,7 +4206,7 @@ function GuestMain(inv, roomKey){
   })();
 
   function sheetSettings(){
-    openSheet('set', `<h2>設定<button class="btn ghost sm" data-close>${ic('x')}</button></h2>
+    openSheet('set', `<h2>設定<span class="mono" style="font-size:11px;color:#8a93a3;font-weight:500;margin-left:8px">${BUILD}</span><button class="btn ghost sm" data-close>${ic('x')}</button></h2>
       <div class="g2" style="margin-top:10px">
         <div class="full"><span class="lbl">你的名字</span><input class="field" id="nm2" value="${esc(store('wc_name') || '')}" maxlength="30"></div>
         <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
