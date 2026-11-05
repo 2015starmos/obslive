@@ -655,7 +655,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
-const BUILD = '11/05-v10';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
+const BUILD = '11/05-v11';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -1192,7 +1192,7 @@ class GuestFX {
     if (need && !this.ticker) this.ticker = makeTicker(30, () => this.frame());
     else if (!need && this.ticker) { this.ticker.stop(); this.ticker = null; }
   }
-  cropNeeded(){ const v = this.cam; if (!this.aspect || !v.videoWidth) return false; return Math.abs(v.videoWidth / v.videoHeight - this.aspect) / this.aspect > .04; }
+  cropNeeded(){ return false; }   // 不裁切：來賓鏡頭給什麼比例就送什麼比例（直的 9:16／3:4、橫的 16:9／4:3 都照原樣）
   needsGL(){ return this.glOk && (this.beauty.on || this.bg.mode !== 'none' || this.zoom > 1.01 || this.cropNeeded()); }
   needsSeg(){ return this.bg.mode === 'blur' || this.bg.mode === 'image'; }
   outputTrack(){ this.syncTicker(); return this.base ? this.cmpTrack : this.needsGL() ? this.glTrack : null; }   // null = 直接送原始鏡頭
@@ -1305,7 +1305,7 @@ class GuestFX {
     const gl = this.gl, v = this.cam, b = this.beauty;
     const vw = v.videoWidth, vh = v.videoHeight;
     if (!vw || !vh) return false;
-    // 強制直式／橫式：從鏡頭畫面中間裁切出指定比例
+    // （已停用）強制直式／橫式裁切：cropNeeded() 永遠回傳 false，輸出大小＝鏡頭實際畫面
     let cw = vw, ch = vh;
     if (this.cropNeeded()) { if (vw / vh > this.aspect) cw = vh * this.aspect; else ch = vw / this.aspect; }
     const sc = Math.min(1, this.maxLong / Math.max(cw, ch));
@@ -4171,7 +4171,7 @@ function Host(sess){
   function toCustom(L){
     if (L.type === 'custom' && L.boxes) return;
     const W = 1280, H = 720, bx = layoutBoxes(L.type, W, H, L.type === 'pipL' ? 0 : W * L.gap);
-    L.boxes = bx.map(([x, y, w, h], i) => ({ x: x / W, y: y / H, w: w / W, h: h / H, src: L.srcs[i] || null, fit: 'cover', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: L.type === 'pipL' ? i > 0 : !!L.border, label: !!L.labels && L.type !== 'pipL' }));
+    L.boxes = bx.map(([x, y, w, h], i) => ({ x: x / W, y: y / H, w: w / W, h: h / H, src: L.srcs[i] || null, fit: 'contain', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: L.type === 'pipL' ? i > 0 : !!L.border, label: !!L.labels && L.type !== 'pipL' }));
     L.type = 'custom'; syncLayoutSrcs(L);
   }
   function renderCustomLayout(x, g, W, H){
@@ -4179,13 +4179,13 @@ function Host(sess){
     (L.boxes || []).forEach((b, i) => {
       const bx = b.x * W, by = b.y * H, bw = b.w * W, bh = b.h * H, src = inputs.get(b.src);
       if (bw < 2 || bh < 2) return;
-      if (src && src !== x && src.kind !== 'layout') drawSource(g, src, bx, by, bw, bh, { ...(b.fit === 'src' ? {} : { fit: b.fit || 'cover' }), bcl: b.bcl || 0, bcr: b.bcr || 0, bct: b.bct || 0, bcb: b.bcb || 0 });
+      if (src && src !== x && src.kind !== 'layout') drawSource(g, src, bx, by, bw, bh, { ...(b.fit === 'src' ? {} : { fit: b.fit || 'contain' }), bcl: b.bcl || 0, bcr: b.bcr || 0, bct: b.bct || 0, bcb: b.bcb || 0 });
       else { g.fillStyle = '#000a'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#5c6574'; g.font = `600 ${Math.max(12, bh * .08)}px ${FONT}`; g.textAlign = 'center'; g.fillText(`框 ${i + 1}`, bx + bw / 2, by + bh / 2); g.textAlign = 'left'; }
       if (b.border) { g.strokeStyle = L.borderColor || '#fff'; g.lineWidth = 3; g.strokeRect(bx + 1.5, by + 1.5, bw - 3, bh - 3); }
       if (b.label && src) { const t = src.title?.l1 || src.name; g.font = `700 ${Math.max(14, bh * .055)}px ${FONT}`; const tw = g.measureText(t).width; g.fillStyle = '#d4101fe6'; g.fillRect(bx, by + bh - bh * .1, tw + 24, bh * .1); g.fillStyle = '#fff'; g.fillText(t, bx + 12, by + bh - bh * .028); }
     });
   }
-  const layBox = () => ({ x: .3, y: .3, w: .4, h: .4, src: null, fit: 'cover', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: true, label: false });
+  const layBox = () => ({ x: .3, y: .3, w: .4, h: .4, src: null, fit: 'contain', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: true, label: false });
   function layEditor(inp){
     const L = inp.layout; toCustom(L);
     let sel = 0;
@@ -5232,6 +5232,7 @@ function GuestMain(inv, roomKey){
     orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient3', orientMode); paintRot();
     applyOrient(); applyTier(tier);
     if (by) toast(`導播設定畫面方向：${{ auto: '跟隨手機旋轉', portrait: '直式', landscape: '橫式' }[orientMode]}`);
+    if (isMobile && orientMode !== 'auto' && wantPortrait() !== isPortrait()) setTimeout(() => toast(wantPortrait() ? '請把手機轉成直的：鏡頭會給直的完整畫面（不裁切）' : '請把手機轉成橫的：鏡頭會給橫的完整畫面（不裁切）'), by ? 1800 : 0);
     sendState();
   }
   async function getMedia(o = {}){
