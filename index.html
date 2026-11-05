@@ -344,10 +344,11 @@ input[type=checkbox]{accent-color:var(--accent)}
 .zoomui button.on{background:#ffffff26;color:#ffd34d}
 .zoombig{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:3;font:800 34px var(--mono);color:#ffd34d;text-shadow:0 2px 10px #000;pointer-events:none;opacity:0;transition:opacity .2s}
 .zoombig.show{opacity:1}
-.gscope{position:absolute;left:12px;top:calc(54px + var(--sat));z-index:3;background:#000a;border:1px solid #ffffff1f;border-radius:8px;backdrop-filter:blur(8px);cursor:pointer;padding:4px}
-.gscope canvas{display:block;width:176px;height:90px}
-.gscope.min canvas{display:none}.gscope.min::after{content:'〰 音波';display:block;font-size:11px;color:#cfd3da;padding:2px 6px}
-.gp.msg .gscope{top:calc(110px + var(--sat))}
+/* 來賓端迷你 LED 音量表：固定在節目麥克風旁，不遮擋通知 */
+.guest-led{position:absolute;left:calc(50% + 18px);top:3px;display:flex;align-items:flex-end;gap:2px;height:36px;pointer-events:none;z-index:2}
+.guest-led i{display:block;width:4px;height:calc(7px + var(--n)*3px);border-radius:2px;background:#46515d;opacity:.55;transition:background .07s,opacity .07s}
+.guest-led i.active{background:#22c55e;opacity:1}.guest-led i.warn.active{background:#eab308}.guest-led i.clip.active{background:#ef4444}
+.cbtn.off .guest-led i{background:#46515d;opacity:.4}
 .gbar{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:30px 6px calc(12px + var(--sab));background:linear-gradient(transparent,#000d);display:flex;justify-content:center;gap:clamp(4px,2vw,14px)}
 .cbtn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;color:#e5e7eb;font-size:10.5px;padding:0;min-width:48px}
 .cbtn .c{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#ffffff26;backdrop-filter:blur(10px);border:1px solid #ffffff22;transition:background .12s;position:relative}
@@ -5201,7 +5202,6 @@ function GuestMain(inv, roomKey){
     <div class="gccpill hidden" id="gcc">● 字幕辨識中</div>
     <div class="ret hidden" id="rw"><video id="retV" autoplay playsinline muted></video><span>RETURN 回看</span><div class="rb"><button id="rwm" title="縮小">－</button><button id="rwp" title="放大">＋</button></div><div class="rz" id="rwz"></div></div>
     <audio id="retA" autoplay playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
-    <div class="gscope hidden" id="gsc" title="麥克風音波（點一下縮小／展開）"><canvas id="gscC" width="352" height="180"></canvas></div>
     <div class="zoombig" id="zb">1.0×</div>
     <div class="zoomui hidden" id="zui"></div>
     <div class="player hidden" id="pl">
@@ -5209,7 +5209,7 @@ function GuestMain(inv, roomKey){
       <input type="range" id="pls" min="0" max="1000" value="0"><button class="btn sm" id="plm" title="自己聽影片聲音">${ic('headset')}</button>
       <button class="btn sm danger" id="plx">${ic('stop')}</button></div>
     <div class="gbar hidden" id="gbar">
-      <button class="cbtn" id="bm"><span class="c"><span class="lv" id="mlv"></span>${ic('mic')}</span><span>節目麥克風</span></button>
+      <button class="cbtn" id="bm"><span class="c"><span class="lv" id="mlv"></span>${ic('mic')}<span class="guest-led" id="guestLed" aria-label="麥克風即時電平">${Array.from({length:9},(_,i)=>`<i style="--n:${i%5}" class="${i>=8?'clip':i>=6?'warn':''}"></i>`).join('')}</span></span><span>節目麥克風</span></button>
       <button class="cbtn" id="bi"><span class="c">${ic('headset')}</span><span>對講麥克風</span></button>
       <button class="cbtn" id="bc"><span class="c">${ic('cam')}</span><span>鏡頭</span></button>
       <button class="cbtn" id="bcall"><span class="c">${ic('bell')}</span><span>呼叫導播</span></button>
@@ -5919,36 +5919,26 @@ function GuestMain(inv, roomKey){
 
   /* ---------- 導播聲音 ---------- */
   let retMeter = () => 0, retScope = null;
-  /* ---------- 麥克風音波（節目麥、對講麥、導播聲音） ---------- */
-  let scopeMin = store('wc_scope') === 'min';
-  $('#gsc').onclick = () => { scopeMin = !scopeMin; store('wc_scope', scopeMin ? 'min' : ''); $('#gsc').classList.toggle('min', scopeMin); };
-  $('#gsc').classList.toggle('min', scopeMin);
-  (function drawScope(){
-    const el = $('#gsc'); if (!el) return;
-    requestAnimationFrame(drawScope);
-    if (!joined || document.hidden || scopeMin) return;
-    const n = performance.now(); if (n - (drawScope.t || 0) < 50) return; drawScope.t = n;
-    const c = $('#gscC'), g = c.getContext('2d'), W = c.width, H = c.height, rh = H / 3;
-    g.clearRect(0, 0, W, H);
-    const rows = [
-      ['節目麥', AUD?.scPgm, pgmMic && !(icMic && icMutesPgm), '#22c55e'],
-      ['對講麥', AUD?.scIc, icMic, '#a78bfa'],
-      ['導播', retScope, true, '#4c8dff'],
-    ];
-    g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; g.textBaseline = 'middle';
-    rows.forEach(([lb, sc, on, col], i) => {
-      const y0 = i * rh, cy = y0 + rh / 2, x0 = 84;
-      g.fillStyle = on ? '#e5e7eb' : '#6b7280'; g.fillText(lb, 6, cy);
-      g.strokeStyle = '#ffffff14'; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, cy); g.lineTo(W - 4, cy); g.stroke();
-      if (!on) { g.fillStyle = '#6b7280'; g.font = '500 18px ' + getComputedStyle(document.body).fontFamily; g.fillText('關閉', x0 + 6, cy); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; return; }
-      if (!sc) return;
-      const d = sc.read(); let pk = 0;
-      g.strokeStyle = col; g.lineWidth = 2.5; g.beginPath();
-      const step = d.length / (W - 4 - x0);
-      for (let x = 0; x < W - 4 - x0; x++) { const v = d[Math.floor(x * step)] || 0; pk = Math.max(pk, Math.abs(v)); const yy = cy - Math.max(-1, Math.min(1, v * 2.2)) * (rh / 2 - 4); x ? g.lineTo(x0 + x, yy) : g.moveTo(x0 + x, yy); }
-      g.stroke();
-      if (pk < .003) { g.fillStyle = '#f5a524'; g.font = '500 16px ' + getComputedStyle(document.body).fontFamily; g.fillText('沒有聲音', W - 74, y0 + 14); g.font = '600 22px ' + getComputedStyle(document.body).fontFamily; }
-    });
+  /* ---------- 真實節目麥克風 LED 電平：直接讀 Web Audio Analyser 波形 ---------- */
+  let guestLedSmooth = 0;
+  (function drawGuestLed(){
+    requestAnimationFrame(drawGuestLed);
+    if (document.hidden) return;
+    const led = $('#guestLed'); if (!led) return;
+    const now = performance.now(); if (now - (drawGuestLed.last || 0) < 65) return;
+    drawGuestLed.last = now;
+    let peak = 0;
+    const enabled = joined && pgmMic && !(icMic && icMutesPgm);
+    if (enabled && AUD?.scPgm?.read) {
+      const samples = AUD.scPgm.read();
+      for (let i = 0; i < samples.length; i++) peak = Math.max(peak, Math.abs(samples[i]));
+    }
+    const dbfs = 20 * Math.log10(Math.max(peak, 1e-6));
+    const target = enabled ? Math.max(0, Math.min(9, Math.ceil((dbfs + 54) / 6))) : 0;
+    guestLedSmooth = target > guestLedSmooth ? target : Math.max(target, guestLedSmooth - .7);
+    const active = Math.round(guestLedSmooth);
+    led.querySelectorAll('i').forEach((bar,i) => bar.classList.toggle('active', i < active));
+    led.setAttribute('aria-label', enabled ? `節目麥克風峰值 ${Math.round(dbfs)} dBFS` : '節目麥克風已關閉');
   })();
   function ensureRetPlaying(){
     if (!retA.srcObject) return;
@@ -6111,7 +6101,7 @@ function GuestMain(inv, roomKey){
     try { conn?.close(); } catch {} try { call?.close(); } catch {} try { peer?.destroy(); } catch {}
     peer = null; call = null; conn = null; wake?.release?.().catch(() => {});
     stopShare(); if (filePlaying) stopVideo();
-    ['#gbar', '#tally', '#rw', '#gq', '#gmsg', '#gic', '#gw', '#gau', '#zui', '#pollc', '#gsc'].forEach(s => $(s).classList.add('hidden'));
+    ['#gbar', '#tally', '#rw', '#gq', '#gmsg', '#gic', '#gw', '#gau', '#zui', '#pollc'].forEach(s => $(s).classList.add('hidden'));
     hand = false; $('#bh').classList.remove('hand-on');
     icOn = false; tallyState = 'off'; paintFrame();
     sheetJoin(); st('', msg || '已離開'); wcIdle();
@@ -6123,7 +6113,7 @@ function GuestMain(inv, roomKey){
     retA.srcObject = new MediaStream(); retA.play().catch(() => {});   // 先用使用者的點擊解鎖播放
     if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
     joined = true; window.__gJoined = true; setTimeout(fitSelf, 60); window.__WC_BUSY = true;
-    $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden'); $('#gsc').classList.remove('hidden');
+    $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
     layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
   }
   $('#bl').onclick = async () => { if (await uiConfirm('離開連線', '確定要離開？', '離開')) leave(); };
