@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1104.1600">
+<meta name="webcall-version" content="2026.1105.2100">
 <script>
 /* 自動更新載入器：系統管理員在派發平台發布的新版本會先存在這台裝置（wc_pkg），開啟時直接換成新版本
  * 網址加 ?builtin=1 可以強制使用這個檔案內建的版本（新版本有問題時救援用） */
@@ -12,7 +12,10 @@
   window.WC_VER = me;
   if (/[?&]builtin=1/.test(location.search)) { window.WC_BUILTIN = true; return; }
   var p = null; try { p = JSON.parse(localStorage.getItem('wc_pkg') || 'null'); } catch (e) {}
-  if (!p || !p.v || !p.html || p.v === me) return;
+  // 只在下載的版本「比這個檔案新」時才換：之前只要版本不同就換，導致舊版一直蓋掉 GitHub 上的新檔案
+  var newer = function(a, b){ a = String(a).split(/\D+/).map(Number); b = String(b).split(/\D+/).map(Number); for (var i = 0; i < Math.max(a.length, b.length); i++) { var x = a[i] || 0, y = b[i] || 0; if (x !== y) return x > y; } return false; };
+  window.WC_NEWER = newer;
+  if (!p || !p.v || !p.html || !newer(p.v, me)) { if (p && p.v && !newer(p.v, me)) { try { localStorage.removeItem('wc_pkg'); } catch (e) {} } return; }
   window.__WC_PKG = p.v;
   // 新版本 15 秒內沒有正常啟動 → 丟掉它，改用內建版本
   setTimeout(function(){ if (!window.__WC_OK) { try { localStorage.removeItem('wc_pkg'); localStorage.setItem('wc_badpkg', p.v); } catch (e) {} location.reload(); } }, 15000);
@@ -555,6 +558,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
+const BUILD = '11/05-v9';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -1270,7 +1274,7 @@ class GuestFX {
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
   let invite = sess.invite, roomKey = sess.key;
-  let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
+  let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1&v=${BUILD}`;
   let outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
@@ -3292,7 +3296,7 @@ function Host(sess){
   const invite_open = () => inviteModal();
   async function changeInvite(inv){
     invite = normInvite(inv); roomKey = await inviteKey(invite);
-    guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
+    guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1&v=${BUILD}`;
     outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
     sess.invite = invite; sess.key = roomKey; sstore('wc_host', JSON.stringify(sess));
     $('#invc').textContent = invite;
@@ -3665,10 +3669,12 @@ function GuestMain(inv, roomKey){
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
   function fitSelf(){
     const v = selfV, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
-        v.style.objectFit = 'contain';   // 跟舊版一樣：完整顯示鏡頭畫面，不裁切
+    // 跟 index2 一樣：影片填滿畫面區域、object-fit: contain（直的鏡頭畫面就完整顯示直的，橫的就完整顯示橫的，不裁切）
+    v.style.cssText = '';
     fitG();
   }
   selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf);
+  try { new ResizeObserver(() => fitSelf()).observe($('#stage')); } catch {}   // 轉手機、畫面區域變大變小時重新排版
   // 有些瀏覽器換鏡頭／換畫面來源時不會發出 resize 事件：每秒檢查一次實際大小，變了就重新排版
   let selfDims = '';
   setInterval(() => { if (document.hidden) return; const st = $('#stage'); const d = [selfV.videoWidth, selfV.videoHeight, joined, st?.clientWidth, st?.clientHeight, !!fx.base].join(); if (d !== selfDims) { selfDims = d; fitSelf(); } }, 1000); addEventListener('resize', () => setTimeout(fitSelf, 300));
@@ -3716,10 +3722,10 @@ function GuestMain(inv, roomKey){
   }
 
   function sheetJoin(){
-    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}</h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 戴不戴耳機都可以使用（戴耳機收音最乾淨）</div>
+    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}<span class="mono" style="font-size:11px;color:#8a93a3;font-weight:500;margin-left:8px">${BUILD}</span></h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 戴不戴耳機都可以使用（戴耳機收音最乾淨）</div>
       <div class="g2">
         <div class="full"><span class="lbl">你的名字（導播看得到）</span><input class="field" id="nm" value="${esc(store('wc_name') || '')}" placeholder="例：王小明／台中現場" maxlength="30"></div>
-        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
+        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">畫質</span>${segc('dq', qOpts(), qMode)}<div class="tip" style="margin-top:4px">「自動」會依照你的網路速度調整，建議使用。</div></div>
         <div class="full"><span class="lbl">麥克風音量</span><div class="meterline"><i id="lvl"></i></div></div>
@@ -3742,7 +3748,7 @@ function GuestMain(inv, roomKey){
   // 如果改要求 720×1280，iOS 會從感光元件中間裁一塊出來，1× 看起來就像放大好幾倍。
   function tierDims(t){ const q = isMobile ? QUALITY['720'] : QUALITY[t]; return isMobile ? [q.w, q.h] : wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }   // 手機固定用 1280×720 開鏡頭（跟舊版一樣），畫質高低只調傳輸量
   function applyOrient(){
-    fx.aspect = orientMode === 'auto' ? null : (wantPortrait() ? 9 / 16 : 16 / 9);   // 跟隨手機＝不裁切不放大，照鏡頭原本的畫面
+    fx.aspect = null;   // 永遠不裁切：直式／橫式只照鏡頭真正給的畫面（手機直拿就是直的、橫拿就是橫的）
     fx.maxLong = QUALITY[tier].w;
     syncSenders();
   }
@@ -3752,7 +3758,7 @@ function GuestMain(inv, roomKey){
     b.classList.toggle('hidden', !isMobile && orientMode === 'auto');
     try { updTiltSensor(); } catch {}
   }
-  $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '畫面固定為直式'); };
+  $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '已設為直式：請把手機直拿，鏡頭就是直的完整畫面（不裁切）'); };
   setTimeout(paintRot, 0);
   function setOrient(m, by){
     orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient3', orientMode); paintRot();
@@ -3762,11 +3768,11 @@ function GuestMain(inv, roomKey){
   }
   async function getMedia(o = {}){
     const [w, h] = tierDims(tier);
-    const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } };
+    const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: isMobile ? Math.min(30, effFps()) : effFps() } };   // 手機跟 index2 一樣：1280×720、30fps（iPhone 的 60fps 模式視角比較窄，畫面會變大）
     if (orientMode !== 'auto' && !isMobile) video.aspectRatio = { ideal: w / h };   // 手機不加比例限制：iOS 會改用裁切過的感光模式，畫面變很大
     if (o.facing) video.facingMode = o.facing;
     else if (o.deviceId || camTrack?.getSettings().deviceId) video.deviceId = { exact: o.deviceId || camTrack.getSettings().deviceId };
-    else if (isMobile) video.facingMode = facing;
+    else if (isMobile && camTrack) video.facingMode = facing;   // 第一次開鏡頭不指定前後鏡頭，跟舊版一樣用手機預設的鏡頭（指定 user 時 iOS 可能挑到視角較窄的那顆）
     const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
     const mid = o.micId || micTrack?.getSettings().deviceId; if (mid) audio.deviceId = { exact: mid };
     stream?.getTracks().forEach(t => t.stop());
@@ -3787,13 +3793,21 @@ function GuestMain(inv, roomKey){
     applyOrient(); syncSenders(); sendState();
   }
   let meter = () => 0;
+  // 鏡頭實際狀態（排查畫面大小用）
+  function camInfo(){
+    if (!camTrack) return '';
+    const st = camTrack.getSettings?.() || {}, cp = camTrack.getCapabilities?.() || {};
+    const z = cp.zoom ? ` · 變焦 ${(+st.zoom || 1).toFixed(2)}（${(+cp.zoom.min).toFixed(1)}～${(+cp.zoom.max).toFixed(1)}）` : '';
+    return esc(`${camTrack.label || '鏡頭'} · ${camRaw.videoWidth}×${camRaw.videoHeight} · ${Math.round(st.frameRate || 0)}fps${z}`);
+  }
   // 改每秒張數：手機重新開鏡頭（在開著的鏡頭上改設定，iOS 會把畫面裁切放大）
   function camFps(){ if (!camTrack) return; if (isMobile) getMedia().catch(() => {}); else camTrack.applyConstraints({ frameRate: { ideal: effFps() } }).catch(() => {}); }
   const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
     const vt = fx.outputTrack() || camTrack;
-    if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
+    const pv = fx.base ? vt : camTrack;   // 預覽一律顯示鏡頭原始畫面（跟 index2 一樣）；只有分享畫面時顯示合成畫面
+    if (selfV.srcObject?.getVideoTracks()[0] !== pv) { selfV.srcObject = new MediaStream([pv]); selfV.play().catch(() => {}); }
     selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
     setTimeout(fitSelf, 50);
     const pc = call?.peerConnection; if (!pc) return;
@@ -4195,10 +4209,10 @@ function GuestMain(inv, roomKey){
   })();
 
   function sheetSettings(){
-    openSheet('set', `<h2>設定<button class="btn ghost sm" data-close>${ic('x')}</button></h2>
+    openSheet('set', `<h2>設定<span class="mono" style="font-size:11px;color:#8a93a3;font-weight:500;margin-left:8px">${BUILD}</span><button class="btn ghost sm" data-close>${ic('x')}</button></h2>
       <div class="g2" style="margin-top:10px">
         <div class="full"><span class="lbl">你的名字</span><input class="field" id="nm2" value="${esc(store('wc_name') || '')}" maxlength="30"></div>
-        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
+        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">耳機／喇叭（聽導播）</span><select class="field" id="dspk"></select></div>
         <div class="full"><span class="lbl">🔋 省電模式</span>${segc('dsv', [['0', '一般'], ['1', '省電']], saver ? '1' : '0')}<div class="tip" style="margin-top:4px">省電：畫質最高 480p、每秒 20 張、不接收回傳畫面（只聽聲音）。美顏、虛擬背景也會比較耗電。</div></div>
@@ -4756,6 +4770,7 @@ async function checkAppUpdate(){
     return;
   }
   if (a.v === window.WC_VER) { updPending = null; return; }
+  if (window.WC_NEWER && !window.WC_NEWER(a.v, window.WC_VER)) { updPending = null; try { localStorage.removeItem('wc_pkg'); } catch {} return; }   // 派發平台上的版本比這個檔案舊：不下載、不套用
   try { if (localStorage.getItem('wc_badpkg') === a.v) return; } catch {}   // 這個版本在這台裝置啟動失敗過，不再自動套用
   if (!cached || cached.v !== a.v) {
     let p; try { p = await apiCall({ action: 'pkg', id: a.id }); } catch { return; }
