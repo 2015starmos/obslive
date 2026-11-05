@@ -5009,9 +5009,13 @@ async function GuestGate(inv, k, ended){
   app.innerHTML = `<div class="closedv"><div>${brand()}<div class="spin"></div><p style="margin-top:14px">確認房間狀態…</p></div></div>`;
   // 不等後端：0.8 秒內確認不了就先進畫面，背景繼續檢查；確認房間沒開而且還沒加入才擋下來
   let r = ended ? { open: false } : await Promise.race([roomOpen(k), new Promise(res => setTimeout(() => res({ open: true, slow: true }), 800))]);
+  if (r.status === 'DELETED') {
+    app.innerHTML = `<div class="closedv"><div style="max-width:420px">${brand()}<div style="font-size:46px;margin-top:20px">⛔</div><h1>導播台已刪除</h1><p>此視訊連線所屬的導播台已被管理員刪除，無法繼續使用。</p><p>請聯絡導播或管理員，取得新的有效連線。</p></div></div>`;
+    return;
+  }
   if (r.open) {
     GuestMain(inv, k);
-    if (r.slow) roomOpen(k).then(x => { if (!x.open && !x.unknown && !window.__gJoined) GuestGate(inv, k); });
+    if (r.slow) roomOpen(k).then(x => { if ((!x.open && !x.unknown && !window.__gJoined) || x.status === 'DELETED') GuestGate(inv, k); });
     return;
   }
   const paint = () => { app.innerHTML = `<div class="closedv"><div style="max-width:360px">${brand()}
@@ -5021,7 +5025,7 @@ async function GuestGate(inv, k, ended){
     ${ended ? '' : '<div class="spin"></div>'}</div></div>`; };
   paint();
   if (ended) return;
-  const t = setInterval(async () => { r = await roomOpen(k); if (r.open) { clearInterval(t); GuestMain(inv, k); } }, 6000);
+  const t = setInterval(async () => { r = await roomOpen(k); if (r.status === 'DELETED') { clearInterval(t); GuestGate(inv, k); } else if (r.open) { clearInterval(t); GuestMain(inv, k); } }, 6000);
 }
 // 來賓輸入邀請代碼
 function GuestCode(err){
@@ -5992,6 +5996,23 @@ function GuestMain(inv, roomKey){
       if (d.type === 'kick') { leave('導播已結束連線'); if (d.end) { stream?.getTracks().forEach(t => t.stop()); fx.destroy?.(); const u = new URL(location.href); u.searchParams.set('ended', '1'); location.replace(u.toString()); } }
     }
   }
+  // A joined guest must also be revoked; a one-time admission check is insufficient.
+  let revoked = false, checkingLifecycle = false;
+  const lifecycleTimer = setInterval(async () => {
+    if (revoked || checkingLifecycle) return;
+    checkingLifecycle = true;
+    try {
+      const state = await roomOpen(roomKey);
+      if (state.status !== 'DELETED') return; // transient API errors must not eject guests
+      revoked = true;
+      clearInterval(lifecycleTimer);
+      leave('導播台已刪除');
+      try { stream?.getTracks().forEach(t => t.stop()); } catch {}
+      try { camTrack?.stop(); micTrack?.stop(); icTrack?.stop(); } catch {}
+      try { fx.destroy?.(); } catch {}
+      app.innerHTML = `<div class="closedv"><div style="max-width:420px">${brand()}<div style="font-size:46px;margin-top:20px">⛔</div><h1>導播台已刪除</h1><p>此視訊連線所屬的導播台已被管理員刪除，無法繼續使用。</p><p>攝影機與麥克風已停止。請聯絡導播或管理員取得新連線。</p></div></div>`;
+    } finally { checkingLifecycle = false; }
+  }, 5000);
   function leave(msg){
     try { conn?.open && conn.send({ type: 'bye' }); } catch {}
     stopCC();
@@ -6521,4 +6542,5 @@ $('wc3-stop').onclick=async()=>{try{await iso?.stop();iso=null}catch(e){status('
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
 </script>
+<script src="client/universal-device-bridge.js"></script>
 </body></html>
