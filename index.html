@@ -2,13 +2,21 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1105.2200">
+<meta name="webcall-version" content="2026.1106.1200">
 <script>
-/* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
+/* 自動更新載入器：系統管理員在派發平台發布的新版本會先存在這台裝置（wc_pkg），開啟時直接換成新版本
+ * 網址加 ?builtin=1 可以強制使用這個檔案內建的版本（新版本有問題時救援用） */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1105.2200';
-  window.WC_BUILTIN = true;
-  try { localStorage.removeItem('wc_pkg'); } catch(e) {}
+  var ms = document.querySelectorAll('meta[name="webcall-version"]'), me = ms.length ? ms[ms.length - 1].content : '';
+  if (window.__WC_PKG) { window.WC_VER = window.__WC_PKG; return; }
+  window.WC_VER = me;
+  if (/[?&]builtin=1/.test(location.search)) { window.WC_BUILTIN = true; return; }
+  var p = null; try { p = JSON.parse(localStorage.getItem('wc_pkg') || 'null'); } catch (e) {}
+  if (!p || !p.v || !p.html || p.v === me) return;
+  window.__WC_PKG = p.v;
+  // 新版本 15 秒內沒有正常啟動 → 丟掉它，改用內建版本
+  setTimeout(function(){ if (!window.__WC_OK) { try { localStorage.removeItem('wc_pkg'); localStorage.setItem('wc_badpkg', p.v); } catch (e) {} location.reload(); } }, 15000);
+  document.write(p.html + '<plaintext style="display:none">');
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -315,8 +323,8 @@ input[type=checkbox]{accent-color:var(--accent)}
 .bars i{width:3px;background:#ffffff33;border-radius:1px}
 .bars i:nth-child(1){height:5px}.bars i:nth-child(2){height:8px}.bars i:nth-child(3){height:12px}
 .bars.q3 i{background:var(--pvw)} .bars.q2 i:nth-child(-n+2){background:var(--warn)} .bars.q1 i:nth-child(1){background:var(--live)}
-.gnotes{position:absolute;left:12px;right:100px;top:calc(54px + var(--sat));z-index:3;display:grid;gap:5px;max-width:440px}
-.gmsg{background:var(--warn);color:#1a1200;font-weight:700;font-size:13px;line-height:1.35;padding:6px 9px;border-radius:6px;box-shadow:0 4px 12px #0007;word-break:break-word;max-height:90px;overflow-y:auto;overscroll-behavior:contain}
+.gnotes{position:absolute;left:12px;right:12px;top:calc(54px + var(--sat));z-index:3;display:grid;gap:8px;max-width:620px}
+.gmsg{background:var(--warn);color:#1a1200;font-weight:700;font-size:17px;padding:10px 14px;border-radius:8px;box-shadow:0 6px 20px #0007;word-break:break-word}
 .gic{background:var(--ic);color:#160a33;font-weight:700;font-size:15px;padding:9px 14px;border-radius:8px;box-shadow:0 6px 20px #0007;display:flex;align-items:center;gap:8px}
 .gic small{font-weight:500;opacity:.8;display:block;font-size:12px}
 .gwarn{background:#2b1a05;border:1px solid var(--warn);color:#ffd88a;padding:9px 12px;border-radius:8px;display:flex;align-items:center;gap:8px;font-weight:600}
@@ -344,11 +352,6 @@ input[type=checkbox]{accent-color:var(--accent)}
 .zoomui button.on{background:#ffffff26;color:#ffd34d}
 .zoombig{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:3;font:800 34px var(--mono);color:#ffd34d;text-shadow:0 2px 10px #000;pointer-events:none;opacity:0;transition:opacity .2s}
 .zoombig.show{opacity:1}
-/* 來賓端迷你 LED 音量表：ON AIR 下方，與訊息接收框分欄 */
-.guest-led{position:absolute;right:12px;top:calc(56px + var(--sat));display:flex;align-items:flex-end;justify-content:center;gap:3px;height:30px;padding:6px 8px;background:#0b1119d9;border:1px solid #ffffff38;border-radius:7px;pointer-events:none;z-index:5;box-shadow:0 3px 12px #0008}
-.guest-led i{display:block;width:4px;height:calc(7px + var(--n)*3px);border-radius:2px;background:#46515d;opacity:.55;transition:background .07s,opacity .07s}
-.guest-led i.active{background:#22c55e;opacity:1}.guest-led i.warn.active{background:#eab308}.guest-led i.clip.active{background:#ef4444}
-.guest-led.muted i{background:#46515d;opacity:.4}
 .gbar{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:30px 6px calc(12px + var(--sab));background:linear-gradient(transparent,#000d);display:flex;justify-content:center;gap:clamp(4px,2vw,14px)}
 .cbtn{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;cursor:pointer;color:#e5e7eb;font-size:10.5px;padding:0;min-width:48px}
 .cbtn .c{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#ffffff26;backdrop-filter:blur(10px);border:1px solid #ffffff22;transition:background .12s;position:relative}
@@ -533,6 +536,8 @@ body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 .swfn{display:flex;gap:3px}
 .swfn button{height:20px;padding:0 7px;border-radius:4px;border:1px solid var(--line2);background:#1d222b;color:var(--dim);font:600 10.5px var(--sans);cursor:pointer}
 .swfn button:hover{color:#fff;border-color:var(--cyan)}
+.swfn button{white-space:nowrap}
+@media (max-width:1180px){ .swfn{display:none} }
 .key .bdg2{right:auto;left:-5px;background:var(--warn);color:#1a1200}
 /* ---------- 專業播出模組 ---------- */
 .tag.auxt{background:#0e7490;color:#e0faff}
@@ -621,6 +626,110 @@ body.opp{overflow:auto}
 .bgt img{width:100%;height:100%;object-fit:cover;display:block}.bgt span{position:absolute;left:0;right:0;bottom:0;font-size:10px;color:#fff;background:#000a;padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bgt.on{border-color:var(--cyan)}.bgt:hover{border-color:#fff8}
 table.eart th{max-width:64px;overflow:hidden;text-overflow:ellipsis}
+/* ---------- 手機版導播台（窄螢幕直式、或矮螢幕橫式） ---------- */
+body.mob .host{grid-template-rows:auto 1fr}
+body.mob .topbar{flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:6px 8px;scrollbar-width:none;padding-top:calc(6px + env(safe-area-inset-top))}
+body.mob .topbar::-webkit-scrollbar{display:none}
+body.mob .topbar > *{flex:none}
+body.mob .topbar .sep,body.mob .topbar .grow,body.mob .kpi,body.mob .clock,body.mob .sess span{display:none}
+body.mob .sess b{max-width:96px;font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.mob .topbar .btn{height:34px;padding:0 10px;font-size:12px}
+body.mob .topbar .pill{height:28px;font-size:11px}
+body.mob .invk{padding:2px 8px}body.mob .invk b{font-size:13px}
+body.mob .ptimer{padding:2px 8px}body.mob .ptimer b{font-size:14px}
+body.mob .lufs{min-width:0;padding:2px 8px}body.mob .lufs b{font-size:12px}
+body.mob .modeb{min-width:54px;padding:2px 8px}
+body.mob .topbar .sess{order:1}body.mob #invk{order:2}body.mob #inv{order:3}body.mob #endb{order:4}body.mob #acw{order:5}body.mob #recind{order:6}body.mob #modeb{order:7}body.mob #panic{order:8}body.mob #pst{order:9}body.mob #ptm{order:10}body.mob .lufs{order:11}
+body.mob #inv svg{margin:0}
+body.mob .keybar{position:fixed;left:0;right:0;bottom:0;z-index:260;border-top:1px solid var(--line2);border-bottom:0;padding:6px 8px calc(6px + var(--sab));gap:6px;background:#0e1116f0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);scrollbar-width:none}
+body.mob .keybar::-webkit-scrollbar{display:none}
+body.mob .keybar .key{height:42px;min-width:70px;font-size:11.5px}
+body.mob .keybar .kgap{display:none}
+body.mob .hmain{display:block!important;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(66px + var(--sab));-webkit-overflow-scrolling:touch;min-height:0}
+body.mob .switcher{padding:6px;gap:6px}
+body.mob .swfn{display:none}
+body.mob .mon .hd{font-size:10px;gap:4px;letter-spacing:.06em}
+body.mob .pipbar{flex-wrap:wrap;gap:4px}
+body.mob .multiview{overflow:visible;padding:6px;align-content:start;justify-content:stretch;min-height:200px}
+body.mob .emptyv{padding:16px 8px}
+body.mob .dock{width:auto;border-left:0;border-top:1px solid var(--line);overflow:visible}
+body.mob .dskbar{flex-wrap:wrap}
+body.mob .win{left:0!important;right:0!important;top:auto!important;bottom:calc(55px + var(--sab))!important;width:auto!important;height:min(78vh,calc(100% - 120px))!important;min-width:0;min-height:0;border-radius:14px 14px 0 0;resize:none;box-shadow:0 -14px 40px #000d;border-bottom:0}
+body.mob .win > header{height:46px;cursor:default;position:relative}
+body.mob .win > header::before{content:'';position:absolute;left:50%;top:5px;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:#ffffff30}
+body.mob .win > header .btn.icon{width:42px;height:38px}
+body.mob .wtab{height:36px;padding:0 14px;font-size:13px}
+body.mob .win > .wb{padding:8px;-webkit-overflow-scrolling:touch}
+body.mob .strip{width:70px}body.mob .strip .fwrap{min-height:110px}body.mob .strip input[type=range]{min-height:100px}
+body.mob .mixer{min-height:0}
+body.mob #toast{bottom:calc(72px + var(--sab));max-width:90vw}
+body.mob .modal{padding:8px;align-items:flex-end}
+body.mob .modal .m{width:100%!important;max-width:100%!important;max-height:calc(100% - 8px);border-radius:14px}
+body.mob .layed,body.mob .vsed{grid-template-columns:1fr}
+body.mob .layed canvas#lec,body.mob .vsed canvas#vsc{width:100%;height:auto}
+body.mob #lep,body.mob #vsp{max-height:none}
+body.mob .tiles{grid-template-columns:repeat(2,1fr)}
+body.mob .grid2{grid-template-columns:1fr}
+body.mob .auxrow{flex-direction:column}body.mob .auxth{width:100%;height:auto;aspect-ratio:16/9}
+body.mob .busm{grid-template-columns:96px 1fr}
+body.mob .field,body.mob select.field{font-size:16px}
+@media (orientation:landscape) and (max-height:520px){
+  body.mob .win{height:calc(100% - 66px)!important;left:auto!important;width:min(560px,70vw)!important;border-radius:14px 0 0 0}
+  body.mob .keybar .key{height:34px}
+  body.mob .hmain{padding-bottom:calc(52px + var(--sab))}
+}
+/* ---------- 專業切換控盤（平板／手機） ---------- */
+.op.panel .opmain{grid-template-columns:minmax(0,1fr) minmax(260px,320px);padding:8px;gap:8px}
+.op.panel .opc{order:1}.op.panel .opv{order:2}
+body.cpnov .op.panel .opv{display:none}body.cpnov .op.panel .opmain{grid-template-columns:1fr}
+@media (max-width:900px){.op.panel .opmain{grid-template-columns:1fr}.op.panel .opv{order:0}.op.panel .opvbox{max-height:30vh}}
+.cp{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+@media (max-width:760px){.cp{grid-template-columns:1fr}}
+.cpbus,.cptr{background:#0f1218;border:1px solid var(--line);border-radius:10px;padding:8px}
+.cphd{display:flex;align-items:center;gap:6px;margin:8px 2px 4px;flex-wrap:wrap}.cphd:first-child{margin-top:0}
+.cphd .lbl{margin:0;font:800 10px var(--mono);letter-spacing:.14em;color:#8a93a3}
+.cprow{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.cpgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.pk{position:relative;min-height:54px;border-radius:7px;border:1px solid #2c333f;background:linear-gradient(#262c37,#1a1e26);color:#cfd6e2;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;box-shadow:inset 0 1px 0 #ffffff12,0 2px 0 #000;transition:background .06s,box-shadow .06s;-webkit-tap-highlight-color:transparent}
+.pk b{font:800 15px var(--mono);letter-spacing:.04em}
+.pk small{font:500 10px var(--sans);color:#8a93a3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk:active{transform:translateY(1px);box-shadow:inset 0 1px 0 #ffffff12}
+.pk.red{background:linear-gradient(#ff4d4d,#c81e1e);border-color:#ff6b6b;color:#fff;box-shadow:0 0 14px #ff3b3b88,inset 0 1px 0 #ffffff55}
+.pk.grn{background:linear-gradient(#34d36b,#15913f);border-color:#4ade80;color:#04140a;box-shadow:0 0 14px #22c55e88,inset 0 1px 0 #ffffff55}
+.pk.yel{background:linear-gradient(#fcd34d,#d6a510);border-color:#fde68a;color:#1a1200}
+.pk.red small,.pk.grn small,.pk.yel small{color:inherit;opacity:.85}
+.pk.lost{opacity:.5}.pk.blk b{font-size:12px}.pk.empty{opacity:.35}
+.pk.dk{min-height:46px}.pk.tt{min-height:42px}.pk.tt b{font-size:12px}
+.pk.take{background:linear-gradient(#b91c1c,#7f1d1d);border-color:#ef4444;color:#fff}
+.axs{height:34px;padding:0 10px;border-radius:6px;border:1px solid #2c333f;background:#1a1e26;color:#cfd6e2;font:700 11px var(--mono);cursor:pointer;display:flex;flex-direction:column;justify-content:center;line-height:1.1}
+.axs small{font:500 9px var(--sans);color:#8a93a3}.axs.on{border-color:#22b8d9;background:#0e3a4a;color:#fff}
+.cpmain{display:grid;grid-template-columns:1fr 92px;gap:10px;margin-top:10px}
+.cpbtns{display:grid;gap:8px}
+.pk.big{min-height:64px}.pk.big b{font-size:18px}
+.pk.cut{border-color:#4b5563}.pk.auto{border-color:#7f1d1d}
+.cptb{position:relative;min-height:290px;border-radius:12px;background:linear-gradient(90deg,#07090c,#141821,#07090c);border:1px solid #2c333f;touch-action:none;cursor:ns-resize;overflow:hidden}
+.cptbtrk{position:absolute;left:50%;top:14px;bottom:14px;width:6px;margin-left:-3px;border-radius:3px;background:#000;box-shadow:inset 0 0 4px #000}
+.cptbfill{position:absolute;left:50%;width:6px;margin-left:-3px;background:var(--live);border-radius:3px;opacity:.9}
+.cptbh{position:absolute;left:8px;right:8px;height:44px;border-radius:8px;background:linear-gradient(#e8ecf2,#9aa3b2);box-shadow:0 4px 10px #000a,inset 0 1px 0 #fff;display:grid;place-items:center}
+.cptbh span{width:60%;height:4px;border-radius:2px;background:#4b5563}
+body.oppanel .op header{position:sticky;top:0;z-index:5}
+.op header #opl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 60px}
+@media (max-width:600px){.op header{gap:6px;padding:6px 8px;flex-wrap:nowrap}.op header #opn{display:none}.op header .btn.sm{padding:0 8px}}
+.cpmodbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;margin-bottom:8px;border:1px dashed #22b8d9;border-radius:8px;background:#0b1a22}
+.cpmods{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;align-items:start}
+.cpm.wide{grid-column:1/-1}
+.cpbus.big .pk{min-height:72px}.cpbus.big .pk b{font-size:17px}
+.talbox{min-height:46vh;border-radius:12px;display:grid;place-items:center;align-content:center;gap:10px;background:#1a1e26;border:2px solid #2c333f;transition:background .1s}
+.talbox b{font:900 clamp(28px,7vw,90px) var(--sans);color:#cfd6e2;text-align:center}
+.talbox span{font:800 clamp(16px,3vw,34px) var(--mono);color:#8a93a3;letter-spacing:.08em}
+.talbox.live{background:#d10f0f;border-color:#ff6b6b;box-shadow:0 0 40px #ff3b3b88 inset}.talbox.live b,.talbox.live span{color:#fff}
+.talbox.pvw{background:#128a3a;border-color:#4ade80}.talbox.pvw b,.talbox.pvw span{color:#eafff1}
+.clkbox{display:grid;place-items:center;gap:8px;padding:18px 0}
+.clkbox > b{font-size:clamp(40px,9vw,96px);color:#fff;letter-spacing:.04em}
+.clkbox span{font:700 16px var(--sans);color:#8a93a3}.clkbox span b{font-size:28px;color:#7dd3fc}
+body.cpbigv .op.panel .opmain{grid-template-columns:1fr}
+body.cpbigv .op.panel .opv{order:0}
+body.cpbigv .op.panel .opvbox{max-height:none}
 </style>
 </head>
 <body>
@@ -645,7 +754,6 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
-const BUILD = '11/05-v12-video-format';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -655,12 +763,11 @@ const QUALITY = {
 const TIERS = ['360', '480', '720', '1080'];
 // 切換台畫布（節目輸出）大小
 const CANVAS = {
-  '4320': { w: 7680, h: 4320, label: '8K UHD 4320p' },
   '2160': { w: 3840, h: 2160, label: '4K 2160p' }, '1440': { w: 2560, h: 1440, label: '2K 1440p' }, '1080': { w: 1920, h: 1080, label: '1080p' },
   '720': { w: 1280, h: 720, label: '720p' }, '540': { w: 960, h: 540, label: '540p' }, '480': { w: 854, h: 480, label: '480p' }, '360': { w: 640, h: 360, label: '360p' },
 };
-const CANVAS_KEYS = ['custom', '4320', '2160', '1440', '1080', '720', '540', '480', '360'];
-const canvasOpts = cur => CANVAS_KEYS.map(r => r === 'custom' ? `<option value="custom" ${String(cur)==='custom'?'selected':''}>自訂尺寸（Custom）</option>` : `<option value="${r}" ${String(cur) === r ? 'selected' : ''}>${CANVAS[r].label}（${CANVAS[r].w}×${CANVAS[r].h}）</option>`).join('');
+const CANVAS_KEYS = ['2160', '1440', '1080', '720', '540', '480', '360'];
+const canvasOpts = cur => CANVAS_KEYS.map(r => `<option value="${r}" ${String(cur) === r ? 'selected' : ''}>${CANVAS[r].label}（${CANVAS[r].w}×${CANVAS[r].h}）</option>`).join('');
 const TRANS = [['mix', 'MIX 溶接'], ['dip', 'DIP 過場色'], ['wipe', 'WIPE 劃變'], ['push', 'PUSH 推移'], ['slide', 'SLIDE 滑入'], ['zoom', 'ZOOM 縮放'], ['stinger', 'STINGER 轉場影片'], ['cut', 'CUT 直切']];
 const WDIRS = [['lr', '由左到右'], ['rl', '由右到左'], ['tb', '由上到下'], ['bt', '由下到上'], ['circle', '圓形'], ['box', '方形'], ['diag', '斜角']];
 const PDIRS = [['l', '向左'], ['r', '向右'], ['u', '向上'], ['d', '向下']];
@@ -905,12 +1012,6 @@ function makeAnalyser(node, rms){
   const buf = new Float32Array(an.fftSize);
   if (rms) return () => { an.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i]; return 10 * Math.log10(s / buf.length || 1e-12); };
   return () => { an.getFloatTimeDomainData(buf); let p = 0; for (let i = 0; i < buf.length; i++) { const v = Math.abs(buf[i]); if (v > p) p = v; } return clamp((20 * Math.log10(p || 1e-6) + 60) / 60, 0, 1); };
-}
-// 音波：讀聲音波形（-1～1）
-function makeScope(node){
-  const an = audioCtx().createAnalyser(); an.fftSize = 1024; node.connect(an);
-  const buf = new Float32Array(an.fftSize);
-  return { read(){ an.getFloatTimeDomainData(buf); return buf; } };
 }
 function streamMeter(stream){
   if (!stream?.getAudioTracks().length) return () => 0;
@@ -1183,7 +1284,7 @@ class GuestFX {
     if (need && !this.ticker) this.ticker = makeTicker(30, () => this.frame());
     else if (!need && this.ticker) { this.ticker.stop(); this.ticker = null; }
   }
-  cropNeeded(){ return false; }   // 不裁切：來賓鏡頭給什麼比例就送什麼比例（直的 9:16／3:4、橫的 16:9／4:3 都照原樣）
+  cropNeeded(){ const v = this.cam; if (!this.aspect || !v.videoWidth) return false; return Math.abs(v.videoWidth / v.videoHeight - this.aspect) / this.aspect > .04; }
   needsGL(){ return this.glOk && (this.beauty.on || this.bg.mode !== 'none' || this.zoom > 1.01 || this.cropNeeded()); }
   needsSeg(){ return this.bg.mode === 'blur' || this.bg.mode === 'image'; }
   outputTrack(){ this.syncTicker(); return this.base ? this.cmpTrack : this.needsGL() ? this.glTrack : null; }   // null = 直接送原始鏡頭
@@ -1296,7 +1397,7 @@ class GuestFX {
     const gl = this.gl, v = this.cam, b = this.beauty;
     const vw = v.videoWidth, vh = v.videoHeight;
     if (!vw || !vh) return false;
-    // （已停用）強制直式／橫式裁切：cropNeeded() 永遠回傳 false，輸出大小＝鏡頭實際畫面
+    // 強制直式／橫式：從鏡頭畫面中間裁切出指定比例
     let cw = vw, ch = vh;
     if (this.cropNeeded()) { if (vw / vh > this.aspect) cw = vh * this.aspect; else ch = vw / this.aspect; }
     const sc = Math.min(1, this.maxLong / Math.max(cw, ch));
@@ -1384,7 +1485,7 @@ class GuestFX {
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
   let invite = sess.invite, roomKey = sess.key;
-  let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1&v=${BUILD}`;
+  let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
   let outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
@@ -1399,18 +1500,18 @@ function Host(sess){
   // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
   const GROUPS = {
     ic:   { key: '對講／IFB', title: 'INTERCOM 對講台／IFB 返送／倒數', w: 780, h: 620, tabs: ['ic', 'ifb', 'timer'] },
-    msgq: { key: 'Live Interaction｜即時互動中心', title: 'LIVE INTERACTION｜訊息、提問與投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
-    mixg: { key: 'Audio Console｜數位混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
+    msgq: { key: '訊息／投票', title: 'MESSAGE 訊息／舉手投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
+    mixg: { key: '混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
     audg: { key: '聲音路由', title: 'AUDIO ROUTING 聲音路由／回傳', w: 820, h: 780, tabs: ['aud', 'ret'] },
     ctl:  { key: '遠端控制', tabs: ['ctl'] },
-    swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src', 'vset', 'gfx', 'still', 'scene', 'lay', 'rec', 'set'] },
+    swg:  { key: '切換台功能', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src', 'vset', 'gfx', 'still', 'scene', 'lay', 'rec', 'set'] },
     outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['out', 'aux', 'strm'] },
     sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc', 'ops', 'keys'] },
   };
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
   const PROTAB = new Set(['mtx', 'lay', 'aux', 'strm', 'noc']);   // 專業版才顯示的分頁
-  const TABN = { set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const TABN = { set: '切換台設定', src: '來源', scene: '場景', still: '圖庫', lay: '版面庫', rec: '錄影', mix: '推桿／監聽', mtx: '音頻矩陣', aud: '聲音路由', ic: '對講台', ifb: 'IFB 返送（分組／比例）', ret: '回傳給來賓', gfx: '字幕圖層', timer: '計時倒數', vset: '去背合成', msg: '訊息', qa: '舉手投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1451,48 +1552,12 @@ function Host(sess){
   let retVideoTrack = blackTrack();
 
   /* ---------- 切換台 ---------- */
-  const customSaved = (() => { try { const a=JSON.parse(store('wc_custom_canvas')||'{}'); return {w:Math.max(16,Math.min(7680,Math.round(+a.w)||1920)),h:Math.max(16,Math.min(4320,Math.round(+a.h)||1080))}; } catch {return {w:1920,h:1080};} })();
-  CANVAS.custom = { ...customSaved, label:'自訂畫布' };
   const SW = { pgm: null, pvw: null, t: 0, tpos: 0, base: 0, anim: null, type: store('wc_trans') || 'mix', dur: Number(store('wc_dur') || 800), ftb: 0, ftbOn: false,
     wdir: store('wc_wdir') || 'lr', pdir: store('wc_pdir') || 'l', dipColor: store('wc_dipc') || '#000000', border: Number(store('wc_wb') || 4), borderColor: store('wc_wbc') || '#ffffff',
     prevTrans: false, stingEl: null, stingCut: Number(store('wc_stcut') || .5), ftbDur: Number(store('wc_ftbd') || 1000),
-    pip: { on: false, src: null, pos: store('wc_pip_pos') || 'tr', size: Number(store('wc_pip_size') || .3), audio: false, alpha: 0 }, res: (CANVAS[store('wc_pgmres')] ? store('wc_pgmres') : '1080') };
+    pip: { on: false, src: null, pos: store('wc_pip_pos') || 'tr', size: Number(store('wc_pip_size') || .3), audio: false, alpha: 0 }, res: store('wc_pgmres') || '1080' };
   const pgmCanvas = document.createElement('canvas');
-  const setPgmRes = r => {
-    const q = CANVAS[r] || CANVAS['1080'];
-    try { pgmCanvas.width = q.w; pgmCanvas.height = q.h; }
-    catch (e) { pgmCanvas.width = 1920; pgmCanvas.height = 1080; throw e; }
-  };
-  const applyProductionResolution = async (r) => {
-    if (!CANVAS[r]) return toast('不支援的製播解析度');
-    if (REC.has('pgm') || REC.has('clean')) return toast('請先停止 PGM／CLEAN 錄影再變更解析度');
-    const q = CANVAS[r];
-    if (q.w*q.h >= 3840*2160 && !confirm(`即將使用 ${q.w}×${q.h} 畫布。高解析度可能導致掉幀或裝置資源不足；請確認輸出端支援。繼續？`)) return;
-    const old = SW.res;
-    try {
-      const test = document.createElement('canvas'); test.width = q.w; test.height = q.h;
-      const ctx = test.getContext('2d');
-      if (!ctx || ctx.getImageData(0, 0, 1, 1).length !== 4) throw Error('瀏覽器無法配置畫布');
-      test.width = test.height = 1;
-      if (q.w*q.h > 1920*1080 && typeof MediaRecorder !== 'undefined' && !MediaRecorder.isTypeSupported('video/webm')) console.warn('目前瀏覽器可能無法錄製 WebM');
-      setPgmRes(r); SW.res = r; store('wc_pgmres', r);
-      refreshSlot('pgm'); refreshSlot('clean');
-      const badge = $('#pgmres'); if (badge) badge.textContent = `${q.w}×${q.h} · ${PGMFPS}p`;
-      toast(`製播畫布已設定 ${q.w}×${q.h}；請檢查實際輸出畫質與掉幀`);
-    } catch (e) {
-      setPgmRes(old); SW.res = old; toast('無法套用此解析度：' + e.message);
-    }
-    softRender('set'); softRender('out');
-  };
-  const applyCustomCanvas = async (w,h) => {
-    w = Math.round(Number(w)); h = Math.round(Number(h));
-    if (!Number.isInteger(w)||!Number.isInteger(h)||w<16||h<16||w>7680||h>4320) return toast('自訂尺寸須介於 16×16 與 7680×4320，且寬高為整數');
-    const old={...CANVAS.custom};
-    CANVAS.custom={w,h,label:'自訂畫布'};
-    await applyProductionResolution('custom');
-    if (SW.res==='custom' && pgmCanvas.width===w && pgmCanvas.height===h) store('wc_custom_canvas',JSON.stringify({w,h}));
-    else CANVAS.custom=old;
-  };
+  const setPgmRes = r => { const q = CANVAS[r] || CANVAS['1080']; pgmCanvas.width = q.w; pgmCanvas.height = q.h; };
   setPgmRes(SW.res);
   const pctx = pgmCanvas.getContext('2d');
   let PGMFPS = [24, 25, 30, 50, 60].includes(+store('wc_pgmfps')) ? +store('wc_pgmfps') : 30;
@@ -1671,22 +1736,10 @@ function Host(sess){
   // 分享畫面（獨立按鈕）：回傳給來賓看，或當作節目來源
   $('#shk').onclick = () => {
     const scr = order.map(id => inputs.get(id)).find(x => x.kind === 'local' && x.isScreen);
-    const retOn = RET.src !== 'none', retName = { program: '節目畫面', screen: '導播電腦畫面' }[RET.src] || inputs.get(RET.src)?.name || RET.src;
-    // 正在分享／回傳中：先顯示關閉選項
-    if (retOn || scr) {
-      return uiModal(`<h2>分享導播電腦的畫面</h2><div style="color:var(--dim)">${retOn ? `來賓手機正在顯示：<b>${esc(retName)}</b>` : ''}${retOn && scr ? '<br>' : ''}${scr ? '導播螢幕已加入為節目來源' : ''}</div>
-        <div class="acts" style="flex-direction:column;align-items:stretch">
-        ${retOn ? '<button class="btn danger" data-s="offret">關閉分享（來賓手機不再顯示畫面框）</button>' : ''}
-        ${scr ? '<button class="btn danger" data-s="offsrc">移除節目來源的導播螢幕</button>' : ''}
-        ${retOn && scr ? '<button class="btn danger" data-s="offall">全部關閉</button>' : ''}
-        ${!retOn ? '<button class="btn" data-s="ret">也回傳給來賓看</button>' : ''}
-        <button class="btn ghost" data-close>取消</button></div>`, (m, close) => {
-        const offRet = () => { setReturn('none'); }, offSrc = () => { if (scr) { scr.stream?.getTracks().forEach(t => t.stop()); removeInput(scr.id); } };
-        $('[data-s=offret]', m)?.addEventListener('click', () => { close(); offRet(); toast('已關閉分享，來賓手機不再顯示畫面框'); });
-        $('[data-s=offsrc]', m)?.addEventListener('click', () => { close(); offSrc(); $('#shk').classList.toggle('on', RET.src !== 'none'); toast('已移除導播螢幕'); });
-        $('[data-s=offall]', m)?.addEventListener('click', () => { close(); offRet(); offSrc(); $('#shk').classList.remove('on'); toast('已停止分享畫面'); });
-        $('[data-s=ret]', m)?.addEventListener('click', async () => { close(); await setReturn('screen'); if (RET.src === 'screen') toast('來賓現在看得到你分享的畫面'); });
-      });
+    if (RET.src === 'screen' || scr) {
+      if (RET.src === 'screen') setReturn('none');
+      if (scr) removeInput(scr.id);
+      $('#shk').classList.remove('on'); return toast('已停止分享畫面');
     }
     uiModal(`<h2>分享導播電腦的畫面</h2><div style="color:var(--dim)">選擇畫面要給誰看。可以選 OBS 的投影視窗、整個螢幕或單一分頁（分頁可以一起分享聲音）。</div>
       <div class="acts" style="flex-direction:column;align-items:stretch"><button class="btn primary" data-s="ret">回傳給所有來賓看（來賓手機右下角）</button><button class="btn" data-s="src">加入為節目來源（可以切到 PROGRAM／OBS）</button><button class="btn ghost" data-close>取消</button></div>`, (m, close) => {
@@ -1982,8 +2035,14 @@ function Host(sess){
       if (w > best.w) best = { c, w };
     }
     mv.style.gridTemplateColumns = `repeat(${best.c}, ${Math.max(150, Math.floor(best.w))}px)`;
+    if (isMobile()) { const c = Math.min(n, W < 440 ? 2 : W < 760 ? 3 : 4); mv.style.gridTemplateColumns = `repeat(${c}, minmax(0, 1fr))`; }   // 手機：可以往下捲，畫面不要被壓扁
   }
   new ResizeObserver(layoutGrid).observe($('#mv'));
+  // 手機版：窄螢幕直式或矮螢幕橫式就切換成手機版排版
+  const MOBQ = matchMedia('(max-width: 760px), (max-height: 520px) and (orientation: landscape)');
+  function isMobile(){ return MOBQ.matches; }
+  const applyMob = () => { document.body.classList.toggle('mob', isMobile()); layoutGrid(); };
+  MOBQ.addEventListener?.('change', applyMob); applyMob();
   function renderEmpty(){
     const mv = $('#mv'); mv.style.gridTemplateColumns = '';
     mv.innerHTML = `<div class="emptyv"><div class="qr" id="eqr"></div>
@@ -2025,13 +2084,13 @@ function Host(sess){
     d.innerHTML = `<div class="dsec"><h3>輸出（給 OBS）<span>${outputs.size} 個連線</span></h3>
         <div class="bus"><div class="s pgmrow ${pg ? 'on' : ''}"><span class="n">PGM</span><span class="w ${pg ? '' : 'e'}">${pg ? esc(pg.name) : 'ON AIR 的來賓'}${cnt('pgm') ? `<small>● OBS×${cnt('pgm')}</small>` : ''}</span><button class="btn sm ghost" data-c="pgm" title="複製節目輸出網址">${ic('link')}</button></div>
         ${Array.from({ length: LINES }, (_, i) => { const n = i + 1, x = [...inputs.values()].find(v => v.slot === n); return `<div class="s ${x ? 'on' : ''}"><span class="n">${n}</span><span class="w ${x ? '' : 'e'}">${x ? esc(x.name) : '—'}${cnt(n) ? `<small>● OBS×${cnt(n)}</small>` : ''}</span><button class="btn sm ghost" data-c="${n}" title="複製輸出 ${n} 網址">${ic('link')}</button></div>`; }).join('')}</div>
-        <p class="note">OBS → 新增「瀏覽器來源」→ 貼上輸出網址 → 請依節目輸出設定解析度 → 勾選「透過 OBS 控制音訊」。換人只要改來賓的輸出編號，OBS 不用動。PGM＝目前 ON AIR 的那一路。</p></div>
+        <p class="note">OBS → 新增「瀏覽器來源」→ 貼上輸出網址 → 1920×1080 → 勾選「透過 OBS 控制音訊」。換人只要改來賓的輸出編號，OBS 不用動。PGM＝目前 ON AIR 的那一路。</p></div>
       <div class="dsec"><h3>字幕圖層 <span><button class="btn sm ghost" id="dsnap" title="PGM 截圖">${ic('cam')}截圖</button></span></h3><div class="dskbar" data-dsk></div></div>
       <div class="dsec"><h3>回傳給來賓</h3><span class="lbl">來賓會聽到／看到</span>
         <select class="field full" id="drs"><option value="none">不回傳（只有對講聲音）</option><option value="program">節目畫面＋聲音（扣除來賓自己）</option>
         ${order.filter(id => inputs.get(id).kind === 'local').map(id => `<option value="${id}">${esc(inputs.get(id).name)}</option>`).join('')}<option value="screen">分享螢幕／OBS 投影視窗…</option></select>
         <span class="lbl" style="margin-top:10px">回傳音量</span><div class="row"><input type="range" min="0" max="100" value="${Math.round(RET.vol * 100)}" id="drv" style="flex:1"><span class="mono" id="drvv" style="width:38px;text-align:right">${Math.round(RET.vol * 100)}%</span></div>
-        <p class="note">來賓戴不戴耳機都可以；沒戴耳機時回傳音量不要開太大，避免回音。</p></div>`;
+        <p class="note">請來賓戴耳機，避免回授。</p></div>`;
     $$('[data-c]', d).forEach(b => b.onclick = () => copyText(outUrl(b.dataset.c), b.dataset.c === 'pgm' ? '已複製 PGM 輸出網址' : `已複製輸出 ${b.dataset.c} 網址`));
     $('#dsnap', d).onclick = () => snapshot('pgm'); renderDsk();
     $('#drs', d).value = RET.src; $('#drs', d).onchange = e => setReturn(e.target.value);
@@ -2254,6 +2313,7 @@ function Host(sess){
   }
   let lastTally = '', followArm = false;   // 只有導播自己切換時，字幕條才會跟著顯示
   function updateTally(){
+    try { opBroadcast(); } catch {}   // 遠端控盤的燈號跟著更新
     const live = new Set();
     if (SW.ftb < .99) {
       if (SW.pgm) live.add(SW.pgm);
@@ -2289,7 +2349,7 @@ function Host(sess){
     gateTick();
     // 虛擬來源（版面、圖卡）
     inputs.forEach(x => {
-      if (x.kind === 'layout') { const hot = x.tally !== 'off' || SW.pip.src === x.id || (x.slot && hasOut(x.slot)) || REC.has(x.id); if (hot || frameNo % (x.layout.type === 'vset' ? 15 : 3) === 0) renderLayout(x); }
+      if (x.kind === 'layout') { const hot = x.tally !== 'off' || SW.pip.src === x.id || (x.slot && hasOut(x.slot)) || REC.has(x.id) || x.layout.vs?.camT0 || AUX.some(a => a.pgm === x.id && needAux(a)); if (hot || frameNo % (x.layout.type === 'vset' ? 15 : 3) === 0) renderLayout(x); }
       else if (x.kind === 'image' && frameNo % 15 === 0) paintStill(x);
       if (x.isoGfx && x.isoX && ((x.slot && hasOut(x.slot)) || REC.has(x.id))) { drawSource(x.isoX, x, 0, 0, 1280, 720); drawLowerThird(x.isoX, 1280, 720, { l1: x.title.l1, l2: x.title.l2, style: OV.lt.style, pos: OV.lt.pos }, 1, 0); }
     });
@@ -2533,7 +2593,6 @@ function Host(sess){
     const pc = g.call?.peerConnection; if (!pc) return;
     const es = effRet(g), off = g.state.saver || g.state.hidden || es === 'none';
     const want = off ? retBlack : IFBG[g.ifb?.grp || 'A']?.src === 'default' ? retVideoTrack : (retTrackOf(es) || retBlack);
-    if (g.conn?.open && g.retShown !== !off) { g.retShown = !off; g.conn.send({ type: 'retshow', on: !off, src: es }); }   // 明確告訴來賓要不要顯示回傳畫面框（沒分享就不顯示）
     pc.getSenders().forEach(snd => {
       if (snd.track?.kind !== 'video') return;
       if (snd.track !== want) snd.replaceTrack(want).catch(() => {});
@@ -2966,7 +3025,7 @@ function Host(sess){
       <div class="wsec"><h4>斷線備援畫面</h4><div class="row"><canvas id="sslp" width="160" height="90" style="border-radius:4px;border:1px solid var(--line2)"></canvas>
         <div style="display:grid;gap:6px"><label class="btn sm">${ic('image')}上傳自訂圖卡<input type="file" accept="image/*" id="ssl" hidden></label>${SLATE.img ? '<button class="btn sm" id="sslx">恢復預設</button>' : ''}</div></div>
         <div class="note">來賓斷線時，節目畫面會自動換成這張圖卡，不會黑畫面；2 分鐘內重新連線會自動接回同一路。</div></div>
-      <div class="wsec"><h4>製播影像格式 · VIDEO FORMAT</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="row" style="margin-top:6px;flex-wrap:wrap"><span class="note" style="margin:0;width:90px">自訂寬 × 高</span><input class="field sm" id="scw" type="number" min="16" max="7680" step="1" value="${CANVAS.custom.w}" style="width:100px" aria-label="自訂畫布寬度"><span>×</span><input class="field sm" id="sch" type="number" min="16" max="4320" step="1" value="${CANVAS.custom.h}" style="width:100px" aria-label="自訂畫布高度"><button class="btn sm" id="scapply">套用自訂尺寸</button></div><div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">PGM 影格率</span><select class="field sm" id="sfps">${[24,25,30,50,60].map(f => `<option value="${f}" ${PGMFPS===f?'selected':''}>${f}p</option>`).join('')}</select></div><div class="note">PGM／CLEAN 可選預設或自訂尺寸（最高 7680×4320）。實際 FPS、錄影編碼與外部接收端能力取決於設備及瀏覽器；PVW、MULTIVIEW、ISO 可能使用不同規格。</div>
+      <div class="wsec"><h4>節目輸出</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="note">4K／2K 需要效能較好的電腦，畫面變卡時請調低。</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">主音量</span><input type="range" min="0" max="150" value="${Math.round(Number(store('wc_master') || 1) * 100)}" id="smv" style="flex:1"><label class="note" style="margin:0"><input type="checkbox" id="slm" ${limiterOn ? 'checked' : ''}> 限幅器（防爆音）</label></div></div>`;
     const B = w.body;
     $$('[data-tt]', B).forEach(b => b.onclick = () => { SW.type = b.dataset.tt; store('wc_trans', SW.type); $('#ttype').value = SW.type; renderTdir(); renderSet(); });
@@ -2978,9 +3037,7 @@ function Host(sess){
     const pc = $('#sslp', B).getContext('2d'); drawSlate(pc, 0, 0, 160, 90, null);
     $('#ssl', B).onchange = e => { const f = e.target.files[0]; if (!f) return; imageFileToDataUrl(f).then(u => { const im = new Image(); im.onload = () => { SLATE.img = im; renderSet(); }; im.src = u; try { store('wc_slate', u); } catch {} toast('斷線圖卡已更新'); }).catch(err => toast(err.message)); };
     const sx = $('#sslx', B); if (sx) sx.onclick = () => { SLATE.img = null; store('wc_slate', null); renderSet(); };
-    $('#spr', B).onchange = e => e.target.value==='custom' ? applyCustomCanvas($('#scw',B).value,$('#sch',B).value) : applyProductionResolution(e.target.value);
-    $('#scapply',B).onclick=()=>applyCustomCanvas($('#scw',B).value,$('#sch',B).value);
-    $('#sfps', B).onchange = e => { setPgmFps(+e.target.value); softRender('set'); };
+    $('#spr', B).onchange = e => { SW.res = e.target.value; store('wc_pgmres', SW.res); setPgmRes(SW.res); refreshSlot('pgm'); refreshSlot('clean'); $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`; };
     $('#smv', B).oninput = e => { const v = e.target.value / 100; store('wc_master', v); if (!PANIC) masterGain.gain.setTargetAtTime(v, ac.currentTime, .02); };
     $('#slm', B).onchange = e => { limiterOn = e.target.checked; store('wc_limit', limiterOn ? '1' : '0'); routeMaster(); };
   }
@@ -3043,7 +3100,7 @@ function Host(sess){
     $('[data-x]', el).onclick = () => closeGroup(fid);
     el.addEventListener('pointerdown', () => { focusWin(G); if (G.cur && WIN[G.cur]) WIN[G.cur].busy = true; });
     const hd = $('header', el); let drag = null;
-    hd.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; drag = { x: e.clientX - el.offsetLeft, y: e.clientY - el.offsetTop }; hd.setPointerCapture(e.pointerId); });
+    hd.addEventListener('pointerdown', e => { if (e.target.closest('button') || isMobile()) return; drag = { x: e.clientX - el.offsetLeft, y: e.clientY - el.offsetTop }; hd.setPointerCapture(e.pointerId); });
     hd.addEventListener('pointermove', e => { if (!drag) return; el.style.left = clamp(e.clientX - drag.x, 0, innerWidth - 80) + 'px'; el.style.top = clamp(e.clientY - drag.y, 0, innerHeight - 34) + 'px'; });
     hd.addEventListener('pointerup', () => { drag = null; saveWin(G); });
     new ResizeObserver(() => saveWin(G)).observe(el);
@@ -3068,6 +3125,7 @@ function Host(sess){
     const gid = GOF[id]; if (!gid || !WDEF[id]) return;
     const G = ensureGroup(gid), w = WIN[id];
     if (w.open && !force) { focusWin(G); return; }
+    if (isMobile()) Object.keys(GW).forEach(g => { if (g !== gid && GW[g].open) closeGroup(g); });   // 手機一次只開一個面板
     GROUPS[gid].tabs.forEach(t => { WIN[t].open = t === id; WIN[t].body.classList.toggle('hidden', t !== id); });
     G.open = true; G.cur = id; G.el.dataset.w = id; G.el.classList.remove('hidden'); focusWin(G); updTabs();
     keyEl(id)?.classList.add('on');
@@ -3085,7 +3143,7 @@ function Host(sess){
   }
   addEventListener('pointerup', () => setTimeout(() => Object.values(WIN).forEach(w => { w.busy = false; if (w.pending != null && w.open) { const p = w.pending; w.pending = null; softRender(w.id, p === '*' ? undefined : p); } }), 50), true);
   addEventListener('focusout', () => setTimeout(() => Object.values(WIN).forEach(w => { if (w.pending != null && w.open && !w.busy) { const p = w.pending; w.pending = null; softRender(w.id, p === '*' ? undefined : p); } }), 50), true);
-  function saveWin(w){ if (!w.open) return; store('wc_win_' + w.id, JSON.stringify({ x: w.el.offsetLeft, y: w.el.offsetTop, w: w.el.offsetWidth, h: w.el.offsetHeight })); }
+  function saveWin(w){ if (!w.open || isMobile()) return; store('wc_win_' + w.id, JSON.stringify({ x: w.el.offsetLeft, y: w.el.offsetTop, w: w.el.offsetWidth, h: w.el.offsetHeight })); }
   function closeGroup(gid){ const G = GW[gid]; if (!G) return; G.open = false; G.el.classList.add('hidden'); GROUPS[gid].tabs.forEach(t => { if (WIN[t]) WIN[t].open = false; }); $(`.key[data-win="${gid}"]`)?.classList.remove('on'); }
   function closeWin(id){ id = WALIAS[id] || id; if (GOF[id]) closeGroup(GOF[id]); }
   function focusWin(w){ $$('.win').forEach(x => x.classList.remove('focus')); w.el.classList.add('focus'); w.el.style.zIndex = ++zTop; }
@@ -3472,12 +3530,12 @@ function Host(sess){
         ${AUX.map(a => row('aux' + (a.i + 1), `AUX ${a.i + 1} · ${esc(a.name)}`, `${CANVAS[a.res]?.w || ''}×${CANVAS[a.res]?.h || ''} ${a.fps}p · ${{ src: '獨立切換', pgm: '跟 PGM', clean: '跟 CLEAN', pvw: '跟 PREVIEW', mv: 'MULTIVIEW' }[a.mode]}`)).join('')}</div>
       <div class="wsec"><h4>ISO 個別輸出（每路獨立） <span>${LINES} 路</span></h4>
         ${Array.from({ length: LINES }, (_, i) => { const s = i + 1, x = [...inputs.values()].find(v => v.slot === s); return `<div class="row" style="margin:3px 0"><span class="mono" style="width:44px">OUT ${s}</span><span class="grow" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${x ? 'var(--text)' : 'var(--mute)'}">${x ? esc(x.name) : '—'}${cnt(s) ? ` <span style="color:var(--pvw)">● OBS×${cnt(s)}</span>` : ''}</span>${asel(s)}<button class="btn sm" data-c="${s}">${ic('link')}</button></div>`; }).join('')}</div>
-      <div class="note">OBS → 新增「瀏覽器來源」→ 貼上網址 → 寬 ${pgmCanvas.width}、高 ${pgmCanvas.height}（PGM；ISO 依來源設定）→ 勾選「透過 OBS 控制音訊」。PROGRAM 是切換台的節目畫面；ISO 是單一來賓的乾淨畫面。網址後面加 <span class="mono">&bg=000000</span> 黑底、<span class="mono">&fit=cover</span> 填滿。</div>`;
+      <div class="note">OBS → 新增「瀏覽器來源」→ 貼上網址 → 寬 1920、高 1080 → 勾選「透過 OBS 控制音訊」。PROGRAM 是切換台的節目畫面；ISO 是單一來賓的乾淨畫面。網址後面加 <span class="mono">&bg=000000</span> 黑底、<span class="mono">&fit=cover</span> 填滿。</div>`;
     $$('[data-c]', w.body).forEach(b => b.onclick = () => copyText(outUrl(b.dataset.c), '已複製輸出網址'));
     $$('[data-oa]', w.body).forEach(x => x.onchange = () => setOutAud(/^\d+$/.test(x.dataset.oa) ? +x.dataset.oa : x.dataset.oa, x.value));
     $('#pfps', w.body).onchange = e => setPgmFps(+e.target.value);
     $('#oaux', w.body).onclick = () => openWin('aux');
-    $('#pr', w.body).onchange = e => applyProductionResolution(e.target.value);
+    $('#pr', w.body).onchange = e => { SW.res = e.target.value; store('wc_pgmres', SW.res); setPgmRes(SW.res); refreshSlot('pgm'); refreshSlot('clean'); $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`; };
   }
   function renderSrc(){
     const w = WIN.src; if (!w?.open) return;
@@ -3539,46 +3597,6 @@ function Host(sess){
     $('#sim', w.body).onchange = e => { [...e.target.files].forEach(addImage); e.target.value = ''; };
     $('#smd', w.body).onchange = e => { [...e.target.files].forEach(addMedia); e.target.value = ''; };
   }
-  /* 內建設定：自訂快捷鍵與 Web MIDI。無浮動按鈕。 */
-  const WC_ACTIONS = {CUT:'Space',AUTO:'Enter',MIX:'KeyX',QA:'KeyQ',KEYS:'KeyK',RECORD:'Shift+KeyR'};
-  const WC_LABELS = {CUT:'CUT 切換',AUTO:'AUTO 轉場',MIX:'開啟混音台',QA:'開啟舉手／投票',KEYS:'快捷鍵設定',RECORD:'錄影開始／停止'};
-  const WC_STORE = 'webcall_custom_keys_v5', WC_MIDI_STORE = 'webcall_midi_v5';
-  let wcCustom = {}, wcMidiMap = {}, wcMidiAccess = null, wcMidiLearn = '', wcMidiEnabled = false;
-  try { wcCustom = JSON.parse(localStorage.getItem(WC_STORE)||'{}'); } catch {}
-  try { wcMidiMap = JSON.parse(localStorage.getItem(WC_MIDI_STORE)||'{}'); } catch {}
-  const wcCombo = e => (e.ctrlKey?'Ctrl+':'')+(e.altKey?'Alt+':'')+(e.shiftKey?'Shift+':'')+e.code;
-  const wcRun = action => {
-    if (ROLE.local === 'view') return;
-    if (ROLE.local === 'aud' && !['MIX','KEYS'].includes(action)) return;
-    if (action==='CUT') doCut();
-    else if (action==='AUTO') doAuto();
-    else if (action==='MIX') toggleWin('mix');
-    else if (action==='QA') toggleWin('qa');
-    else if (action==='KEYS') toggleWin('keys');
-    else if (action==='RECORD') toggleRec();
-  };
-  addEventListener('keydown', e => {
-    if (e.repeat || e.isComposing || e.target?.closest?.('input,textarea,select,[contenteditable]')) return;
-    const hit=Object.keys(wcCustom).find(k=>wcCustom[k]===wcCombo(e));
-    if(!hit)return;
-    e.preventDefault();e.stopImmediatePropagation();wcRun(hit);
-  },true);
-  function wcMidiMessage(e){
-    if(!wcMidiEnabled)return;
-    const d=Array.from(e.data||[]),type=(d[0]||0)&0xf0;
-    if(![0x90,0xb0].includes(type)||d.length<3||(type===0x90&&d[2]===0))return;
-    const key=[e.currentTarget.id,d[0],d[1]].join('|');
-    if(wcMidiLearn){wcMidiMap[wcMidiLearn]=key;localStorage.setItem(WC_MIDI_STORE,JSON.stringify(wcMidiMap));wcMidiLearn='';renderKeys();return;}
-    const action=Object.keys(wcMidiMap).find(a=>wcMidiMap[a]===key);
-    if(action)wcRun(action);
-  }
-  function wcBindMidi(){if(!wcMidiAccess)return;wcMidiAccess.inputs.forEach(i=>i.onmidimessage=wcMidiMessage);const status=$('#wc-midi-status',WIN.keys?.body);if(status)status.textContent=`已偵測 ${wcMidiAccess.inputs.size} 個 MIDI 輸入`;}
-  async function wcConnectMidi(){
-    const status=$('#wc-midi-status',WIN.keys?.body);
-    if(!navigator.requestMIDIAccess){if(status)status.textContent='目前瀏覽器不支援 Web MIDI';return;}
-    try{wcMidiAccess=await navigator.requestMIDIAccess({sysex:false});wcMidiEnabled=true;wcMidiAccess.onstatechange=wcBindMidi;wcBindMidi();}
-    catch(err){if(status)status.textContent='無法使用 MIDI：'+err.message;}
-  }
   function renderKeys(){
     const w = WIN.keys; if (!w?.open) return;
     const K = (k, d) => `<tr><td>${k.split(' ').map(x => `<span class="kbd">${x}</span>`).join(' ')}</td><td>${d}</td></tr>`;
@@ -3589,30 +3607,7 @@ function Host(sess){
       ${K('T', '按住：對 PREVIEW（或選取）的來賓說話')}${K('A', '按住：群發給所有來賓')}
       ${K('M', 'PREVIEW 那一路靜音／取消')}${K('L', 'PREVIEW 那一路 PFL 監聽')}${K('G', 'PREVIEW 那一路對齊線（導播端）')}
       ${K('I', 'INTERCOM 對講台')}${K('N', 'MESSAGE 訊息')}${K('X', 'MIXER 混音')}${K('C', 'CONTROL 遠端控制')}${K('Q', 'Q&A 舉手／投票')}${K('R', 'RETURN 回傳')}${K('O', 'OUTPUT 輸出')}${K('S', 'SOURCE 本機來源')}${K('K', '這個說明')}${K('Esc', '關閉最上層視窗')}
-    </table><div class="note">在輸入框打字時快捷鍵不會作用。</div>
-    <h3 style="margin:14px 0 8px">自訂快捷鍵</h3>
-    <div class="note">點「設定」，再按鍵盤組合鍵。避免使用瀏覽器或作業系統保留的快捷鍵。</div>
-    <div id="wc-shortcuts">${Object.entries(WC_ACTIONS).map(([a,def])=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="flex:1">${WC_LABELS[a]}</span><code>${wcCustom[a]||def}</code><button class="btn sm" data-wc-bind="${a}">設定</button><button class="btn sm" data-wc-reset="${a}">重設</button></div>`).join('')}</div>
-    <h3 style="margin:16px 0 8px">實體控制器</h3>
-    <div class="note">直接使用電腦已辨識、且可提供 MIDI 訊息的控制器。設備存取需經瀏覽器授權；部分設備只提供音訊驅動而沒有可讀取的控制訊息。</div>
-    <button class="btn sm" id="wc-midi-connect">連接 MIDI 設備</button>
-    <button class="btn sm" id="wc-midi-disable">停用</button>
-    <div id="wc-midi-status" class="note">${wcMidiEnabled?'已啟用':'尚未連接'}</div>
-    <div>${Object.entries(WC_LABELS).map(([a,label])=>`<button class="btn sm" style="margin:4px" data-wc-midi="${a}">學習 ${label}</button>`).join('')}</div>`;
-    w.body.querySelectorAll('[data-wc-bind]').forEach(b=>b.onclick=()=>{
-      const action=b.dataset.wcBind;const code=b.previousElementSibling;code.textContent='請按快捷鍵…';
-      const capture=e=>{e.preventDefault();e.stopImmediatePropagation();
-        if(['Shift','Control','Alt','Meta'].includes(e.key))return;
-        if(e.code==='Escape'){window.removeEventListener('keydown',capture,true);renderKeys();return;}
-        const combo=wcCombo(e);if(Object.values(wcCustom).includes(combo)){code.textContent='此組合已被使用';window.removeEventListener('keydown',capture,true);return;}
-        wcCustom[action]=combo;localStorage.setItem(WC_STORE,JSON.stringify(wcCustom));window.removeEventListener('keydown',capture,true);renderKeys();
-      };window.addEventListener('keydown',capture,true);
-    });
-    w.body.querySelectorAll('[data-wc-reset]').forEach(b=>b.onclick=()=>{delete wcCustom[b.dataset.wcReset];localStorage.setItem(WC_STORE,JSON.stringify(wcCustom));renderKeys();});
-    $('#wc-midi-connect',w.body).onclick=wcConnectMidi;
-    $('#wc-midi-disable',w.body).onclick=()=>{wcMidiEnabled=false;wcMidiLearn='';$('#wc-midi-status',w.body).textContent='已停用';};
-    w.body.querySelectorAll('[data-wc-midi]').forEach(b=>b.onclick=()=>{wcMidiLearn=b.dataset.wcMidi;$('#wc-midi-status',w.body).textContent='請按下實體設備上要對應的按鍵：'+WC_LABELS[wcMidiLearn];});
-    if(wcMidiEnabled)wcBindMidi();
+    </table><div class="note">在輸入框打字時快捷鍵不會作用。</div>`;
   }
 
   /* =============== 鍵盤快捷鍵 =============== */
@@ -3700,7 +3695,7 @@ function Host(sess){
   const invite_open = () => inviteModal();
   async function changeInvite(inv){
     invite = normInvite(inv); roomKey = await inviteKey(invite);
-    guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1&v=${BUILD}`;
+    guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1`;
     outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
     sess.invite = invite; sess.key = roomKey; sstore('wc_host', JSON.stringify(sess));
     $('#invc').textContent = invite;
@@ -3758,7 +3753,7 @@ function Host(sess){
       } else if (g.lost) toast(`✅「${g.name}」重新連線`);
       g.peer = conn.peer; g.conn = conn;
       conn.on('open', () => {
-        conn.send({ type: 'hello', lines: LINES, ...g.ctl }); conn.send({ type: 'tally', state: g.tally }); g.retShown = undefined; setTimeout(() => tuneReturn(g), 1000); if (g.talk || IC.all) conn.send({ type: 'ic', talk: true });
+        conn.send({ type: 'hello', lines: LINES, ...g.ctl }); conn.send({ type: 'tally', state: g.tally }); if (g.talk || IC.all) conn.send({ type: 'ic', talk: true });
         if (parent && !g._muted2) { g._muted2 = true; remote(g, { pgmMic: false }); }   // 第二機位預設不收音，避免兩支手機的聲音重疊
         if (g.ccOn) conn.send({ type: 'ctl', cc: true });
         renderAll();
@@ -3931,7 +3926,7 @@ function Host(sess){
    * =================================================================================== */
   // ---------- 權限（這台導播台的角色；遠端操作員另外用連結驗證） ----------
   const ROLE = { local: 'dir', bypass: false };
-  const ROLE_NAME = { dir: '導播', aud: '音控', view: '監看員' };
+  const ROLE_NAME = { dir: '導播控盤', aud: '音控', view: '監看員' };
   function canSw(){ return ROLE.local === 'dir' || ROLE.bypass; }
   function canAud(){ return ROLE.local !== 'view' || ROLE.bypass; }
   function roleDeny(){ toast(ROLE.local === 'aud' ? '目前是「音控」權限：只能調整聲音，不能切換畫面' : '目前是「監看員」權限：只能看畫面'); }
@@ -4263,7 +4258,7 @@ function Host(sess){
   function toCustom(L){
     if (L.type === 'custom' && L.boxes) return;
     const W = 1280, H = 720, bx = layoutBoxes(L.type, W, H, L.type === 'pipL' ? 0 : W * L.gap);
-    L.boxes = bx.map(([x, y, w, h], i) => ({ x: x / W, y: y / H, w: w / W, h: h / H, src: L.srcs[i] || null, fit: 'contain', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: L.type === 'pipL' ? i > 0 : !!L.border, label: !!L.labels && L.type !== 'pipL' }));
+    L.boxes = bx.map(([x, y, w, h], i) => ({ x: x / W, y: y / H, w: w / W, h: h / H, src: L.srcs[i] || null, fit: 'cover', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: L.type === 'pipL' ? i > 0 : !!L.border, label: !!L.labels && L.type !== 'pipL' }));
     L.type = 'custom'; syncLayoutSrcs(L);
   }
   function renderCustomLayout(x, g, W, H){
@@ -4271,13 +4266,13 @@ function Host(sess){
     (L.boxes || []).forEach((b, i) => {
       const bx = b.x * W, by = b.y * H, bw = b.w * W, bh = b.h * H, src = inputs.get(b.src);
       if (bw < 2 || bh < 2) return;
-      if (src && src !== x && src.kind !== 'layout') drawSource(g, src, bx, by, bw, bh, { ...(b.fit === 'src' ? {} : { fit: b.fit || 'contain' }), bcl: b.bcl || 0, bcr: b.bcr || 0, bct: b.bct || 0, bcb: b.bcb || 0 });
+      if (src && src !== x && src.kind !== 'layout') drawSource(g, src, bx, by, bw, bh, { ...(b.fit === 'src' ? {} : { fit: b.fit || 'cover' }), bcl: b.bcl || 0, bcr: b.bcr || 0, bct: b.bct || 0, bcb: b.bcb || 0 });
       else { g.fillStyle = '#000a'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#5c6574'; g.font = `600 ${Math.max(12, bh * .08)}px ${FONT}`; g.textAlign = 'center'; g.fillText(`框 ${i + 1}`, bx + bw / 2, by + bh / 2); g.textAlign = 'left'; }
       if (b.border) { g.strokeStyle = L.borderColor || '#fff'; g.lineWidth = 3; g.strokeRect(bx + 1.5, by + 1.5, bw - 3, bh - 3); }
       if (b.label && src) { const t = src.title?.l1 || src.name; g.font = `700 ${Math.max(14, bh * .055)}px ${FONT}`; const tw = g.measureText(t).width; g.fillStyle = '#d4101fe6'; g.fillRect(bx, by + bh - bh * .1, tw + 24, bh * .1); g.fillStyle = '#fff'; g.fillText(t, bx + 12, by + bh - bh * .028); }
     });
   }
-  const layBox = () => ({ x: .3, y: .3, w: .4, h: .4, src: null, fit: 'contain', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: true, label: false });
+  const layBox = () => ({ x: .3, y: .3, w: .4, h: .4, src: null, fit: 'cover', bcl: 0, bcr: 0, bct: 0, bcb: 0, border: true, label: false });
   function layEditor(inp){
     const L = inp.layout; toCustom(L);
     let sel = 0;
@@ -4653,12 +4648,14 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   // ---------- 多操作員：導播（可切換）／音控（只能調聲音）／監看員（唯讀） ----------
   const OPS = new Set();
   const OPTOK = (() => { const k = 'wc_optok'; let t = null; try { t = JSON.parse(sstore(k) || 'null'); } catch {} if (!t?.dir) { t = { dir: rnd(14), aud: rnd(14), view: rnd(14) }; sstore(k, JSON.stringify(t)); } return t; })();
-  const opUrl = r => `${shareBase()}?mode=op&o=${roomKey}&r=${r}&t=${OPTOK[r]}`;
+  const opUrl = (r, mod) => `${shareBase()}?mode=op&o=${roomKey}&r=${r}&t=${OPTOK[r]}${mod ? '&mod=' + mod : ''}`;
+  // 多台平板／手機分工：每一台負責一個模組（權限用最低需要的那一種）
+  const OPMODS = [['sw', 'dir', '切換控盤', 'PROGRAM／PREVIEW、CUT／AUTO、T-Bar、轉場'], ['dsk', 'dir', '圖層控盤', '字幕條、跑馬燈、突發、台標、CC、圖庫'], ['aux', 'dir', 'AUX 控盤', '4 條 AUX 同時操作'], ['scene', 'dir', '場景控盤', 'F1～F12 大按鈕'], ['audio', 'aud', '音控台', '推桿、MUTE、SOLO、母線、延遲'], ['tally', 'view', '燈號（Tally）', '給攝影師：整個螢幕紅＝ON AIR、綠＝PREVIEW'], ['clock', 'view', '時鐘', '現在時間、節目計時、ON AIR'], ['status,mon', 'view', '監看螢幕', 'MULTIVIEW／PGM 大畫面']];
   function acceptOp(conn, md){
     const r = ['dir', 'aud', 'view'].find(k => k === md.r && String(md.t || '') === OPTOK[k]);
     const go = () => {
       if (!r) { conn.send({ type: 'deny', error: '操作員連結無效或已經更換，請跟導播要新的連結' }); setTimeout(() => conn.close(), 400); return; }
-      const o = { conn, r, name: String(md.name || '操作員').slice(0, 20), calls: new Map(), t: Date.now() }; OPS.add(o);
+      const o = { conn, r, name: String(md.name || '操作員').slice(0, 20), mods: String(md.mods || '').slice(0, 60), calls: new Map(), t: Date.now() }; OPS.add(o);
       conn.send({ type: 'opHello', role: r, label: info.label || '', director: info.me?.name || '' }); opSend(o);
       conn.on('data', d => onOpData(o, d));
       conn.on('close', () => { OPS.delete(o); o.calls.forEach(c => { try { c.close(); } catch {} }); softRender('ops'); });
@@ -4668,12 +4665,17 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   }
   const opState = () => ({ type: 'opState', sw: UI.sw, pgm: SW.pgm, pvw: SW.pvw, ftb: SW.ftbOn, trans: SW.type,
     inputs: order.map(id => { const x = inputs.get(id); return { id, n: numOf(x), name: x.name, kind: x.kind, tally: x.tally, fader: x.fader, mute: x.mute, solo: !!x.solo, afv: x.afv !== false, bus: x.bus, dly: x.dly || 0, lost: !!x.lost }; }),
+    ptm: $('#ptmv')?.textContent || '', tpos: SW.tpos, base: SW.base, dur: SW.dur, anim: !!SW.anim, ptr: !!SW.prevTrans, pip: !!SW.pip.on, rec: REC.size > 0, ver: WC_VER,
+    scenes: PRESETS.map(P => P ? P.name : null),
     aux: AUX.map(a => ({ name: a.name, mode: a.mode, pgm: a.pgm, pvw: a.pvw })), stills: STILLS.map(x => ({ n: x.slot, name: x.name, has: !!x.img, on: x.on })), ov: Object.fromEntries(OVK.map(k => [k, OV[k].on])) });
   function opSend(o){ try { o.conn.open && o.conn.send(opState()); } catch {} }
   let opBT = 0; function opBroadcast(){ if (!OPS.size) return; clearTimeout(opBT); opBT = setTimeout(() => OPS.forEach(opSend), 60); }
   setInterval(() => { if (ended || !OPS.size) return; OPS.forEach(opSend); }, 1000);
+  let OPT_LAST = '';
   setInterval(() => {   // 音量表 10 次／秒
     if (ended || !OPS.size) return;
+    const tk = SW.tpos.toFixed(3) + SW.base + (SW.anim ? 1 : 0) + SW.ftb.toFixed(2);
+    if (tk !== OPT_LAST) { OPT_LAST = tk; const q = { type: 'opT', tpos: SW.tpos, base: SW.base, anim: !!SW.anim, ftb: SW.ftb, pgm: SW.pgm, pvw: SW.pvw }; OPS.forEach(o => { if (o.r === 'dir') try { o.conn.open && o.conn.send(q); } catch {} }); }
     const p = { type: 'opLv', pgm: Math.round(LV.pgm.v), aux: LV.aux.map(x => Math.round(x.v)), in: Object.fromEntries(order.map(id => [id, Math.round(LV.in[id]?.v ?? -90)])) };
     OPS.forEach(o => { if (o.r !== 'view') try { o.conn.open && o.conn.send(p); } catch {} });
   }, 100);
@@ -4687,7 +4689,8 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       const c = peer.call(o.conn.peer, st, { metadata: { role: 'mfeed', what } }); c.on('error', () => {}); o.calls.set(what, c);
       setTimeout(() => setBitrate(c.peerConnection, what === 'mv' ? 2500 : 3500), 1500); return;
     }
-    const AUDK = ['fader', 'mute', 'solo', 'afv', 'bus', 'dly', 'asnap'], SWK = ['pvw', 'cut', 'auto', 'ftb', 'take', 'auxpvw', 'auxtake', 'ov', 'still', 'scene', 'laytake'];
+    if (d.type === 'mods') { o.mods = String(d.v || '').slice(0, 60); softRender('ops'); return; }
+    const AUDK = ['fader', 'mute', 'solo', 'afv', 'bus', 'dly', 'asnap'], SWK = ['pvw', 'cut', 'auto', 'ftb', 'take', 'auxpvw', 'auxtake', 'ov', 'still', 'scene', 'laytake', 'tbar', 'trans', 'ptr', 'swmode'];
     if (AUDK.includes(d.type) && o.r === 'view') return o.conn.send({ type: 'deny2', error: '監看員只能看畫面' });
     if (SWK.includes(d.type) && o.r !== 'dir') return o.conn.send({ type: 'deny2', error: o.r === 'aud' ? '音控不能切換畫面' : '監看員只能看畫面' });
     const x = inputs.get(d.id);
@@ -4702,7 +4705,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         case 'bus': if (x) { if (d.k === 'pgm') x.bus.pgm = !!d.v; else if (d.k === 'ifb' && ['auto', 'on', 'off'].includes(d.v)) x.bus.ifb = d.v; else if (/^aux\d$/.test(d.k) && ['off', 'on', 'afv'].includes(d.v)) { x.bus.aux[+d.k[3] - 1] = d.v; (x._ac || [])[+d.k[3] - 1] = -1; } applyGains(x); mixLater(); } break;
         case 'asnap': { const P = ASNAP.list[+d.i]; if (P) applyAudio(P.data); break; }
         case 'pvw': if (x || d.id === null) setPvw(d.id || null); break;
-        case 'take': if (x) { if (UI.sw) cutTo(d.id); else setManual(x, 'live'); } break;
+        case 'take': if (x) { if (UI.sw) cutTo(d.id); else setManual(x, 'live'); } else if (d.id === null && UI.sw) cutTo(null); break;
         case 'cut': doCut(); break;
         case 'auto': doAuto(); break;
         case 'ftb': if (UI.sw) $('#ftb').click(); break;
@@ -4711,25 +4714,40 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         case 'ov': if (OVK.includes(d.k)) toggleOV(d.k); break;
         case 'still': toggleStill(+d.n); break;
         case 'scene': recallPreset(+d.i, !!d.auto); break;
+        case 'tbar': {   // 遠端 T-Bar：v＝把手位置 0～1
+          if (!UI.sw) { o.conn.send({ type: 'deny2', error: '導播台目前是簡易模式，T-Bar 不能用（用 CUT／AUTO）' }); break; }
+          if (!SW.pvw) { o.conn.send({ type: 'deny2', error: 'PREVIEW 沒有畫面' }); break; }
+          if (SW.type === 'stinger' || SW.type === 'cut') { o.conn.send({ type: 'deny2', error: '這個轉場只能用 AUTO' }); break; }
+          SW.anim = null; setTpos(+d.v || 0); break; }
+        case 'trans': if (d.k && TRANS.some(t => t[0] === d.k)) { $('#ttype').value = d.k; $('#ttype').dispatchEvent(new Event('change')); }
+          if (+d.dur >= 100 && +d.dur <= 5000) { SW.dur = +d.dur; store('wc_dur', SW.dur); const td = $('#tdur'); if (![...td.options].some(x => +x.value === SW.dur)) td.insertAdjacentHTML('beforeend', `<option value="${SW.dur}">${SW.dur / 1000}s</option>`); td.value = SW.dur; } break;
+        case 'ptr': if (UI.sw) setPrevTrans(!SW.prevTrans); break;
+        case 'swmode': if (!!d.v !== UI.sw) setSwMode(!!d.v); break;
       }
-      if (['pvw', 'take', 'cut', 'auto', 'ftb', 'auxtake', 'ov', 'still', 'scene'].includes(d.type)) toast(`👤 ${ROLE_NAME[o.r]}「${o.name}」：${{ pvw: 'PVW', take: 'TAKE', cut: 'CUT', auto: 'AUTO', ftb: 'FTB', auxtake: 'AUX TAKE', ov: '圖層', still: '圖庫', scene: '場景' }[d.type]}`);
+      if (['take', 'cut', 'auto', 'ftb', 'auxtake', 'scene'].includes(d.type)) toast(`👤 ${ROLE_NAME[o.r]}「${o.name}」：${{ pvw: 'PVW', take: 'TAKE', cut: 'CUT', auto: 'AUTO', ftb: 'FTB', auxtake: 'AUX TAKE', ov: '圖層', still: '圖庫', scene: '場景' }[d.type]}`);
     } finally { ROLE.bypass = false; }
     opBroadcast();
   }
   function renderOps(){
     const w = WIN.ops; if (!w?.open) return;
-    const desc = { dir: '可以切換 PVW／PGM、CUT／AUTO、AUX TAKE、圖層、場景，也能調聲音', aud: '只能調推桿、MUTE、SOLO、AFV、母線分配、延遲、音頻快照；可以看 PGM 並聽節目聲音', view: '唯讀：只能看 MULTIVIEW／PGM／PVW／AUX，不能操作任何參數' };
+    const desc = { dir: '專業切換控盤：PROGRAM／PREVIEW 鍵列、CUT／AUTO、觸控 T-Bar、轉場、FTB、圖層、AUX、場景，適合平板或手機放在桌上當硬體控盤', aud: '只能調推桿、MUTE、SOLO、AFV、母線分配、延遲、音頻快照；可以看 PGM 並聽節目聲音', view: '唯讀：只能看 MULTIVIEW／PGM／PVW／AUX，不能操作任何參數' };
     w.body.innerHTML = `<div class="wsec"><h4>這台導播台的權限（防誤觸鎖定）</h4><div class="row">${['dir', 'aud', 'view'].map(r => `<button class="btn sm grow ${ROLE.local === r ? 'on' : ''}" data-lr="${r}">${ROLE_NAME[r]}</button>`).join('')}</div>
         <div class="note">${esc(desc[ROLE.local])}。例如導播暫時離開位置、交給音控同事時，鎖成「音控」就不會誤切畫面。</div></div>
       <div class="wsec"><h4>遠端操作員連結 <span>對方用瀏覽器打開即可，不用帳號</span></h4>
+        <div class="note" style="margin:0 0 6px">📱 平板／手機當切換控盤：用平板掃「導播控盤」的 QR，橫放就是一台控盤（PROGRAM／PREVIEW 鍵列、觸控 T-Bar、CUT／AUTO、轉場、FTB、圖層、AUX、場景）。建議按「全螢幕」並把平板接上電源；控盤會讓螢幕保持亮著。</div>
         ${['dir', 'aud', 'view'].map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><span class="note" style="margin:0">${esc(desc[r])}</span><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button></div></div>`).join('')}
         <div class="row" style="margin-top:6px"><button class="btn sm danger" id="oprst">更換所有連結（踢掉目前的操作員）</button></div>
         <div class="note">連結只有這次導播有效；重新開導播台或更換邀請代碼後，請重新複製。請只給信任的同事。</div></div>
-      <div class="wsec"><h4>目前連線的操作員 <span>${OPS.size} 位</span></h4>${[...OPS].map(o => `<div class="row" style="margin:3px 0"><span class="tag ${o.r === 'dir' ? 'live' : o.r === 'aud' ? 'pvwt' : 'info'}">${ROLE_NAME[o.r]}</span><span class="grow">${esc(o.name)} <span class="note" style="margin:0">${fmtTime(o.t)} 連線${o.calls.size ? ' · 看 ' + [...o.calls.keys()].join(',').toUpperCase() : ''}</span></span><button class="btn sm danger" data-ok="${o.t}">中斷</button></div>`).join('') || '<div class="note">沒有</div>'}</div>`;
+      <div class="wsec"><h4>多台平板／手機分工 <span>一台負責一個功能</span></h4>
+        ${OPMODS.map(([m, r, n, d], i) => `<div class="row" style="margin:3px 0;flex-wrap:wrap"><b style="width:110px">${n}</b><span class="note grow" style="margin:0">${esc(d)}</span><button class="btn sm" data-mu="${i}">${ic('copy')}連結</button><button class="btn sm" data-mq="${i}">QR</button></div>`).join('')}
+        <div class="note">每一台打開後也可以按上方「模組」自己改成別的功能，或一台同時顯示好幾個（例如平板同時放切換＋圖層）。燈號、時鐘、監看用的是唯讀權限，就算被誤觸也不會影響節目。</div></div>
+      <div class="wsec"><h4>目前連線的操作員 <span>${OPS.size} 位</span></h4>${[...OPS].map(o => `<div class="row" style="margin:3px 0"><span class="tag ${o.r === 'dir' ? 'live' : o.r === 'aud' ? 'pvwt' : 'info'}">${ROLE_NAME[o.r]}</span><span class="grow">${esc(o.name)} <span class="note" style="margin:0">${o.mods ? esc(o.mods.split(',').map(k => ({ sw: '切換', dsk: '圖層', aux: 'AUX', scene: '場景', audio: '音控', tally: '燈號', clock: '時鐘', status: '狀態', mon: '監看', list: '清單' })[k] || k).join('＋')) + ' · ' : ''}${fmtTime(o.t)} 連線${o.calls.size ? ' · 看 ' + [...o.calls.keys()].join(',').toUpperCase() : ''}</span></span><button class="btn sm danger" data-ok="${o.t}">中斷</button></div>`).join('') || '<div class="note">沒有</div>'}</div>`;
     const B = w.body;
     $$('[data-lr]', B).forEach(b => b.onclick = () => setLocalRole(b.dataset.lr));
     $$('[data-ou]', B).forEach(b => b.onclick = () => copyText(opUrl(b.dataset.ou), `已複製${ROLE_NAME[b.dataset.ou]}連結`));
     $$('[data-oq]', B).forEach(b => b.onclick = () => uiModal(`<h2>${ROLE_NAME[b.dataset.oq]}連結</h2><div class="qr" id="opqr" style="justify-self:center"></div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m => qr($('#opqr', m), opUrl(b.dataset.oq), 220)));
+    $$('[data-mu]', B).forEach(b => b.onclick = () => { const [m, r, n] = OPMODS[+b.dataset.mu]; copyText(opUrl(r, m), `已複製「${n}」連結`); });
+    $$('[data-mq]', B).forEach(b => b.onclick = () => { const [m, r, n] = OPMODS[+b.dataset.mq]; uiModal(`<h2>${n}</h2><div class="qr" id="opqr" style="justify-self:center"></div><div class="note" style="text-align:center">用平板或手機掃描</div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m2 => qr($('#opqr', m2), opUrl(r, m), 240)); });
     $('#oprst', B).onclick = async () => { if (!(await uiConfirm('更換操作員連結', '目前連線的操作員都會被中斷，舊連結會失效。', '更換'))) return; ['dir', 'aud', 'view'].forEach(k => OPTOK[k] = rnd(14)); sstore('wc_optok', JSON.stringify(OPTOK)); OPS.forEach(o => { try { o.conn.send({ type: 'deny', error: '導播已更換操作員連結' }); o.conn.close(); } catch {} }); renderOps(); };
     $$('[data-ok]', B).forEach(b => b.onclick = () => { const o = [...OPS].find(x => String(x.t) === b.dataset.ok); if (o) { try { o.conn.send({ type: 'deny', error: '導播中斷了你的連線' }); o.conn.close(); } catch {} } });
   }
@@ -5083,7 +5101,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
-  window.__host = { audLevels: () => ({ pgm: pgmMeter(), mon: monMeter(), ic: icMeterAll() }), applyGains, OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite, AUX, AUXB, STILLS, STREAMS, OPS, OPTOK, opUrl, IFBG, LAYLIB, LV, ROLE, setLocalRole, auxTake, auxPvw, setSolo, captureAudio, applyAudio, ASNAP, addLoop, addWhep, layEditor, applyLayLib, takeLayout, toCustom, setStillFile, toggleStill, sendCue, setIfbGroup, setPgmFps, setAuxFmt, whipStart, whipStop, rebuildReturn, effRet, keyFrame, addVset, vsetEditor, vsSetCam, cam, earOf, saveEar, G3, autoKeyColor, renderLayout, get PGMFPS(){ return PGMFPS; }, get frameNo(){ return frameNo; } };
+  window.__host = { audLevels: () => ({ pgm: pgmMeter(), mon: monMeter(), ic: icMeterAll() }), applyGains, OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite, AUX, AUXB, STILLS, STREAMS, OPS, OPTOK, opUrl, IFBG, LAYLIB, LV, ROLE, setLocalRole, auxTake, auxPvw, setSolo, captureAudio, applyAudio, ASNAP, addLoop, addWhep, layEditor, applyLayLib, takeLayout, toCustom, setStillFile, toggleStill, sendCue, setIfbGroup, setPgmFps, setAuxFmt, whipStart, whipStop, rebuildReturn, effRet, keyFrame, updateTally, cutTo, addVset, vsetEditor, vsSetCam, cam, earOf, saveEar, G3, autoKeyColor, renderLayout, get PGMFPS(){ return PGMFPS; }, get frameNo(){ return frameNo; } };
 }
 /* ===================== 來賓 ===================== */
 function Guest(){
@@ -5101,13 +5119,9 @@ async function GuestGate(inv, k, ended){
   app.innerHTML = `<div class="closedv"><div>${brand()}<div class="spin"></div><p style="margin-top:14px">確認房間狀態…</p></div></div>`;
   // 不等後端：0.8 秒內確認不了就先進畫面，背景繼續檢查；確認房間沒開而且還沒加入才擋下來
   let r = ended ? { open: false } : await Promise.race([roomOpen(k), new Promise(res => setTimeout(() => res({ open: true, slow: true }), 800))]);
-  if (r.status === 'DELETED') {
-    app.innerHTML = `<div class="closedv"><div style="max-width:420px">${brand()}<div style="font-size:46px;margin-top:20px">⛔</div><h1>導播台已刪除</h1><p>此視訊連線所屬的導播台已被管理員刪除，無法繼續使用。</p><p>請聯絡導播或管理員，取得新的有效連線。</p></div></div>`;
-    return;
-  }
   if (r.open) {
     GuestMain(inv, k);
-    if (r.slow) roomOpen(k).then(x => { if ((!x.open && !x.unknown && !window.__gJoined) || x.status === 'DELETED') GuestGate(inv, k); });
+    if (r.slow) roomOpen(k).then(x => { if (!x.open && !x.unknown && !window.__gJoined) GuestGate(inv, k); });
     return;
   }
   const paint = () => { app.innerHTML = `<div class="closedv"><div style="max-width:360px">${brand()}
@@ -5117,7 +5131,7 @@ async function GuestGate(inv, k, ended){
     ${ended ? '' : '<div class="spin"></div>'}</div></div>`; };
   paint();
   if (ended) return;
-  const t = setInterval(async () => { r = await roomOpen(k); if (r.status === 'DELETED') { clearInterval(t); GuestGate(inv, k); } else if (r.open) { clearInterval(t); GuestMain(inv, k); } }, 6000);
+  const t = setInterval(async () => { r = await roomOpen(k); if (r.open) { clearInterval(t); GuestMain(inv, k); } }, 6000);
 }
 // 來賓輸入邀請代碼
 function GuestCode(err){
@@ -5137,43 +5151,18 @@ function GuestMain(inv, roomKey){
   // 省電模式：畫質最高 480p、每秒 20 張、不接收回傳畫面（只聽聲音）、背景處理降到最低
   let saver = store('wc_saver') === '1', saverAsked = false;
   let icMutesPgm = store('wc_icmute') !== '0', monMedia = false, retMute = false;
-  // 聲音：同一支麥克風用 Web Audio 分成「節目」「對講」兩路，各自用音量開關。
-  // 不去關麥克風本身：iOS 上關掉其中一條（或用複製的麥克風）常常讓對講送不出聲音，只有戴耳機時才正常。
-  let AUD = null, rawMode = true;
-  function wireMic(){
-    const ac = audioCtx();
-    if (!AUD) {
-      AUD = { in: ac.createGain(), pgmG: ac.createGain(), icG: ac.createGain(), pgmDst: ac.createMediaStreamDestination(), icDst: ac.createMediaStreamDestination(), src: null };
-      AUD.in.connect(AUD.pgmG); AUD.in.connect(AUD.icG); AUD.pgmG.connect(AUD.pgmDst); AUD.icG.connect(AUD.icDst);
-      AUD.pgmT = AUD.pgmDst.stream.getAudioTracks()[0]; AUD.icT = AUD.icDst.stream.getAudioTracks()[0];
-      AUD.scIn = makeScope(AUD.in); AUD.scPgm = makeScope(AUD.pgmG); AUD.scIc = makeScope(AUD.icG);
-      meter = makeAnalyser(AUD.in);
-    }
-    try { AUD.src?.disconnect(); } catch {}
-    AUD.src = micTrack ? ac.createMediaStreamSource(new MediaStream([micTrack])) : null;
-    AUD.src?.connect(AUD.in);
-  }
-  const pgmSend = () => rawMode || !AUD ? micTrack : AUD.pgmT;   // 送給導播的節目麥
-  const icSend = () => rawMode || !AUD ? icTrack : AUD.icT;     // 送給導播的對講麥
   function audioTracks(){
-    rawMode = !(AC && AC.state === 'running' && AUD);   // Web Audio 被系統暫停時，改回直接送麥克風
-    const pOn = pgmMic && !(icMic && icMutesPgm);         // 對講時節目麥自動靜音（可以關掉這個設定）
-    if (AUD) { const t = AUD.pgmG.context.currentTime; AUD.pgmG.gain.setTargetAtTime(pOn ? 1 : 0, t, .015); AUD.icG.gain.setTargetAtTime(icMic ? 1 : 0, t, .015); }
-    if (micTrack) micTrack.enabled = rawMode ? pOn : true;
-    if (icTrack) icTrack.enabled = rawMode ? icMic : false;
+    if (micTrack) micTrack.enabled = pgmMic && !(icMic && icMutesPgm);   // 對講時節目麥自動靜音（可以關掉這個設定）
+    if (icTrack) icTrack.enabled = icMic;
   }
-  // iOS 遇到來電、Siri、切到背景會暫停 Web Audio：回到畫面或點一下就恢復；恢復前先直接送麥克風
-  setInterval(() => { if (!micTrack) return; const was = rawMode; if (AC?.state === 'suspended' || AC?.state === 'interrupted') AC.resume().catch(() => {}); audioTracks(); if (was !== rawMode) syncSenders(); }, 1000);
-  ['touchend', 'click'].forEach(ev => document.addEventListener(ev, () => { if (AC && AC.state !== 'running') AC.resume().catch(() => {}); }, { passive: true }));
   let facing = 'user', camOn = true, pgmMic = true, icMic = false, torchOn = false, guides = 0;
   let zoom = { hw: false, min: 1, max: 2, step: .1, value: 1 }, torchCap = false;
   let qMode = store('wc_qmode') || 'auto', tier = '720', rec = null, warn = '', retVol = 1;
   let ctl = { notifySound: false, allowVideo: true, videoAudio: true };
   let leaveMode = store('wc_leave') || 'ask', hiddenClosed = false, isHidden = false, askAfterReturn = false;
   let share = null, filePlaying = false, mix = null, tallyState = 'off', icOn = false;
-  let retShow = false, retUpd = () => {};   // 回傳畫面框：導播說要顯示才顯示
   let hand = false, handT = 0, poll = null, netQ = {}, cpu = 0, pressure = '';
-  let orientMode = store('wc_orient3') || 'auto', fpsPref = +(store('wc_fps') || 30), hostWarn = '', orientLock = false, battery = null;
+  let orientMode = store('wc_orient2') || (isMobile ? 'portrait' : 'auto'), fpsPref = +(store('wc_fps') || 30), hostWarn = '', orientLock = false, battery = null;
   let retLayout = (() => { try { return { size: 'm', pos: 'tr', ...JSON.parse(store('wc_ret') || '{}') }; } catch { return { size: 'm', pos: 'tr' }; } })();
   codecPref = store('wc_codec') || 'auto';
   if (isMobile && videoCodecs().includes('H264')) window.__hwCodec = 'H264';   // 自動＝手機用硬體 H.264（省電、不發燙）
@@ -5191,7 +5180,6 @@ function GuestMain(inv, roomKey){
       <span class="pill hidden" id="gq"><span class="bars" id="bars"><i></i><i></i><i></i></span><span class="mono" id="gqt"></span></span>
       <span class="gtally hidden" id="tally">STBY</span>
     </div>
-    <div class="guest-led hidden" id="guestLed" aria-label="麥克風即時電平">${Array.from({length:9},(_,i)=>`<i style="--n:${i%5}" class="${i>=8?'clip':i>=6?'warn':''}"></i>`).join('')}</div>
     <div class="gnotes">
       <div class="gic hidden" id="gic">${ic('talk')}<div>導播對講中<small>你的聲音只有導播聽得到，不會播出</small></div></div>
       <div class="gaudio hidden" id="gau">${ic('speaker')}聽不到導播？點這裡開啟聲音</div>
@@ -5233,20 +5221,15 @@ function GuestMain(inv, roomKey){
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
   function fitSelf(){
     const v = selfV, vw = v.videoWidth, vh = v.videoHeight; if (!vw || !vh) return;
-    // 跟 index2 一樣：影片填滿畫面區域、object-fit: contain（直的鏡頭畫面就完整顯示直的，橫的就完整顯示橫的，不裁切）
-    v.style.cssText = '';
+    v.style.objectFit = 'contain';   // 照鏡頭原本的畫面完整顯示，不裁切、不放大
     fitG();
   }
-  selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf);
-  try { new ResizeObserver(() => fitSelf()).observe($('#stage')); } catch {}   // 轉手機、畫面區域變大變小時重新排版
-  // 有些瀏覽器換鏡頭／換畫面來源時不會發出 resize 事件：每秒檢查一次實際大小，變了就重新排版
-  let selfDims = '';
-  setInterval(() => { if (document.hidden) return; const st = $('#stage'); const d = [selfV.videoWidth, selfV.videoHeight, joined, st?.clientWidth, st?.clientHeight, !!fx.base].join(); if (d !== selfDims) { selfDims = d; fitSelf(); } }, 1000); addEventListener('resize', () => setTimeout(fitSelf, 300));
+  selfV.addEventListener('resize', fitSelf); selfV.addEventListener('loadedmetadata', fitSelf); addEventListener('resize', () => setTimeout(fitSelf, 300));
   fx.onStatus = s => { if (s) toast(s); sendState(); };
   const st = (cls, t) => $('#gst').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`;
   const fitG = setupGuides($('#stage'), selfV, $('#gd'));
   const setGuides = g => { guides = g; $('#gd').innerHTML = guidesSVG(g); fitG(); sendState(); };
-  const isPortrait = () => { const mq = window.matchMedia?.('(orientation: portrait)'); if (mq) return mq.matches; const t = screen.orientation?.type; return t ? t.startsWith('portrait') : innerHeight > innerWidth; };   // 用畫面實際的長寬判斷（LINE／Facebook 內建瀏覽器的 screen.orientation 不準）
+  const isPortrait = () => { const t = screen.orientation?.type; return t ? t.startsWith('portrait') : innerHeight > innerWidth; };
   const notify = (f = 1046) => { navigator.vibrate?.([60, 40, 60]); if (ctl.notifySound) beep(f, 120); };
 
   /* ---------- 面板 ---------- */
@@ -5286,10 +5269,10 @@ function GuestMain(inv, roomKey){
   }
 
   function sheetJoin(){
-    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}<span class="mono" style="font-size:11px;color:#8a93a3;font-weight:500;margin-left:8px">${BUILD}</span></h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 戴不戴耳機都可以使用（戴耳機收音最乾淨）</div>
+    openSheet('join', `<h2>${of ? '加入為第二機位' : '加入連線'}</h2>${of ? '<div class="sub" style="color:var(--warn)">這支手機會成為同一位來賓的另一個鏡頭（預設不收音）</div>' : ''}<div class="sub">邀請代碼 <b class="mono">${esc(inv)}</b> · 請戴耳機，避免回音</div>
       <div class="g2">
         <div class="full"><span class="lbl">你的名字（導播看得到）</span><input class="field" id="nm" value="${esc(store('wc_name') || '')}" placeholder="例：王小明／台中現場" maxlength="30"></div>
-        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
+        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">畫質</span>${segc('dq', qOpts(), qMode)}<div class="tip" style="margin-top:4px">「自動」會依照你的網路速度調整，建議使用。</div></div>
         <div class="full"><span class="lbl">麥克風音量</span><div class="meterline"><i id="lvl"></i></div></div>
@@ -5308,11 +5291,9 @@ function GuestMain(inv, roomKey){
   /* ---------- 鏡頭與麥克風 ---------- */
   // 畫面方向：auto＝跟隨手機（鎖定直向時就是直的）；portrait／landscape＝導播強制
   const wantPortrait = () => orientMode === 'portrait' ? true : orientMode === 'landscape' ? false : (isMobile && isPortrait());
-  // 手機一律用橫式數字要求（1280×720）：iOS／Android 直拿時會自動給直的完整畫面（720×1280）。
-  // 如果改要求 720×1280，iOS 會從感光元件中間裁一塊出來，1× 看起來就像放大好幾倍。
-  function tierDims(t){ const q = isMobile ? QUALITY['720'] : QUALITY[t]; return isMobile ? [q.w, q.h] : wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }   // 手機固定用 1280×720 開鏡頭（跟舊版一樣），畫質高低只調傳輸量
+  function tierDims(t){ const q = QUALITY[t]; return wantPortrait() ? [q.h, q.w] : [q.w, q.h]; }
   function applyOrient(){
-    fx.aspect = null;   // 永遠不裁切：直式／橫式只照鏡頭真正給的畫面（手機直拿就是直的、橫拿就是橫的）
+    fx.aspect = orientMode === 'auto' ? null : (wantPortrait() ? 9 / 16 : 16 / 9);   // 跟隨手機＝不裁切不放大，照鏡頭原本的畫面
     fx.maxLong = QUALITY[tier].w;
     syncSenders();
   }
@@ -5322,64 +5303,52 @@ function GuestMain(inv, roomKey){
     b.classList.toggle('hidden', !isMobile && orientMode === 'auto');
     try { updTiltSensor(); } catch {}
   }
-  $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '已設為直式：請把手機直拿，鏡頭就是直的完整畫面（不裁切）'); };
+  $('#grot').onclick = () => { setOrient(orientMode === 'auto' ? 'portrait' : 'auto'); toast(orientMode === 'auto' ? '畫面會跟著手機旋轉（手機要開啟自動旋轉）' : '畫面固定為直式'); };
   setTimeout(paintRot, 0);
   function setOrient(m, by){
-    orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient3', orientMode); paintRot();
+    orientMode = ['portrait', 'landscape'].includes(m) ? m : 'auto'; store('wc_orient2', orientMode); paintRot();
     applyOrient(); applyTier(tier);
     if (by) toast(`導播設定畫面方向：${{ auto: '跟隨手機旋轉', portrait: '直式', landscape: '橫式' }[orientMode]}`);
-    if (isMobile && orientMode !== 'auto' && wantPortrait() !== isPortrait()) setTimeout(() => toast(wantPortrait() ? '請把手機轉成直的：鏡頭會給直的完整畫面（不裁切）' : '請把手機轉成橫的：鏡頭會給橫的完整畫面（不裁切）'), by ? 1800 : 0);
     sendState();
   }
   async function getMedia(o = {}){
     const [w, h] = tierDims(tier);
-    const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: isMobile ? Math.min(30, effFps()) : effFps() } };   // 手機跟 index2 一樣：1280×720、30fps（iPhone 的 60fps 模式視角比較窄，畫面會變大）
-    if (orientMode !== 'auto' && !isMobile) video.aspectRatio = { ideal: w / h };   // 手機不加比例限制：iOS 會改用裁切過的感光模式，畫面變很大
+    const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } };
+    if (orientMode !== 'auto') video.aspectRatio = { ideal: w / h };   // 固定直式／橫式時，請鏡頭直接給這個比例，減少裁切
     if (o.facing) video.facingMode = o.facing;
     else if (o.deviceId || camTrack?.getSettings().deviceId) video.deviceId = { exact: o.deviceId || camTrack.getSettings().deviceId };
-    else if (isMobile && camTrack) video.facingMode = facing;   // 第一次開鏡頭不指定前後鏡頭，跟舊版一樣用手機預設的鏡頭（指定 user 時 iOS 可能挑到視角較窄的那顆）
+    else if (isMobile) video.facingMode = facing;
     const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
     const mid = o.micId || micTrack?.getSettings().deviceId; if (mid) audio.deviceId = { exact: mid };
     stream?.getTracks().forEach(t => t.stop());
     let s;
-    try { if (navigator.audioSession) navigator.audioSession.type = 'play-and-record'; } catch {}   // iOS：開麥克風時導播聲音從手機喇叭出來，不用戴耳機
     try { s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     catch (e) { delete video.deviceId; delete audio.deviceId; s = await navigator.mediaDevices.getUserMedia({ video, audio }); }
     stream = s; camTrack = s.getVideoTracks()[0]; micTrack = s.getAudioTracks()[0];
     try { icTrack?.stop(); meterTrack?.stop(); } catch {}
-    icTrack = micTrack ? micTrack.clone() : null; meterTrack = null;   // icTrack：Web Audio 不能用時的備用對講
-    wireMic();
+    icTrack = micTrack ? micTrack.clone() : null; meterTrack = micTrack ? micTrack.clone() : null;
     try { camTrack.contentHint = 'motion'; } catch {}
     camTrack.enabled = camOn && !hiddenClosed; fx.camOn = camTrack.enabled;
     audioTracks();
     const fm = camTrack.getSettings().facingMode; if (fm) facing = fm === 'environment' ? 'environment' : 'user';
     camRaw.srcObject = s; camRaw.play().catch(() => {});
+    meter = streamMeter(new MediaStream([meterTrack].filter(Boolean)));
     readZoomCaps(); torchOn = false;
     applyOrient(); syncSenders(); sendState();
   }
   let meter = () => 0;
-  // 鏡頭實際狀態（排查畫面大小用）
-  function camInfo(){
-    if (!camTrack) return '';
-    const st = camTrack.getSettings?.() || {}, cp = camTrack.getCapabilities?.() || {};
-    const z = cp.zoom ? ` · 變焦 ${(+st.zoom || 1).toFixed(2)}（${(+cp.zoom.min).toFixed(1)}～${(+cp.zoom.max).toFixed(1)}）` : '';
-    return esc(`${camTrack.label || '鏡頭'} · ${camRaw.videoWidth}×${camRaw.videoHeight} · ${Math.round(st.frameRate || 0)}fps${z}`);
-  }
-  // 改每秒張數：手機重新開鏡頭（在開著的鏡頭上改設定，iOS 會把畫面裁切放大）
-  function camFps(){ if (!camTrack) return; if (isMobile) getMedia().catch(() => {}); else camTrack.applyConstraints({ frameRate: { ideal: effFps() } }).catch(() => {}); }
   const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
     const vt = fx.outputTrack() || camTrack;
-    const pv = fx.base ? vt : camTrack;   // 預覽一律顯示鏡頭原始畫面（跟 index2 一樣）；只有分享畫面時顯示合成畫面
-    if (selfV.srcObject?.getVideoTracks()[0] !== pv) { selfV.srcObject = new MediaStream([pv]); selfV.play().catch(() => {}); }
+    if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
     selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
     setTimeout(fitSelf, 50);
     const pc = call?.peerConnection; if (!pc) return;
     // 第一次：記下每個 sender 是哪一條（之後換鏡頭／麥克風才知道要換哪一條）
     if (!SND && sentTracks) { SND = {}; pc.getSenders().forEach(snd => { const r = Object.keys(sentTracks).find(k => sentTracks[k] === snd.track); if (r) SND[r] = snd; }); }
     if (!SND) return;
-    const want = { video: vt, pgm: pgmSend(), ic: icSend(), media: mix?.track };
+    const want = { video: vt, pgm: micTrack, ic: icTrack, media: mix?.track };
     Object.entries(SND).forEach(([r, snd]) => { const t = want[r]; if (t && snd.track !== t) snd.replaceTrack(t).catch(() => {}); });
   }
   function syncButtons(){
@@ -5404,9 +5373,8 @@ function GuestMain(inv, roomKey){
   function readZoomCaps(){
     const caps = camTrack.getCapabilities?.() || {};
     torchCap = !!caps.torch;
-    if (caps.zoom && caps.zoom.max > caps.zoom.min) { zoom = { hw: true, min: +caps.zoom.min.toFixed(2), max: +caps.zoom.max.toFixed(2), step: caps.zoom.step || .1, value: camTrack.getSettings().zoom || caps.zoom.min };
-      fx.zoom = 1;
-    } else { const s = camTrack.getSettings(); const L = Math.max(s.width || 1280, s.height || 720); zoom = { hw: false, min: 1, max: clamp(Math.round(L / 480 * 10) / 10, 2, 4), step: .1, value: 1 }; fx.zoom = 1; }
+    if (caps.zoom && caps.zoom.max > caps.zoom.min) zoom = { hw: true, min: +caps.zoom.min.toFixed(2), max: +caps.zoom.max.toFixed(2), step: caps.zoom.step || .1, value: camTrack.getSettings().zoom || caps.zoom.min };
+    else { const s = camTrack.getSettings(); const L = Math.max(s.width || 1280, s.height || 720); zoom = { hw: false, min: 1, max: clamp(Math.round(L / 480 * 10) / 10, 2, 4), step: .1, value: 1 }; fx.zoom = 1; }
     renderZoomUI();
   }
   let zApplyT = 0, zPending = null;
@@ -5454,7 +5422,7 @@ function GuestMain(inv, roomKey){
   }
   function applyTier(t){
     tier = t; const [w, h] = tierDims(t);
-    if (!isMobile) camTrack?.applyConstraints({ width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } }).catch(() => {});   // 手機不在開著的鏡頭上改尺寸：iOS 會直接裁切畫面（變大）。畫質改用位元率控制
+    camTrack?.applyConstraints({ width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } }).catch(() => {});
     fx.maxLong = QUALITY[t].w;
     setBitrate(call?.peerConnection, QUALITY[t].kbps);
     sendState();
@@ -5774,10 +5742,10 @@ function GuestMain(inv, roomKey){
   })();
 
   function sheetSettings(){
-    openSheet('set', `<h2>設定<span class="mono" style="font-size:11px;color:#8a93a3;font-weight:500;margin-left:8px">${BUILD}</span><button class="btn ghost sm" data-close>${ic('x')}</button></h2>
+    openSheet('set', `<h2>設定<button class="btn ghost sm" data-close>${ic('x')}</button></h2>
       <div class="g2" style="margin-top:10px">
         <div class="full"><span class="lbl">你的名字</span><input class="field" id="nm2" value="${esc(store('wc_name') || '')}" maxlength="30"></div>
-        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select><div class="mono" style="font-size:11px;color:#8a93a3;margin-top:4px">${camInfo()}</div></div>
+        <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
         <div class="full"><span class="lbl">麥克風</span><select class="field" id="dmic"></select></div>
         <div class="full"><span class="lbl">耳機／喇叭（聽導播）</span><select class="field" id="dspk"></select></div>
         <div class="full"><span class="lbl">🔋 省電模式</span>${segc('dsv', [['0', '一般'], ['1', '省電']], saver ? '1' : '0')}<div class="tip" style="margin-top:4px">省電：畫質最高 480p、每秒 20 張、不接收回傳畫面（只聽聲音）。美顏、虛擬背景也會比較耗電。</div></div>
@@ -5797,7 +5765,7 @@ function GuestMain(inv, roomKey){
         <div class="full"><span class="lbl">離開網頁時</span>${segc('dl', [['ask', '每次詢問'], ['pip', '自動子母畫面'], ['close', '關閉畫面']], leaveMode)}</div>
       </div>`, sh => {
       $$('#dor button', sh).forEach(b => b.addEventListener('click', () => setOrient(b.dataset.v)));
-      $$('#dfps button', sh).forEach(b => b.addEventListener('click', () => { fpsPref = +b.dataset.v; store('wc_fps', fpsPref); camFps(); sendState(); }));
+      $$('#dfps button', sh).forEach(b => b.addEventListener('click', () => { fpsPref = +b.dataset.v; store('wc_fps', fpsPref); camTrack?.applyConstraints({ frameRate: { ideal: fpsPref } }).catch(() => {}); sendState(); }));
       $$('#drs button', sh).forEach(b => b.addEventListener('click', () => setRetLayout({ size: b.dataset.v })));
       $$('#drp button', sh).forEach(b => b.addEventListener('click', () => setRetLayout({ pos: b.dataset.v })));
       fillDevSelects(sh);
@@ -5832,7 +5800,7 @@ function GuestMain(inv, roomKey){
   function setSaver(on, by){
     saver = on; store('wc_saver', on ? '1' : '0');
     if (on && tIdx(tier) > maxTier()) applyTier(TIERS[maxTier()]);
-    camFps();
+    camTrack?.applyConstraints({ frameRate: { ideal: effFps() } }).catch(() => {});
     if (on) { retV.srcObject?.getVideoTracks().forEach(t => t.enabled = false); $('#rw').classList.add('hidden'); } else retV.srcObject?.getVideoTracks().forEach(t => t.enabled = true);
     $('#bsave')?.classList.toggle('on', on);
     sendState(); toast(on ? `🔋 省電模式${by ? '（導播設定）' : ''}：畫質最高 480p、不顯示回傳畫面` : '已關閉省電模式'); if (sheetName === 'set') sheetSettings();
@@ -5919,30 +5887,7 @@ function GuestMain(inv, roomKey){
   })();
 
   /* ---------- 導播聲音 ---------- */
-  let retMeter = () => 0, retScope = null;
-  /* ---------- 真實節目麥克風 LED 電平：直接讀 Web Audio Analyser 波形 ---------- */
-  let guestLedSmooth = 0;
-  (function drawGuestLed(){
-    requestAnimationFrame(drawGuestLed);
-    if (document.hidden) return;
-    const led = $('#guestLed'); if (!led) return;
-    led.classList.toggle('hidden', !joined);
-    const now = performance.now(); if (now - (drawGuestLed.last || 0) < 65) return;
-    drawGuestLed.last = now;
-    let peak = 0;
-    const enabled = joined && pgmMic && !(icMic && icMutesPgm);
-    led.classList.toggle('muted', !enabled);
-    if (enabled && AUD?.scPgm?.read) {
-      const samples = AUD.scPgm.read();
-      for (let i = 0; i < samples.length; i++) peak = Math.max(peak, Math.abs(samples[i]));
-    }
-    const dbfs = 20 * Math.log10(Math.max(peak, 1e-6));
-    const target = enabled ? Math.max(0, Math.min(9, Math.ceil((dbfs + 54) / 6))) : 0;
-    guestLedSmooth = target > guestLedSmooth ? target : Math.max(target, guestLedSmooth - .7);
-    const active = Math.round(guestLedSmooth);
-    led.querySelectorAll('i').forEach((bar,i) => bar.classList.toggle('active', i < active));
-    led.setAttribute('aria-label', enabled ? `節目麥克風峰值 ${Math.round(dbfs)} dBFS` : '節目麥克風已關閉');
-  })();
+  let retMeter = () => 0;
   function ensureRetPlaying(){
     if (!retA.srcObject) return;
     retA.volume = retVol;
@@ -5987,7 +5932,7 @@ function GuestMain(inv, roomKey){
     if ('videoAudio' in d) { mix?.update(); toast(`導播設定：影片／分享畫面的聲音${ctl.videoAudio ? '會' : '不會'}送進節目`); if (sheetName === 'set') sheetSettings(); }
     if ('leaveMode' in d) { leaveMode = d.leaveMode; store('wc_leave', leaveMode); }
     if ('orient' in d) setOrient(d.orient, true);
-    if ('fps' in d) { fpsPref = clamp(+d.fps || 30, 5, 60); store('wc_fps', fpsPref); camFps(); toast(`導播設定 ${fpsPref} fps`); }
+    if ('fps' in d) { fpsPref = clamp(+d.fps || 30, 5, 60); store('wc_fps', fpsPref); camTrack?.applyConstraints({ frameRate: { ideal: fpsPref } }).catch(() => {}); toast(`導播設定 ${fpsPref} fps`); }
     if ('codec' in d && d.codec !== codecPref) { codecPref = d.codec || 'auto'; store('wc_codec', codecPref); toast(`導播改用 ${CODEC_NAMES[codecPref] || codecPref} 編碼`); redial(); }
     if (d.retLayout) { setRetLayout(d.retLayout); toast('導播調整了回看畫面'); }
     if (d.stopShare) stopShare();
@@ -6034,20 +5979,19 @@ function GuestMain(inv, roomKey){
     {
       ensureMix();
       // 四條：畫面、節目麥、對講麥、回放聲音（順序固定，導播端也會用軌道 ID 對應）
-      audioTracks(); sentTracks = { video: fx.outputTrack() || camTrack, pgm: pgmSend(), ic: icSend(), media: mix.track };
+      sentTracks = { video: fx.outputTrack() || camTrack, pgm: micTrack, ic: icTrack, media: mix.track };
       Object.keys(sentTracks).forEach(k => { if (!sentTracks[k]) delete sentTracks[k]; });
       SND = null;
       const out = new MediaStream(Object.values(sentTracks));
-      call = peer.call(hid, out, { metadata: { role: 'guest', name, atracks: { pgm: sentTracks.pgm?.id, ic: sentTracks.ic?.id, media: mix.track.id } } });
+      call = peer.call(hid, out, { metadata: { role: 'guest', name, atracks: { pgm: micTrack?.id, ic: icTrack?.id, media: mix.track.id } } });
       syncSenders();
       call.on('stream', s => {
         retA.srcObject = new MediaStream(s.getAudioTracks()); ensureRetPlaying();
         retMeter = streamMeter(new MediaStream(s.getAudioTracks()));
-        try { retScope = s.getAudioTracks().length ? makeScope(audioCtx().createMediaStreamSource(new MediaStream(s.getAudioTracks()))) : null; } catch { retScope = null; }
         retV.srcObject = new MediaStream(s.getVideoTracks()); retV.play().catch(() => {});
         if (saver) s.getVideoTracks().forEach(t => t.enabled = false);
-        retUpd = () => { $('#rw').classList.toggle('hidden', saver || !retShow || !retV.videoWidth); layoutRet(); };
-        retV.onresize = retUpd; setTimeout(retUpd, 1500);
+        const upd = () => { $('#rw').classList.toggle('hidden', saver || !(retV.videoWidth > 330)); layoutRet(); };
+        retV.onresize = upd; setTimeout(upd, 1500);
         setTimeout(() => { if (retA.paused) $('#gau').classList.remove('hidden'); }, 2000);
       });
       call.on('error', () => {});
@@ -6060,7 +6004,6 @@ function GuestMain(inv, roomKey){
       if (d.type === 'warn' && d.from === 'host') { hostWarn = d.clear ? '' : String(d.text || ''); showWarn(); if (hostWarn) notify(); }
       if (d.type === 'hello') { ['notifySound', 'allowVideo', 'videoAudio'].forEach(k => { if (k in d) ctl[k] = !!d[k]; }); if ('retVol' in d) { retVol = +d.retVol; retA.volume = retVol; } }
       if (d.type === 'tally') showTally(d.state);
-      if (d.type === 'retshow') { retShow = !!d.on; retUpd(); }   // 導播有分享／回傳才顯示畫面框
       if (d.type === 'ic') showIntercom(!!d.talk);
       if (d.type === 'msg') {
         const m = $('#gmsg'); m.textContent = d.text; m.classList.toggle('hidden', !d.text);
@@ -6080,23 +6023,6 @@ function GuestMain(inv, roomKey){
       if (d.type === 'kick') { leave('導播已結束連線'); if (d.end) { stream?.getTracks().forEach(t => t.stop()); fx.destroy?.(); const u = new URL(location.href); u.searchParams.set('ended', '1'); location.replace(u.toString()); } }
     }
   }
-  // A joined guest must also be revoked; a one-time admission check is insufficient.
-  let revoked = false, checkingLifecycle = false;
-  const lifecycleTimer = setInterval(async () => {
-    if (revoked || checkingLifecycle) return;
-    checkingLifecycle = true;
-    try {
-      const state = await roomOpen(roomKey);
-      if (state.status !== 'DELETED') return; // transient API errors must not eject guests
-      revoked = true;
-      clearInterval(lifecycleTimer);
-      leave('導播台已刪除');
-      try { stream?.getTracks().forEach(t => t.stop()); } catch {}
-      try { camTrack?.stop(); micTrack?.stop(); icTrack?.stop(); } catch {}
-      try { fx.destroy?.(); } catch {}
-      app.innerHTML = `<div class="closedv"><div style="max-width:420px">${brand()}<div style="font-size:46px;margin-top:20px">⛔</div><h1>導播台已刪除</h1><p>此視訊連線所屬的導播台已被管理員刪除，無法繼續使用。</p><p>攝影機與麥克風已停止。請聯絡導播或管理員取得新連線。</p></div></div>`;
-    } finally { checkingLifecycle = false; }
-  }, 5000);
   function leave(msg){
     try { conn?.open && conn.send({ type: 'bye' }); } catch {}
     stopCC();
@@ -6104,7 +6030,7 @@ function GuestMain(inv, roomKey){
     try { conn?.close(); } catch {} try { call?.close(); } catch {} try { peer?.destroy(); } catch {}
     peer = null; call = null; conn = null; wake?.release?.().catch(() => {});
     stopShare(); if (filePlaying) stopVideo();
-    ['#gbar', '#tally', '#guestLed', '#rw', '#gq', '#gmsg', '#gic', '#gw', '#gau', '#zui', '#pollc'].forEach(s => $(s).classList.add('hidden'));
+    ['#gbar', '#tally', '#rw', '#gq', '#gmsg', '#gic', '#gw', '#gau', '#zui', '#pollc'].forEach(s => $(s).classList.add('hidden'));
     hand = false; $('#bh').classList.remove('hand-on');
     icOn = false; tallyState = 'off'; paintFrame();
     sheetJoin(); st('', msg || '已離開'); wcIdle();
@@ -6115,7 +6041,7 @@ function GuestMain(inv, roomKey){
     audioCtx();
     retA.srcObject = new MediaStream(); retA.play().catch(() => {});   // 先用使用者的點擊解鎖播放
     if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
-    joined = true; window.__gJoined = true; setTimeout(fitSelf, 60); window.__WC_BUSY = true;
+    joined = true; window.__gJoined = true; window.__WC_BUSY = true;
     $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
     layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
   }
@@ -6138,11 +6064,12 @@ function GuestMain(inv, roomKey){
   const onOrient = () => { clearTimeout(orientT); orientT = setTimeout(() => {
     layoutStage(); layoutRet(); applyOrient();
     if (!isMobile || !camTrack) return;
-    // 不重開鏡頭：手機轉向時系統會自己把鏡頭畫面轉正（跟舊版一樣）
+    const s = camTrack.getSettings(); if (!s.width) return;
+    if ((s.height > s.width) !== wantPortrait()) applyTier(tier);
+    setTimeout(() => { const s2 = camTrack?.getSettings(); if (s2 && camTrack.readyState === 'live' && (s2.height > s2.width) !== wantPortrait()) getMedia().catch(() => {}); }, 700);
     setTimeout(() => { syncSenders(); fitSelf(); }, 1200);
   }, 450); };
   screen.orientation?.addEventListener?.('change', onOrient);
-  try { window.matchMedia('(orientation: portrait)').addEventListener('change', onOrient); } catch {}   // 舊版 iOS 沒有 screen.orientation
   // 手機實際橫拿、但畫面沒有轉＝使用者鎖定了直向 → 照手機設定送直的畫面
   let orientT0 = 0;
   const onTilt = e => { if (e.gamma == null) return; const n = Date.now(); if (n - orientT0 < 500) return; orientT0 = n; const physLand = Math.abs(e.gamma) > 60 && Math.abs(e.beta) < 35; const lock = physLand && isPortrait(); if (lock !== orientLock) { orientLock = lock; sendStateSoon(); } };
@@ -6161,7 +6088,7 @@ function GuestMain(inv, roomKey){
   tier = initialTier();
   sheetJoin();
   getMedia().then(() => st('', '預覽中')).catch(e => { st('bad', '無法開啟相機／麥克風'); toast(e.message); });
-  window.__guest = { get aud(){ return { AUD, rawMode, pgm: pgmSend(), ic: icSend() }; }, get mix(){ return ensureMix(); }, setIcMutesPgm, setMonMedia, setRetMute, setVideoAudio, setPgmMic, setIcMic, fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
+  window.__guest = { get mix(){ return ensureMix(); }, setIcMutesPgm, setMonMedia, setRetMute, setVideoAudio, setPgmMic, setIcMic, fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
 }
 /* ===================== 首頁：導播登入 → 房間代碼 → 來賓邀請代碼 ===================== */
 function Home(msg){
@@ -6345,12 +6272,13 @@ function Output(){
 /* ===================== 遠端操作員（導播／音控／監看員） ===================== */
 function Operator(){
   const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), R = ['dir', 'aud', 'view'].includes(Q.get('r')) ? Q.get('r') : 'view', tok = Q.get('t') || '';
-  const RN = { dir: '導播', aud: '音控', view: '監看員' };
-  document.body.className = 'opp';
+  const RN = { dir: '導播控盤', aud: '音控', view: '監看員' };
+  const PANEL = Q.get('ui') !== 'list';   // 控盤模式（可選模組）；&ui=list 是舊的清單模式
+  document.body.className = 'opp' + (PANEL ? ' oppanel' : '');
   const views = [['mv', 'MULTIVIEW'], ['pgm', 'PGM 節目'], ['pvw', 'PREVIEW'], ['clean', 'CLEAN'], ['aux1', 'AUX 1'], ['aux2', 'AUX 2'], ['aux3', 'AUX 3'], ['aux4', 'AUX 4']];
-  app.innerHTML = `<div class="op">
+  app.innerHTML = `<div class="op ${PANEL ? 'panel' : ''}">
     <header>${brand()}<span class="pill oprole r-${R}">${RN[R]}</span><b id="opl" class="grow"></b><span class="pill" id="ops"><span class="dot wait"></span>連線中</span>
-      <input class="field sm" id="opn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px"></header>
+      <input class="field sm" id="opn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px">${PANEL ? '<button class="btn sm" id="opmd" title="選這台裝置負責的功能">模組</button><button class="btn sm" id="opfs" title="全螢幕">全螢幕</button><button class="btn sm" id="opvt" title="顯示／隱藏監看畫面（隱藏比較省電）">監看</button>' : ''}</header>
     <div class="opmain"><section class="opv"><div class="row" style="padding:6px 0"><select class="field sm" id="opw">${views.map(([k, n]) => `<option value="${k}" ${k === (R === 'aud' ? 'pgm' : 'mv') ? 'selected' : ''}>${n}</option>`).join('')}</select>
         <label class="note" style="margin:0"><input type="checkbox" id="opa" ${R === 'aud' ? 'checked' : ''}> 聽聲音</label><span class="grow"></span><span class="note" style="margin:0" id="opsrc"></span></div>
         <div class="opvbox"><video id="opvid" autoplay playsinline muted></video><div class="opnov" id="opnov">等待畫面…</div></div>
@@ -6364,14 +6292,169 @@ function Operator(){
   $('#opa').onchange = e => { v.muted = !e.target.checked; v.play().catch(() => {}); };
   $('#opw').onchange = () => send({ type: 'watch', what: $('#opw').value });
   const lvPct = d => clamp((d + 60) / 60, 0, 1) * 100;
+  /* ---------- 專業切換控盤 ---------- */
+  const TRN = [['mix', 'MIX'], ['dip', 'DIP'], ['wipe', 'WIPE'], ['push', 'PUSH'], ['slide', 'SLIDE'], ['zoom', 'ZOOM'], ['stinger', 'STING'], ['cut', 'CUT']];
+  const DURS = [300, 500, 800, 1000, 1500, 2000, 3000];
+  let auxSel = 0, tbDrag = false, tbSendT = 0;
+  function auxSelSig(){ return auxSel; }
+  const buzz = () => { try { navigator.vibrate?.(8); } catch {} };
+  const pc = (t, d) => { buzz(); send(d); };
+  // 每一台平板／手機可以選自己負責的模組（可以多選），記在這台裝置上
+  const MODS = [['sw', '切換', ['dir']], ['dsk', '圖層', ['dir']], ['aux', 'AUX', ['dir']], ['scene', '場景', ['dir']], ['audio', '音控', ['dir', 'aud']], ['tally', '燈號', ['dir', 'aud', 'view']], ['clock', '時鐘', ['dir', 'aud', 'view']], ['status', '來源狀態', ['dir', 'aud', 'view']], ['mon', '大監看', ['dir', 'aud', 'view']]];
+  const modOK = k => MODS.some(m => m[0] === k && m[2].includes(R));
+  let mods = (Q.get('mod') || store('wc_cpmods_' + R) || ({ dir: 'sw', aud: 'audio', view: 'status,mon' })[R]).split(',').filter(modOK);
+  if (!mods.length) mods = [MODS.find(m => m[2].includes(R))[0]];
+  let talSrc = store('wc_cptal') || '', modBar = false, lastAutoNov = null;
+  const keyH = (x, attr) => `<button class="pk ${x.lost ? 'lost' : ''}" ${attr}="${x.id}"><b>${x.n}</b><small>${esc(x.name)}</small></button>`;
+  const MODH = {
+    sw: IN => `<div class="cpm wide"><div class="cp">
+      <div class="cpbus">
+        <div class="cphd"><span class="lbl">PROGRAM</span><span class="note" id="cppgm"></span><span class="grow"></span>${S.sw ? '' : '<span class="tag warn">簡易模式</span>'}</div>
+        <div class="cprow pgmrow">${IN.map(x => keyH(x, 'data-pg')).join('')}<button class="pk blk" data-pg=""><b>BLK</b><small>黑畫面</small></button></div>
+        <div class="cphd"><span class="lbl">PREVIEW</span><span class="note" id="cppvw"></span></div>
+        <div class="cprow pvwrow">${IN.map(x => keyH(x, 'data-pv')).join('')}<button class="pk blk" data-pv=""><b>BLK</b><small>黑畫面</small></button></div>
+        ${mods.includes('dsk') ? '' : MODH.dskRow()}
+        ${mods.includes('aux') ? '' : `<div class="cphd"><span class="lbl">AUX</span>${S.aux.map((a, i) => `<button class="axs ${i === auxSel ? 'on' : ''}" data-axs="${i}">AUX ${i + 1}<small>${esc(a.name)}</small></button>`).join('')}<span class="grow"></span><span class="note" id="cpaux"></span></div>
+        <div class="cprow auxrow2">${S.aux[auxSel]?.mode === 'src' ? IN.map(x => keyH(x, 'data-ap')).join('') + '<button class="pk blk" data-ap=""><b>BLK</b></button><button class="pk take" data-at><b>TAKE</b><small>AUX ' + (auxSel + 1) + '</small></button>' : `<span class="note" style="margin:0">AUX ${auxSel + 1} 目前跟著 ${esc((S.aux[auxSel]?.mode || '').toUpperCase())}</span>`}</div>`}
+        ${mods.includes('scene') ? '' : MODH.scRow()}
+      </div>
+      <div class="cptr">
+        <div class="cphd"><span class="lbl">TRANSITION</span></div>
+        <div class="cpgrid">${TRN.map(([k, n]) => `<button class="pk tt" data-tt="${k}"><b>${n}</b></button>`).join('')}</div>
+        <div class="cphd"><span class="lbl">RATE</span></div>
+        <div class="cpgrid">${DURS.map(d => `<button class="pk tt" data-du="${d}"><b>${d / 1000}s</b></button>`).join('')}</div>
+        <div class="cpmain">
+          <div class="cpbtns"><button class="pk big ptr" data-c="ptr"><b>PREV<br>TRANS</b></button><button class="pk big cut" data-c="cut"><b>CUT</b></button><button class="pk big auto" data-c="auto"><b>AUTO</b></button><button class="pk big ftb" data-c="ftb"><b>FTB</b></button></div>
+          <div class="cptb" id="cptb"><div class="cptbtrk"></div><div class="cptbfill" id="cptbf"></div><div class="cptbh" id="cptbh"><span></span></div></div>
+        </div>
+        <div class="row" style="justify-content:center;margin-top:6px"><button class="btn sm" data-swm>${S.sw ? '切到簡易模式' : '開啟切換台（PVW／PGM）'}</button></div>
+      </div></div></div>`,
+    dskRow: () => `<div class="cphd"><span class="lbl">KEYERS／DSK</span></div>
+        <div class="cprow dskrow">${[['lt', '字幕條'], ['tk', '跑馬燈'], ['bn', '突發'], ['bug', '台標'], ['cc', 'CC'], ['tm', '倒數']].map(([k, n]) => `<button class="pk dk" data-ov="${k}"><b>${n}</b></button>`).join('')}${S.stills.filter(x => x.has).map(x => `<button class="pk dk" data-st="${x.n}"><b>S${x.n}</b><small>${esc(x.name || '')}</small></button>`).join('')}</div>`,
+    scRow: () => `<div class="cphd"><span class="lbl">SCENES 場景</span></div>
+        <div class="cprow scrow">${(S.scenes || []).map((n, i) => `<button class="pk sc ${n ? '' : 'empty'}" data-sc="${i}" ${n ? '' : 'disabled'}><b>F${i + 1}</b><small>${esc(n || '—')}</small></button>`).join('')}</div>`,
+    dsk: () => `<div class="cpm"><div class="cpbus big">${MODH.dskRow()}<div class="note">字幕內容在導播台的「字幕圖層」設定；這裡負責上／下。</div></div></div>`,
+    aux: IN => `<div class="cpm"><div class="cpbus">${S.aux.map((a, i) => `<div class="cphd"><span class="lbl">AUX ${i + 1}</span><span class="note">${esc(a.name)}</span><span class="grow"></span><span class="note" data-axn="${i}"></span></div>
+        <div class="cprow">${a.mode === 'src' ? IN.map(x => `<button class="pk ${x.lost ? 'lost' : ''}" data-apx="${i}" data-id="${x.id}"><b>${x.n}</b><small>${esc(x.name)}</small></button>`).join('') + `<button class="pk blk" data-apx="${i}" data-id=""><b>BLK</b></button><button class="pk take" data-atx="${i}"><b>TAKE</b></button>` : `<span class="note" style="margin:0">跟著 ${esc(a.mode.toUpperCase())}</span>`}</div>`).join('')}</div></div>`,
+    scene: () => `<div class="cpm"><div class="cpbus big">${MODH.scRow()}<div class="note">場景在導播台的「場景」儲存；按一下直接切換。</div></div></div>`,
+    audio: IN => `<div class="cpm wide"><div class="cpbus"><div class="cphd"><span class="lbl">AUDIO 音控</span></div><div class="mixer opmix">${IN.map(x => `<div class="strip" data-id="${x.id}"><span class="num">${x.n}</span><div class="nm" title="${esc(x.name)}">${esc(x.name)}</div>
+          <div class="fwrap"><div class="vu"><i data-lv></i></div><input type="range" min="0" max="150" data-f></div><span class="db" data-db></span>
+          <button class="mb mute" data-m>MUTE</button><button class="mb solo" data-s>SOLO</button><button class="mb" data-a>AFV</button>
+          <button class="mb" data-b="pgm">PGM</button>${S.aux.map((a, i) => `<button class="mb" data-b="aux${i + 1}" title="AUX ${i + 1} ${esc(a.name)}"></button>`).join('')}<button class="mb" data-b="ifb">IFB</button>
+          <input type="number" class="field sm" min="0" max="1500" step="10" data-d title="延遲補償（毫秒）" style="width:100%"></div>`).join('') || '<div class="note">還沒有來源</div>'}</div>
+        <div class="row" style="flex-wrap:wrap;margin-top:6px"><span class="lbl" style="margin:0">音頻快照</span>${Array.from({ length: 8 }, (_, i) => `<button class="btn sm" data-as="${i}">A${i + 1}</button>`).join('')}</div></div></div>`,
+    tally: IN => `<div class="cpm ${mods.length === 1 || (mods.length === 2 && mods.includes('mon')) ? 'wide' : ''}"><div class="cpbus"><div class="cphd"><span class="lbl">TALLY 燈號</span><select class="field sm" id="cptals"><option value="">選擇要看哪一路（例：攝影機 1）</option>${IN.map(x => `<option value="${x.id}" ${talSrc === x.id ? 'selected' : ''}>${x.n}. ${esc(x.name)}</option>`).join('')}</select></div>
+        <div class="talbox" id="cptal"><b id="cptaln">—</b><span id="cptalt">選一路來源</span></div></div></div>`,
+    clock: () => `<div class="cpm"><div class="cpbus"><div class="cphd"><span class="lbl">CLOCK 時鐘</span><span class="grow"></span><span class="tag" id="cponair">—</span></div>
+        <div class="clkbox"><b class="mono" id="cpclk">--:--:--</b><span>節目計時 <b class="mono" id="cpptm">00:00</b></span></div></div></div>`,
+    status: () => `<div class="cpm"><div class="cpbus"><div class="cphd"><span class="lbl">來源狀態</span></div><div id="opvl"></div>${R === 'view' ? '<div class="note">監看員是唯讀模式，不能操作任何參數。</div>' : ''}</div></div>`,
+  };
+  function buildPanel(){
+    const IN = S.inputs;
+    document.body.classList.toggle('cpbigv', mods.includes('mon'));
+    // 只當燈號／時鐘／圖層／AUX／場景用的裝置：預設不接收監看畫面，比較省電（按「監看」可以打開）
+    const auto = !mods.some(k => ['sw', 'audio', 'mon', 'status'].includes(k));
+    if (auto !== lastAutoNov) { lastAutoNov = auto; document.body.classList.toggle('cpnov', auto); send(auto ? { type: 'watch', what: '' } : { type: 'watch', what: $('#opw').value }); }
+    C.innerHTML = `<div class="cpmodbar ${modBar ? '' : 'hidden'}" id="cpmb"><span class="lbl" style="margin:0">這台裝置負責：</span>${MODS.filter(m => m[2].includes(R)).map(([k, n]) => `<button class="axs ${mods.includes(k) ? 'on' : ''}" data-mod="${k}">${n}</button>`).join('')}<span class="note" style="margin:0">（可以多選；每台平板／手機各自記住）</span></div>
+      <div class="cpmods">${mods.filter(k => MODH[k] && k !== 'mon').map(k => MODH[k](IN)).join('') || '<div class="note">這台裝置只顯示大監看畫面。</div>'}</div>`;
+    $$('[data-mod]', C).forEach(b => b.onclick = () => { buzz(); const k = b.dataset.mod; mods = mods.includes(k) ? mods.filter(x => x !== k) : [...mods, k]; if (!mods.length) mods = [k]; store('wc_cpmods_' + R, mods.join(',')); send({ type: 'mods', v: mods.join(',') }); sig = ''; render(); });
+    $$('[data-pg]', C).forEach(b => b.onclick = () => pc(b, { type: 'take', id: b.dataset.pg || null }));
+    $$('[data-pv]', C).forEach(b => b.onclick = () => pc(b, { type: 'pvw', id: b.dataset.pv || null }));
+    $$('[data-ov]', C).forEach(b => b.onclick = () => pc(b, { type: 'ov', k: b.dataset.ov }));
+    $$('[data-st]', C).forEach(b => b.onclick = () => pc(b, { type: 'still', n: +b.dataset.st }));
+    $$('[data-axs]', C).forEach(b => b.onclick = () => { buzz(); auxSel = +b.dataset.axs; sig = ''; render(); });
+    $$('[data-ap]', C).forEach(b => b.onclick = () => pc(b, { type: 'auxpvw', i: auxSel, id: b.dataset.ap || null }));
+    $$('[data-at]', C).forEach(b => b.onclick = () => pc(b, { type: 'auxtake', i: auxSel }));
+    $$('[data-apx]', C).forEach(b => b.onclick = () => pc(b, { type: 'auxpvw', i: +b.dataset.apx, id: b.dataset.id || null }));
+    $$('[data-atx]', C).forEach(b => b.onclick = () => pc(b, { type: 'auxtake', i: +b.dataset.atx }));
+    $$('[data-sc]', C).forEach(b => b.onclick = () => pc(b, { type: 'scene', i: +b.dataset.sc }));
+    $$('[data-tt]', C).forEach(b => b.onclick = () => pc(b, { type: 'trans', k: b.dataset.tt }));
+    $$('[data-du]', C).forEach(b => b.onclick = () => pc(b, { type: 'trans', dur: +b.dataset.du }));
+    $$('[data-c]', C).forEach(b => b.onclick = () => pc(b, { type: b.dataset.c }));
+    $$('[data-as]', C).forEach(b => b.onclick = () => pc(b, { type: 'asnap', i: +b.dataset.as }));
+    const swm = $('[data-swm]', C); if (swm) swm.onclick = () => pc(null, { type: 'swmode', v: !S.sw });
+    const ts = $('#cptals', C); if (ts) ts.onchange = () => { talSrc = ts.value; store('wc_cptal', talSrc); patch(); };
+    bindStrips();
+    const tb = $('#cptb', C); if (!tb) return;
+    // 觸控 T-Bar：往上推／往下拉都可以，跟實體 T-Bar 一樣
+    const posOf = e => { const r = tb.getBoundingClientRect(); return clamp(1 - (e.clientY - r.top) / r.height, 0, 1); };
+    tb.addEventListener('pointerdown', e => { if (!S.sw) return toast('切換台沒有開啟：用 CUT／AUTO，或按下方「開啟切換台」'); tbDrag = true; tb.setPointerCapture(e.pointerId); buzz(); move(e); });
+    const move = e => { if (!tbDrag) return; const v2 = posOf(e); S.tpos = v2; paintTbar(); const n = performance.now(); if (n - tbSendT > 33) { tbSendT = n; send({ type: 'tbar', v: v2 }); } };
+    tb.addEventListener('pointermove', move);
+    tb.addEventListener('pointerup', e => { if (!tbDrag) return; tbDrag = false; send({ type: 'tbar', v: posOf(e) }); });
+    tb.addEventListener('pointercancel', () => tbDrag = false);
+  }
+  function bindStrips(){
+    $$('.strip[data-id]', C).forEach(sd => {
+      const id = sd.dataset.id, X = () => S.inputs.find(x => x.id === id);
+      $('[data-f]', sd).oninput = e => { send({ type: 'fader', id, v: e.target.value / 100 }); $('[data-db]', sd).textContent = e.target.value + '%'; };
+      $('[data-m]', sd).onclick = () => send({ type: 'mute', id, v: !X()?.mute });
+      $('[data-s]', sd).onclick = () => send({ type: 'solo', id, v: !X()?.solo });
+      $('[data-a]', sd).onclick = () => send({ type: 'afv', id, v: !X()?.afv });
+      $$('[data-b]', sd).forEach(b => b.onclick = () => { const x = X(), k = b.dataset.b; if (!x) return;
+        if (k === 'pgm') send({ type: 'bus', id, k, v: !x.bus.pgm });
+        else if (k === 'ifb') send({ type: 'bus', id, k, v: { auto: 'on', on: 'off', off: 'auto' }[x.bus.ifb] || 'auto' });
+        else { const i = +k[3] - 1; send({ type: 'bus', id, k, v: { off: 'on', on: 'afv', afv: 'off' }[x.bus.aux[i]] || 'afv' }); } });
+      $('[data-d]', sd).onchange = e => send({ type: 'dly', id, v: +e.target.value || 0 });
+    });
+  }
+  function paintTbar(){
+    const h = $('#cptbh', C), f = $('#cptbf', C); if (!h || S.tpos == null) return;
+    h.style.bottom = `calc(${S.tpos * 100}% - ${S.tpos * 44}px)`;
+    const prog = Math.abs(S.tpos - (S.base || 0)); f.style.height = (prog * 100) + '%'; f.style.bottom = S.base ? 'auto' : '0'; f.style.top = S.base ? '0' : 'auto';
+  }
+  function patchPanel(){
+    const nm = id => S.inputs.find(x => x.id === id)?.name || '黑畫面';
+    $$('[data-pg]', C).forEach(b => { const id = b.dataset.pg, x = S.inputs.find(y => y.id === id); b.classList.toggle('red', id ? (S.sw ? S.pgm === id : x?.tally === 'live') : (S.sw && !S.pgm)); b.classList.toggle('dim', !!id && !S.sw ? false : false); });
+    $$('[data-pv]', C).forEach(b => { const id = b.dataset.pv; b.classList.toggle('grn', id ? S.pvw === id : !S.pvw); });
+    $$('[data-ov]', C).forEach(b => b.classList.toggle('red', !!S.ov?.[b.dataset.ov]));
+    $$('[data-st]', C).forEach(b => b.classList.toggle('red', !!S.stills.find(x => x.n === +b.dataset.st)?.on));
+    const a = S.aux[auxSel];
+    $$('[data-ap]', C).forEach(b => { const id = b.dataset.ap; b.classList.toggle('red', a && (id ? a.pgm === id : !a.pgm)); b.classList.toggle('grn', a && (id ? a.pvw === id && a.pgm !== id : false)); });
+    $$('[data-axs]', C).forEach(b => b.classList.toggle('on', +b.dataset.axs === auxSel));
+    $$('[data-tt]', C).forEach(b => b.classList.toggle('yel', b.dataset.tt === S.trans));
+    $$('[data-du]', C).forEach(b => b.classList.toggle('yel', +b.dataset.du === S.dur));
+    $$('[data-c="ftb"]', C).forEach(b => b.classList.toggle('red', !!S.ftb));
+    $$('[data-c="ptr"]', C).forEach(b => b.classList.toggle('yel', !!S.ptr));
+    $$('[data-c="auto"]', C).forEach(b => b.classList.toggle('red', !!S.anim));
+    const e1 = $('#cppgm', C), e2 = $('#cppvw', C), e3 = $('#cpaux', C);
+    if (e1) e1.textContent = S.sw ? nm(S.pgm) : S.inputs.filter(x => x.tally === 'live').map(x => x.name).join('、') || '—';
+    if (e2) e2.textContent = nm(S.pvw);
+    if (e3 && a) e3.textContent = `上：${nm(a.pgm)}　PVW：${a.pvw ? nm(a.pvw) : '—'}`;
+    $$('[data-apx]', C).forEach(b => { const A2 = S.aux[+b.dataset.apx], id = b.dataset.id; b.classList.toggle('red', !!A2 && (id ? A2.pgm === id : !A2.pgm)); b.classList.toggle('grn', !!A2 && !!id && A2.pvw === id && A2.pgm !== id); });
+    $$('[data-axn]', C).forEach(e => { const A2 = S.aux[+e.dataset.axn]; e.textContent = `上：${nm(A2.pgm)}　PVW：${A2.pvw ? nm(A2.pvw) : '—'}`; });
+    const tal = $('#cptal', C);
+    if (tal) { const x = S.inputs.find(y => y.id === talSrc), st2 = !x ? '' : (S.sw ? (S.pgm === x.id || x.tally === 'live' ? 'live' : S.pvw === x.id ? 'pvw' : '') : x.tally === 'live' ? 'live' : x.tally === 'pvw' ? 'pvw' : '');
+      const onAux = x ? S.aux.map((a2, i) => a2.pgm === x.id ? 'AUX ' + (i + 1) : '').filter(Boolean) : [];
+      if (tal.dataset.st !== st2 && st2 === 'live') buzz();
+      tal.dataset.st = st2; tal.className = 'talbox ' + st2; $('#cptaln', C).textContent = x ? x.n + '. ' + x.name : '—';
+      $('#cptalt', C).textContent = !x ? '選一路來源' : st2 === 'live' ? '● ON AIR 節目中' : st2 === 'pvw' ? 'PREVIEW 預備' : onAux.length ? '在 ' + onAux.join('、') + ' 上' : '待命'; }
+    const ck = $('#cpclk', C); if (ck) { ck.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false }); $('#cpptm', C).textContent = S.ptm || '00:00'; const on = S.inputs.some(x => x.tally === 'live') || (S.sw && S.pgm); const oa = $('#cponair', C); oa.textContent = S.ftb ? 'FTB 黑畫面' : on ? '● ON AIR' : '待機'; oa.className = 'tag ' + (on && !S.ftb ? 'live' : ''); }
+    if (!tbDrag) paintTbar();
+  }
+  if (PANEL) {
+    $('#opfs').onclick = () => { const d = document.documentElement; (document.fullscreenElement ? document.exitFullscreen() : (d.requestFullscreen || d.webkitRequestFullscreen)?.call(d))?.catch?.(() => {}); };
+    $('#opvt').onclick = () => { const on = document.body.classList.toggle('cpnov'); store('wc_cpnov', on ? '1' : null); send(on ? { type: 'watch', what: '' } : { type: 'watch', what: $('#opw').value }); };
+    if (store('wc_cpnov') === '1') document.body.classList.add('cpnov');
+    $('#opmd').onclick = () => { modBar = !modBar; $('#cpmb')?.classList.toggle('hidden', !modBar); };
+    setInterval(() => { if (S && $('#cpclk', C)) patchPanel(); }, 1000);
+    // 平板接鍵盤：1～9＝PREVIEW、Shift＋1～9＝PROGRAM、空白＝CUT、Enter＝AUTO
+    addEventListener('keydown', e => { if (!S || R !== 'dir' || !mods.includes('sw') || e.target.closest('input,select,textarea')) return; const n = +e.key;
+      if (n >= 1 && n <= 9) { const x = S.inputs[n - 1]; if (x) send(e.shiftKey ? { type: 'take', id: x.id } : { type: 'pvw', id: x.id }); e.preventDefault(); }
+      else if (e.code === 'Space') { send({ type: 'cut' }); e.preventDefault(); } else if (e.key === 'Enter') { send({ type: 'auto' }); e.preventDefault(); } });
+    // 螢幕保持開啟（平板當控盤時不會自動關螢幕）
+    let wl = null; const lock = async () => { try { wl = await navigator.wakeLock?.request('screen'); } catch {} };
+    lock(); document.addEventListener('visibilitychange', () => { if (!document.hidden) lock(); });
+  }
   function render(){
     if (!S) return;
-    const ns = R + '|' + S.sw + '|' + S.inputs.map(x => x.id + x.name).join(',') + '|' + S.aux.map(a => a.name + a.mode).join(',') + '|' + S.stills.map(x => x.has).join('');
+    const ns = R + '|' + S.sw + '|' + S.inputs.map(x => x.id + x.name + (x.lost ? 1 : 0)).join(',') + '|' + S.aux.map(a => a.name + a.mode).join(',') + '|' + S.stills.map(x => x.has + x.name).join('') + '|' + (S.scenes || []).join(',') + '|' + auxSelSig() + '|' + mods.join(',');
     if (ns !== sig) { sig = ns; build(); }
     patch();
   }
   function build(){
     const IN = S.inputs;
+    if (PANEL) return buildPanel();
     if (R === 'dir') {
       C.innerHTML = `<div class="wsec"><h4>切換台 <span>${S.sw ? '點一下＝PVW　·　TAKE／CUT／AUTO' : '簡易模式：點一下＝PVW，TAKE＝ON AIR'}</span></h4>
           <div class="oprow"><span class="lbl">PVW</span>${IN.map(x => `<button class="xb" data-pv="${x.id}">${x.n}<small>${esc(x.name)}</small></button>`).join('')}</div>
@@ -6413,6 +6496,7 @@ function Operator(){
     });
   }
   function patch(){
+    if (PANEL) patchPanel();
     const ae = document.activeElement;
     $$('[data-pv]', C).forEach(b => b.classList.toggle('pv', S.pvw === b.dataset.pv));
     $$('[data-pg]', C).forEach(b => { const x = S.inputs.find(y => y.id === b.dataset.pg); b.classList.toggle('pg', x?.tally === 'live'); });
@@ -6444,15 +6528,16 @@ function Operator(){
   function dial(){
     clearTimeout(retryT); if (!peer?.open || denied) return;
     try { conn?.close(); } catch {}
-    conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'op', r: R, t: tok, name: $('#opn').value.trim() || RN[R] }, ...CONN_OPTS });
-    conn.on('open', () => { st('ok', '已連線'); send({ type: 'watch', what: $('#opw').value }); });
+    conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'op', r: R, t: tok, name: $('#opn').value.trim() || RN[R], mods: PANEL ? mods.join(',') : 'list' }, ...CONN_OPTS });
+    conn.on('open', () => { st('ok', '已連線'); if (!document.body.classList.contains('cpnov')) send({ type: 'watch', what: $('#opw').value }); });
     conn.on('data', d => {
       if (!d) return;
       if (d.type === 'deny') { denied = true; st('bad', '無法連線'); C.innerHTML = `<div class="wsec"><h4>無法連線</h4><div>${esc(d.error || '')}</div></div>`; return; }
       if (d.type === 'deny2') return toast(d.error);
-      if (d.type === 'opHello') { send({ type: 'watch', what: $('#opw').value }); $('#opl').textContent = `${d.label || '導播台'}${d.director ? ' · 導播 ' + d.director : ''}`; }
-      if (d.type === 'opState') { S = d; render(); }
+      if (d.type === 'opHello') { if (!document.body.classList.contains('cpnov')) send({ type: 'watch', what: $('#opw').value }); $('#opl').textContent = `${d.label || '導播台'}${d.director ? ' · 導播 ' + d.director : ''}`; }
+      if (d.type === 'opState') { const keep = tbDrag ? S?.tpos : null; S = d; if (keep != null) S.tpos = keep; render(); }
       if (d.type === 'opLv') { LVL = d; paintLv(); }
+      if (d.type === 'opT' && S) { Object.assign(S, { base: d.base, anim: d.anim, ftb: d.ftb > .5, pgm: d.pgm, pvw: d.pvw }); if (!tbDrag) S.tpos = d.tpos; patch(); }
     });
     conn.on('close', () => { if (!denied) { st('wait', '導播台離線，重試中…'); v.srcObject = null; $('#opnov').classList.remove('hidden'); retry(); } });
     conn.on('error', retry);
@@ -6489,7 +6574,6 @@ async function checkAppUpdate(){
     return;
   }
   if (a.v === window.WC_VER) { updPending = null; return; }
-  if (window.WC_NEWER && !window.WC_NEWER(a.v, window.WC_VER)) { updPending = null; try { localStorage.removeItem('wc_pkg'); } catch {} return; }   // 派發平台上的版本比這個檔案舊：不下載、不套用
   try { if (localStorage.getItem('wc_badpkg') === a.v) return; } catch {}   // 這個版本在這台裝置啟動失敗過，不再自動套用
   if (!cached || cached.v !== a.v) {
     let p; try { p = await apiCall({ action: 'pkg', id: a.id }); } catch { return; }
@@ -6503,9 +6587,9 @@ async function checkAppUpdate(){
 }
 // 導播結束、來賓離開後，如果有強制更新就套用
 function wcIdle(){ window.__WC_BUSY = false; if (updPending?.force) setTimeout(() => !wcBusy() && location.reload(), 1500); }
-/* 精簡固定版：停用遠端自動更新 */
-/* 精簡固定版：停用遠端定時更新 */
-/* 精簡固定版：停用返回前景時的遠端版本檢查 */
+setTimeout(checkAppUpdate, 2500);
+setInterval(checkAppUpdate, 5 * 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - (checkAppUpdate.t || 0) > 60000) { checkAppUpdate.t = Date.now(); checkAppUpdate(); } });
 
 /* ===================== 路由 ===================== */
 function route(){
@@ -6515,10 +6599,6 @@ function route(){
     return;
   }
   const mode = Q.get('mode');
-  // 來賓端只提供視訊功能；不初始化或顯示任何實體控制器介面。
-  if (mode === 'guest') {
-    document.querySelectorAll('#wc4-device-launch, #wc4-device-panel, [data-wc-device-launch]').forEach(el => el.remove());
-  }
   if (mode === 'guest') Guest();
   else if (mode === 'out') Output();
   else if (mode === 'op') Operator();
@@ -6531,5 +6611,4 @@ else {   // 網路慢、CDN 被擋時再試一次備用來源
   sc.onload = sc.onerror = route; document.head.appendChild(sc);
 }
 </script>
-
 </body></html>
