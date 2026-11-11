@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2208-hardware">
+<meta name="webcall-version" content="2026.1111.2218-snap">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2208-hardware';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2218-snap';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -787,6 +787,12 @@ body.opp{overflow:hidden}
 .host.studio.hardware-console #thdl::after{content:'';position:absolute;left:14px;right:14px;width:auto;top:50%;height:1px;background:#70879c;box-shadow:0 -3px 0 #70879c99,0 3px 0 #70879c99;pointer-events:none}
 @media(max-width:700px){.host.studio.hardware-console .studioBus>.tcol{padding:6px;gap:4px;grid-template-columns:minmax(0,1fr) 44px}.host.studio.hardware-console .tcol .tbtn{font-size:9px}.host.studio.hardware-console .cc-row>.cc-head{font-size:9px}.host.studio.hardware-console #tbar{width:min(40px,calc(100% - 2px))}.host.studio.hardware-console #thdl::before{left:5px;right:5px}.host.studio.hardware-console #thdl::after{left:9px;right:9px}}
 @media(prefers-reduced-motion:reduce){.hardware-console .cc-key,.hardware-console .tbtn{transition:none}}
+
+.host.studio.layout-free.layout-edit.layout-grid .hmain{background-image:linear-gradient(#77b9df12 1px,transparent 1px),linear-gradient(90deg,#77b9df12 1px,transparent 1px),linear-gradient(#0c151e,#080f15);background-size:8px 8px,8px 8px,100% 100%;background-position:0 0}
+.layout-snap-line{display:none;position:absolute;z-index:950;pointer-events:none;filter:drop-shadow(0 0 3px #46bfff99)}
+.layout-free.layout-edit:not(.keyboard-only) .layout-snap-line:not([hidden]){display:block}
+.layout-snap-line.snap-x{top:0;bottom:0;width:1px;border-left:1px dashed #64d4ff}.layout-snap-line.snap-y{left:0;right:0;height:1px;border-top:1px dashed #64d4ff}
+.layout-snap-line span{position:absolute;padding:2px 5px;border-radius:3px;background:#1c6184;color:#e2f8ff;font:600 10px Arial,sans-serif;white-space:nowrap;box-shadow:0 1px 5px #0008}.snap-x span{top:27px;left:4px}.snap-y span{left:8px;top:4px}.layout-snap-line[hidden]{display:none!important}
 
 </style>
 </head>
@@ -1599,6 +1605,47 @@ function fitPanelRect(r,W,H){
   return {x:Math.min(100-w,Math.max(0,num(r?.x,0))),y:Math.min(100-h,Math.max(0,num(r?.y,0))),w,h};
 }
 
+/* Geometry in pixels keeps the magnetic radius consistent on every display. */
+function snapPanelRect(rect,W,H,peers,operation,options={}){
+  const fitted=fitPanelRect(rect,W,H);
+  if(options.enabled===false||W<=0||H<=0)return {rect:fitted,guides:[]};
+  const threshold=Math.max(2,Math.min(24,Number(options.threshold)||10)),gap=8;
+  let a={x:fitted.x/100*W,y:fitted.y/100*H,w:fitted.w/100*W,h:fitted.h/100*H};
+  const others=peers.map(p=>({x:p.x/100*W,y:p.y/100*H,w:p.w/100*W,h:p.h/100*H}));
+  const guides=[];
+  const choose=(value,anchors,targets)=>{
+    let best=null;
+    targets.forEach(t=>anchors.forEach(offset=>{const delta=t.at-(value+offset);if(Math.abs(delta)<=threshold&&(!best||Math.abs(delta)<Math.abs(best.delta))){best={...t,delta,offset};}}));
+    return best;
+  };
+  ['x','y'].forEach(axis=>{
+    const horizontal=axis==='x',limit=horizontal?W:H,size=horizontal?'w':'h';
+    const targets=[{at:0,label:'邊界'},{at:limit/2,label:'中心'},{at:limit,label:'邊界'}];
+    others.forEach(p=>{
+      targets.push({at:p[axis],label:'對齊'},{at:p[axis]+p[size]/2,label:'中心對齊'},{at:p[axis]+p[size],label:'對齊'});
+    });
+    let match;
+    if(operation==='resize'){
+      const end=a[axis]+a[size];
+      others.forEach(p=>targets.push({at:a[axis]+p[size],label:horizontal?'同寬':'同高'}));
+      match=choose(end,[0],targets.filter(t=>t.at>a[axis]&&t.at<=limit));
+      if(!match&&options.grid!==false){const at=Math.round(end/gap)*gap;if(at>a[axis]&&at<=limit&&Math.abs(at-end)<=threshold)match={at,label:'格線',delta:at-end,offset:0};}
+      if(match){a[size]+=match.delta;guides.push({axis,at:match.at,label:match.label,anchor:'end'});}
+    }else{
+      // Adjacent panels retain a comfortable 8px gap rather than sticking together.
+      others.forEach(p=>targets.push({at:p[axis]+p[size]+gap,label:'等距',anchor:0},{at:p[axis]-gap,label:'等距',anchor:a[size]}));
+      const gapTargets=targets.filter(t=>t.anchor!==undefined),alignTargets=targets.filter(t=>t.anchor===undefined);
+      match=choose(a[axis],[0,a[size]/2,a[size]],alignTargets);
+      gapTargets.forEach(t=>{const candidate=choose(a[axis],[t.anchor],[t]);if(candidate&&(!match||Math.abs(candidate.delta)<Math.abs(match.delta)))match=candidate;});
+      if(!match&&options.grid!==false){const at=Math.round(a[axis]/gap)*gap;if(Math.abs(at-a[axis])<=threshold)match={at,label:'格線',delta:at-a[axis],offset:0};}
+      if(match){a[axis]+=match.delta;guides.push({axis,at:match.at,label:match.label,anchor:match.offset});}
+    }
+  });
+  const result=fitPanelRect({x:a.x/W*100,y:a.y/H*100,w:a.w/W*100,h:a.h/H*100},W,H);
+  const valid=guides.filter(g=>{const base=(g.axis==='x'?result.x*W:result.y*H)/100;const size=(g.axis==='x'?result.w*W:result.h*H)/100;return Math.abs(base+(g.anchor==='end'?size:g.anchor)-g.at)<.75;});
+  return {rect:result,guides:valid};
+}
+
 /* ===================== 導播台 ===================== */
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
@@ -1797,7 +1844,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v17-HARDWARE</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v18-SNAP</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -5417,7 +5464,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     const labels={pvw:'PREVIEW 預覽',pgm:'PROGRAM 播出',inputs:'來源監看',keyboard:'導播鍵盤',transition:'轉場 / T-Bar'};
     const defaults=mode=>({visible:{pvw:true,pgm:true,inputs:mode==='classic',keyboard:mode==='custom',transition:mode!=='studio'},rects:structuredClone(mode==='classic'?classic:seed)});
     let saved={};try{saved=JSON.parse(store(KEY)||'{}')||{};}catch{}
-    const prefs={mode:['studio','classic','custom'].includes(saved.mode)?saved.mode:'studio',skin:saved.skin==='dark'?'dark':'hardware',edit:false,profiles:{}};
+    const prefs={mode:['studio','classic','custom'].includes(saved.mode)?saved.mode:'studio',skin:saved.skin==='dark'?'dark':'hardware',snap:saved.snap!==false,grid:saved.grid!==false,snapStrength:[4,8,10,14,20].includes(saved.snapStrength)?saved.snapStrength:10,edit:false,profiles:{}};
     ['studio','classic','custom'].forEach(mode=>{
       const d=defaults(mode),p=saved.profiles?.[mode];
       Object.keys(labels).forEach(id=>{if(typeof p?.visible?.[id]==='boolean')d.visible[id]=p.visible[id];if(p?.rects?.[id])d.rects[id]=fitPanelRect(p.rects[id],1000,700);});prefs.profiles[mode]=d;
@@ -5430,6 +5477,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     function apply(){
       const free=prefs.mode!=='studio'&&!keyboardMode;
       root.classList.toggle('hardware-console',prefs.skin==='hardware');
+      root.classList.toggle('layout-grid',free&&prefs.edit&&prefs.snap&&prefs.grid);
       root.classList.toggle('layout-free',free);root.classList.toggle('layout-classic',prefs.mode==='classic');root.classList.toggle('layout-edit',free&&prefs.edit);
       const p=profile(),W=area.clientWidth||1000,H=area.clientHeight||700;
       Object.entries(nodes).forEach(([id,node])=>{
@@ -5443,7 +5491,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       if(!keyboardMode){showSourceMonitor=p.visible.inputs;root.classList.toggle('sources-open',showSourceMonitor);$('#sourceViewToggle').setAttribute('aria-pressed',String(showSourceMonitor));if(prefs.mode==='studio'){const chosen=$('#studioView').value;root.dataset.studioview=showSourceMonitor&&innerWidth<1000?'inputs':chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;}}
       if(paintFrame)cancelAnimationFrame(paintFrame);paintFrame=requestAnimationFrame(()=>{paintFrame=0;refresh();});
     }
-    function change(mutator){monitorExpansion.close();mutator();save();apply();if(dialog)renderDialog();}
+    function change(mutator){monitorExpansion.close();showSnapGuides([]);mutator();save();apply();if(dialog)renderDialog();}
     Object.entries(nodes).forEach(([id,node])=>{
       const grip=document.createElement('div');grip.className='layout-drag-grip';grip.innerHTML=`<span>⠿ ${labels[id]}</span><button type="button" aria-label="隱藏${labels[id]}">×</button>`;
       const resize=document.createElement('button');resize.type='button';resize.className='layout-resize-grip';resize.title='拖曳調整 '+labels[id]+' 大小';resize.setAttribute('aria-label',resize.title);resize.textContent='◢';area.append(grip,resize);controls[id]={grip,resize};
@@ -5451,20 +5499,27 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       const bind=(handle,resizing)=>{
         let drag=null;
         handle.addEventListener('pointerdown',e=>{if(!prefs.edit||prefs.mode==='studio'||(e.target.closest('button')&&handle===grip))return;e.preventDefault();const r=profile().rects[id];drag={x:e.clientX,y:e.clientY,r:{...r}};handle.setPointerCapture(e.pointerId);});
-        handle.addEventListener('pointermove',e=>{if(!drag)return;const W=area.clientWidth,H=area.clientHeight;if(!W||!H)return;const dx=(e.clientX-drag.x)/W*100,dy=(e.clientY-drag.y)/H*100;profile().rects[id]=fitPanelRect({...drag.r,...(resizing?{w:drag.r.w+dx,h:drag.r.h+dy}:{x:drag.r.x+dx,y:drag.r.y+dy})},W,H);apply();});
-        const finish=()=>{if(!drag)return;drag=null;save();refresh();};handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',finish);
+        handle.addEventListener('pointermove',e=>{if(!drag)return;const W=area.clientWidth,H=area.clientHeight;if(!W||!H)return;const dx=(e.clientX-drag.x)/W*100,dy=(e.clientY-drag.y)/H*100;const raw={...drag.r,...(resizing?{w:drag.r.w+dx,h:drag.r.h+dy}:{x:drag.r.x+dx,y:drag.r.y+dy})};const peers=Object.entries(profile().rects).filter(([key])=>key!==id&&profile().visible[key]).map(([,r])=>r);const snapped=snapPanelRect(raw,W,H,peers,resizing?'resize':'move',{enabled:prefs.snap&&!e.altKey,threshold:prefs.snapStrength,grid:prefs.grid});profile().rects[id]=snapped.rect;showSnapGuides(snapped.guides);apply();});
+        const finish=()=>{if(!drag)return;drag=null;showSnapGuides([]);save();refresh();};handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',finish);
       };bind(grip,false);bind(resize,true);
     });
+    const snapGuides={};
+    ['x','y'].forEach(axis=>{const el=document.createElement('div');el.className='layout-snap-line snap-'+axis;el.hidden=true;el.setAttribute('aria-hidden','true');const label=document.createElement('span');el.appendChild(label);area.append(el);snapGuides[axis]={el,label};});
+    function showSnapGuides(lines){
+      Object.values(snapGuides).forEach(g=>g.el.hidden=true);
+      lines.forEach(line=>{const g=snapGuides[line.axis],limit=line.axis==='x'?area.clientWidth:area.clientHeight;if(!limit)return;g.el.hidden=false;g.el.style[line.axis==='x'?'left':'top']=(line.at/limit*100)+'%';g.label.textContent=line.label;});
+    }
     function setMode(mode){
       if(!['studio','classic','custom'].includes(mode))return;
-      monitorExpansion.close();if(keyboardMode)setKeyboardMode(false);prefs.mode=mode;prefs.edit=mode==='custom';$('#studioView').value='all';
+      monitorExpansion.close();showSnapGuides([]);if(keyboardMode)setKeyboardMode(false);prefs.mode=mode;prefs.edit=mode==='custom';$('#studioView').value='all';
       if(!UI.sw)setSwMode(true);save();setStudioView();apply();if(dialog)renderDialog();
     }
     function renderDialog(){
       if(!dialog)return;const p=profile();
-      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label>控盤材質 <select id="lpSkin"><option value="hardware">實體導播台</option><option value="dark">深色平面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${prefs.mode==='studio'?'disabled':''}> 顯示拖曳／縮放把手</label><span>自動儲存在這台瀏覽器；不同樣式分別記憶。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${(id==='keyboard'&&prefs.mode==='studio'?keyboardMode:p.visible[id])?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${prefs.mode==='studio'?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>舊版排列保留左預覽、中央轉場、右播出。自訂模式可分別拖曳與縮放。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
+      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label>控盤材質 <select id="lpSkin"><option value="hardware">實體導播台</option><option value="dark">深色平面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${prefs.mode==='studio'?'disabled':''}> 顯示拖曳／縮放把手</label><label><input type="checkbox" id="lpSnap" ${prefs.snap?'checked':''}> 磁吸對齊</label><label><input type="checkbox" id="lpGrid" ${prefs.grid?'checked':''}> 8px 格線</label><label>吸附距離 <select id="lpSnapStrength">${[4,8,10,14,20].map(n=>`<option value="${n}">${n}px</option>`).join('')}</select></label><span>按住 Alt 暫時略過磁吸。設定自動儲存。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${(id==='keyboard'&&prefs.mode==='studio'?keyboardMode:p.visible[id])?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${prefs.mode==='studio'?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>靠近邊界、中心線或其他面板時自動吸附；縮放時可吸成同寬或同高。按住 Alt 暫時略過磁吸。舊版排列與各區塊拖曳縮放仍保留。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
       $('#lpMode',dialog).value=prefs.mode;$('#lpMode',dialog).onchange=e=>setMode(e.target.value);
       $('#lpSkin',dialog).value=prefs.skin;$('#lpSkin',dialog).onchange=e=>change(()=>prefs.skin=e.target.value==='dark'?'dark':'hardware');
+      $('#lpSnap',dialog).onchange=e=>change(()=>prefs.snap=e.target.checked);$('#lpGrid',dialog).onchange=e=>change(()=>prefs.grid=e.target.checked);$('#lpSnapStrength',dialog).value=String(prefs.snapStrength);$('#lpSnapStrength',dialog).onchange=e=>change(()=>prefs.snapStrength=Number(e.target.value));
       $('#lpEdit',dialog).onchange=e=>change(()=>prefs.edit=e.target.checked);
       $$('[data-lpclose]',dialog).forEach(b=>b.onclick=closeDialog);
       $$('[data-lp-visible]',dialog).forEach(b=>b.onchange=()=>{const id=b.dataset.lpVisible;if(id==='keyboard'&&prefs.mode==='studio'){setKeyboardMode(b.checked);renderDialog();return;}change(()=>p.visible[id]=b.checked);});
