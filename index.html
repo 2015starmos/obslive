@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2110">
+<meta name="webcall-version" content="2026.1111.2130">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2110';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2130';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -646,6 +646,22 @@ table.eart th{max-width:64px;overflow:hidden;text-overflow:ellipsis}
 .guest-led{left:12px;right:auto;top:auto;bottom:calc(150px + var(--sab));width:min(250px,calc(100% - 24px));height:34px;padding:8px 12px;display:flex;align-items:center;justify-content:flex-start;gap:8px;border-radius:11px;background:#182230d9;border:1px solid #ffffff30;backdrop-filter:blur(14px);box-shadow:0 3px 12px #0004;color:#e4edf8}
 .guest-led svg{width:16px;height:16px;flex:none}.gmin-label{font:600 11px Arial,sans-serif;letter-spacing:.04em;min-width:26px}.gmin-track{flex:1;height:4px;border-radius:4px;background:#ffffff29;overflow:hidden}.gmin-track>span{display:block;height:100%;width:0;background:#4ade80;border-radius:4px;transition:width .065s linear}.guest-led.clipping .gmin-track>span{background:#ff5865}.guest-led.muted{opacity:.6}
 @media(max-height:500px){.guest-led{bottom:calc(92px + var(--sab));width:190px;height:30px;padding:6px 10px}}
+
+/* Fixed application viewport; long settings stay within their own panels. */
+html,body,#app{width:100%;max-width:100%;height:var(--wc-vh,100dvh);min-height:0;overflow:hidden;overscroll-behavior:none}
+#app>*{min-width:0;max-width:100%}.host,.op{width:100%;height:100%;min-height:0;max-height:100%;overflow:hidden}
+.host{grid-template-rows:auto auto minmax(0,1fr)}.host .topbar{min-width:0;max-height:clamp(48px,14dvh,112px);overflow:auto;overscroll-behavior:contain}.host .keybar{min-width:0;max-height:80px;overscroll-behavior:contain}
+.host .hmain{min-width:0;min-height:0;overflow:hidden}.host:not(.simple) .hmain{grid-template-rows:minmax(0,64fr) minmax(0,36fr);grid-template-columns:minmax(0,1fr)}
+.host:not(.simple) .hmain .switcher{max-height:none;height:100%;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;align-content:start}
+.host .mon{min-width:0}.host .screen{max-height:24dvh}.host .multiview{min-width:0;min-height:0;overflow:hidden}.host .dock{max-width:40vw;min-width:0;overscroll-behavior:contain}
+.home{height:100%;min-height:0;overflow:auto;overscroll-behavior:contain;padding:clamp(12px,3vh,24px);place-items:safe center}.home .box{min-width:0;max-width:min(460px,100%)}
+.gp{height:var(--wc-vh,100dvh);bottom:auto;max-width:100%;width:100%}.sheet{max-height:calc(var(--wc-vh,100dvh) - 24px);min-width:0;overscroll-behavior:contain}.sheet .g2>*{min-width:0}.sheet .segc{max-width:100%;flex-wrap:wrap}
+.win{max-width:calc(100vw - 16px);max-height:calc(var(--wc-vh,100dvh) - 16px);min-width:min(260px,calc(100vw - 16px));min-height:min(140px,calc(var(--wc-vh,100dvh) - 16px))}.win .wb{min-height:0;min-width:0;overscroll-behavior:contain}
+.modal{max-width:100%;height:var(--wc-vh,100dvh);bottom:auto;padding:8px}.modal .m{max-height:calc(var(--wc-vh,100dvh) - 16px);min-width:0;overscroll-behavior:contain}
+.op header{flex:none;min-width:0;max-height:100px;overflow:auto}.opmain{min-height:0;min-width:0;overflow:hidden;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.opv,.opc{min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain}.opvbox{max-height:45dvh}.op .opmix{min-height:0}.op .crystal-console{min-width:0}
+.crystal-console .cc-keys{overflow:hidden}.cc-tools{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;color:#a9c4e6;font:11px Arial,sans-serif}.cc-tools span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cc-tools button{border:1px solid #657c9c;color:#dcecff;background:#263b57;border-radius:5px;min-width:38px;min-height:30px;cursor:pointer}.cc-tools button:disabled{opacity:.35;cursor:default}.cc-pages{display:flex;gap:6px;flex:none}
+@media(max-width:700px){.opmain{grid-template-columns:1fr;grid-template-rows:minmax(0,36fr) minmax(0,64fr);padding:8px;gap:8px}.opvbox{max-height:25dvh}.host .topbar{gap:6px;padding:5px 8px}.host .keybar{padding:4px}.host .keybar .key{min-width:46px}.win{left:8px!important;top:8px!important;width:calc(100vw - 16px)!important;height:calc(var(--wc-vh,100dvh) - 16px)!important;resize:none}.host.simple .hmain{grid-template-columns:minmax(0,1fr) minmax(0,32%)}.host .dock{width:100%;max-width:none}}
+@media(max-height:500px){.host .topbar{max-height:52px}.host .keybar{max-height:44px}.home h1{font-size:19px;margin-top:10px}.home .card{padding:10px}.host:not(.simple) .hmain{grid-template-rows:minmax(0,70fr) minmax(0,30fr)}.host .screen{max-height:28dvh}.opmain{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}}
 
 </style>
 </head>
@@ -1414,7 +1430,7 @@ function Host(sess){
   let outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
-  let crystalSig = null;
+  let crystalSig = null, crystalPage = 0;
   const outputs = new Set();
   const pending = new Map();
   const msgs = []; let unread = 0;
@@ -5114,13 +5130,20 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   function renderCrystalConsole(){
     const box = $('#crystalConsole'); if (!box) return;
     const list = order.map(id => inputs.get(id)).filter(Boolean);
-    const sig = JSON.stringify(list.map(x => [x.id,x.name,!!x.lost]));
+    const width = box.clientWidth || (typeof innerWidth === 'number' ? innerWidth : 1280);
+    const available = width - (width > 1000 ? 270 : 36);
+    const perPage = Math.max(1, Math.floor(available / (width < 600 ? 80 : 92)) - 1);
+    const pages = Math.max(1, Math.ceil(list.length / perPage));
+    crystalPage = Math.max(0, Math.min(crystalPage, pages - 1));
+    const visible = list.slice(crystalPage * perPage, (crystalPage + 1) * perPage);
+    const sig = JSON.stringify([crystalPage,perPage,list.map(x => [x.id,x.name,!!x.lost])]);
     if (sig !== crystalSig) {
       crystalSig = sig;
-      const keys = bus => `<button type="button" class="cc-key cc-black" data-ccbus="${bus}" data-ccid="" title="黑畫面"><b>BLK</b><small>黑畫面</small></button>` + (list.length ? list.map((x,i) => `<button type="button" class="cc-key" data-ccbus="${bus}" data-ccid="${esc(x.id)}" title="${esc(x.name)}${x.lost ? ' · 訊號中斷' : ''}"><b>${i+1}</b><small>${esc(x.name)}</small></button>`).join('') : Array.from({length:6},(_,i)=>`<button type="button" class="cc-key" disabled title="等待來源連入"><b>${i+1}</b><small>等待來源</small></button>`).join(''));
-      box.innerHTML = `<div class="cc-buses"><section class="cc-row"><div class="cc-head">PROGRAM</div><div class="cc-keys" aria-label="節目直接切換">${keys('pgm')}</div></section><section class="cc-row cc-preview"><div class="cc-head">PREVIEW</div><div class="cc-keys" aria-label="選擇下一個預覽來源">${keys('pvw')}</div></section></div><section class="cc-functions"><div class="cc-head">TRANSITION</div><div class="cc-functions-grid"><button type="button" class="cc-key" data-ccaction="cut"><b>CUT</b><small>立即切換</small></button><button type="button" class="cc-key" data-ccaction="auto"><b>AUTO</b><small>自動轉場</small></button><button type="button" class="cc-key" data-ccaction="preview"><b>PREV</b><small>轉場預覽</small></button><button type="button" class="cc-key" data-ccaction="ftb"><b>FTB</b><small>淡出黑畫面</small></button></div><p class="cc-hint">紅列直接播出 · 綠列只選預覽<br>CUT／AUTO 將預覽送出</p></section>`;
+      const keys = bus => `<button type="button" class="cc-key cc-black" data-ccbus="${bus}" data-ccid="" title="黑畫面"><b>BLK</b><small>黑畫面</small></button>` + (list.length ? visible.map((x,i) => `<button type="button" class="cc-key" data-ccbus="${bus}" data-ccid="${esc(x.id)}" title="${esc(x.name)}${x.lost ? ' · 訊號中斷' : ''}"><b>${crystalPage*perPage+i+1}</b><small>${esc(x.name)}</small></button>`).join('') : Array.from({length:Math.min(6,perPage)},(_,i)=>`<button type="button" class="cc-key" disabled title="等待來源連入"><b>${i+1}</b><small>等待來源</small></button>`).join(''));
+      box.innerHTML = `<div class="cc-tools"><span>來源 ${list.length ? crystalPage*perPage+1 : 0}–${Math.min(list.length,(crystalPage+1)*perPage)} / ${list.length}</span><div class="cc-pages"><button type="button" data-ccpage="-1" ${crystalPage===0?'disabled':''} aria-label="上一頁來源">‹</button><span>${crystalPage+1} / ${pages}</span><button type="button" data-ccpage="1" ${crystalPage===pages-1?'disabled':''} aria-label="下一頁來源">›</button></div></div><div class="cc-buses"><section class="cc-row"><div class="cc-head">PROGRAM</div><div class="cc-keys" aria-label="節目直接切換">${keys('pgm')}</div></section><section class="cc-row cc-preview"><div class="cc-head">PREVIEW</div><div class="cc-keys" aria-label="選擇下一個預覽來源">${keys('pvw')}</div></section></div><section class="cc-functions"><div class="cc-head">TRANSITION</div><div class="cc-functions-grid"><button type="button" class="cc-key" data-ccaction="cut"><b>CUT</b><small>立即切換</small></button><button type="button" class="cc-key" data-ccaction="auto"><b>AUTO</b><small>自動轉場</small></button><button type="button" class="cc-key" data-ccaction="preview"><b>PREV</b><small>轉場預覽</small></button><button type="button" class="cc-key" data-ccaction="ftb"><b>FTB</b><small>淡出黑畫面</small></button></div><p class="cc-hint">紅列直接播出 · 綠列只選預覽<br>CUT／AUTO 將預覽送出</p></section>`;
       box.onclick = e => {
         const b=e.target.closest('button'); if(!b || b.disabled) return;
+        if(b.dataset.ccpage) { crystalPage += Number(b.dataset.ccpage); renderCrystalConsole(); return; }
         if(!canSw()) return roleDeny();
         if(!UI.sw) setSwMode(true);
         if(b.dataset.ccbus) {
@@ -6426,7 +6449,7 @@ function Operator(){
         ${R !== 'view' ? '<div class="busm" id="opbus"></div>' : ''}</section>
       <section class="opc" id="opc"><div class="note">連線中…</div></section></div></div>`;
   const v = $('#opvid'), C = $('#opc');
-  let peer, conn, retryT, S = null, sig = '', LVL = { in: {}, pgm: -90, aux: [] }, denied = false;
+  let peer, conn, retryT, S = null, sig = '', LVL = { in: {}, pgm: -90, aux: [] }, denied = false, opPage = 0;
   const send = d => { if (conn?.open) conn.send(d); };
   const st = (c, t) => { $('#ops').innerHTML = `<span class="dot ${c}"></span>${esc(t)}`; };
   $('#opn').onchange = e => { store('wc_opname', e.target.value.trim()); dial(); };
@@ -6435,15 +6458,17 @@ function Operator(){
   const lvPct = d => clamp((d + 60) / 60, 0, 1) * 100;
   function render(){
     if (!S) return;
-    const ns = R + '|' + S.sw + '|' + S.inputs.map(x => x.id + x.name).join(',') + '|' + S.aux.map(a => a.name + a.mode).join(',') + '|' + S.stills.map(x => x.has).join('');
+    const ns = opPage + '|' + Math.floor((C.clientWidth || innerWidth) / 80) + '|' + R + '|' + S.sw + '|' + S.inputs.map(x => x.id + x.name).join(',') + '|' + S.aux.map(a => a.name + a.mode).join(',') + '|' + S.stills.map(x => x.has).join('');
     if (ns !== sig) { sig = ns; build(); }
     patch();
   }
   function build(){
     const IN = S.inputs;
     if (R === 'dir') {
-      const rowKeys = (bus) => `<button type="button" class="cc-key cc-black" data-${bus}="" ${S.sw ? '' : 'disabled'}><b>BLK</b><small>黑畫面</small></button>` + IN.map(x => `<button type="button" class="cc-key" data-${bus}="${esc(x.id)}"><b>${x.n}</b><small>${esc(x.name)}</small></button>`).join('');
-      C.innerHTML = `<div class="crystal-console" style="grid-template-columns:1fr"><div class="cc-buses"><section class="cc-row"><div class="cc-head">PROGRAM</div><div class="cc-keys">${rowKeys('pg')}</div></section><section class="cc-row cc-preview"><div class="cc-head">PREVIEW</div><div class="cc-keys">${rowKeys('pv')}</div></section></div><section class="cc-functions"><div class="cc-head">TRANSITION</div><div class="cc-functions-grid" style="grid-template-columns:repeat(3,1fr)"><button type="button" class="cc-key" data-c="cut"><b>CUT</b><small>立即切換</small></button><button type="button" class="cc-key" data-c="auto"><b>AUTO</b><small>自動轉場</small></button><button type="button" class="cc-key" data-c="ftb" ${S.sw ? '' : 'disabled'}><b>FTB</b><small>淡出黑畫面</small></button></div></section></div>
+      const per = Math.max(1, Math.floor(((C.clientWidth || innerWidth) - 68) / 92) - 1), pages = Math.max(1,Math.ceil(IN.length/per));
+      opPage = Math.max(0,Math.min(opPage,pages-1));
+      const rowKeys = (bus) => `<button type="button" class="cc-key cc-black" data-${bus}="" ${S.sw ? '' : 'disabled'}><b>BLK</b><small>黑畫面</small></button>` + IN.slice(opPage*per,(opPage+1)*per).map(x => `<button type="button" class="cc-key" data-${bus}="${esc(x.id)}"><b>${x.n}</b><small>${esc(x.name)}</small></button>`).join('');
+      C.innerHTML = `<div class="crystal-console" style="grid-template-columns:1fr"><div class="cc-tools"><span>來源分頁 ${opPage+1} / ${pages}</span><div class="cc-pages"><button type="button" data-oppage="-1" ${opPage===0?'disabled':''} aria-label="上一頁來源">‹</button><button type="button" data-oppage="1" ${opPage===pages-1?'disabled':''} aria-label="下一頁來源">›</button></div></div><div class="cc-buses"><section class="cc-row"><div class="cc-head">PROGRAM</div><div class="cc-keys">${rowKeys('pg')}</div></section><section class="cc-row cc-preview"><div class="cc-head">PREVIEW</div><div class="cc-keys">${rowKeys('pv')}</div></section></div><section class="cc-functions"><div class="cc-head">TRANSITION</div><div class="cc-functions-grid" style="grid-template-columns:repeat(3,1fr)"><button type="button" class="cc-key" data-c="cut"><b>CUT</b><small>立即切換</small></button><button type="button" class="cc-key" data-c="auto"><b>AUTO</b><small>自動轉場</small></button><button type="button" class="cc-key" data-c="ftb" ${S.sw ? '' : 'disabled'}><b>FTB</b><small>淡出黑畫面</small></button></div></section></div>
         <div class="wsec"><h4>圖層／圖庫</h4><div class="row" style="flex-wrap:wrap">${[['lt', '字幕條'], ['tk', '跑馬燈'], ['bn', '突發'], ['bug', '台標'], ['cc', 'CC'], ['tm', '倒數']].map(([k, n]) => `<button class="dsk" data-ov="${k}"><span class="led"></span>${n}</button>`).join('')}${S.stills.filter(x => x.has).map(x => `<button class="dsk" data-st="${x.n}"><span class="led"></span>S${x.n}</button>`).join('')}</div></div>
         <div class="wsec"><h4>AUX 母線</h4>${S.aux.map((a, i) => `<div class="row" style="margin:4px 0"><b style="width:90px">AUX ${i + 1}<br><small class="note" style="margin:0">${esc(a.name)}</small></b>${a.mode === 'src' ? `<select class="field sm grow" data-ap="${i}"><option value="">PVW：黑畫面</option>${IN.map(x => `<option value="${x.id}">PVW：${x.n}. ${esc(x.name)}</option>`).join('')}</select><span class="note" style="margin:0" data-apg="${i}"></span><button class="tbtn cut" data-at="${i}" style="height:34px">TAKE</button>` : `<span class="note grow" style="margin:0">跟著 ${esc(a.mode.toUpperCase())}</span>`}</div>`).join('')}</div>
         <div class="wsec"><h4>場景</h4><div class="row" style="flex-wrap:wrap">${Array.from({ length: 12 }, (_, i) => `<button class="btn sm" data-sc="${i}">F${i + 1}</button>`).join('')}</div></div>`;
@@ -6457,6 +6482,7 @@ function Operator(){
     } else {
       C.innerHTML = `<div class="wsec"><h4>來源狀態</h4><div id="opvl"></div><div class="note">監看員是唯讀模式，不能操作任何參數。</div></div>`;
     }
+    $$('[data-oppage]', C).forEach(b => b.onclick = () => { opPage += Number(b.dataset.oppage); sig=''; render(); });
     $$('[data-pv]', C).forEach(b => b.onclick = () => send({ type: 'pvw', id: b.dataset.pv || null }));
     $$('[data-pg]', C).forEach(b => b.onclick = () => send({ type: 'take', id: b.dataset.pg || null }));
     $$('[data-c]', C).forEach(b => b.onclick = () => send({ type: b.dataset.c }));
@@ -6503,6 +6529,7 @@ function Operator(){
     const pv = S.inputs.find(x => x.id === S.pvw), pg = S.inputs.find(x => x.id === S.pgm);
     $('#opsrc').textContent = `PGM：${pg?.name || '—'}　PVW：${pv?.name || '—'}`;
   }
+  addEventListener('resize', () => { sig=''; render(); });
   function paintLv(){
     $$('.strip[data-id]', C).forEach(sd => { const i = $('[data-lv]', sd); if (i) i.style.height = lvPct(LVL.in[sd.dataset.id] ?? -90) + '%'; });
     const b = $('#opbus'); if (b && S) b.innerHTML = `<span>PGM</span><div class="ppm"><i style="width:${lvPct(LVL.pgm)}%"></i><s></s><b>${LVL.pgm <= -89 ? '–∞' : LVL.pgm}</b></div>` + S.aux.map((a, i) => `<span>AUX ${i + 1}</span><div class="ppm"><i style="width:${lvPct(LVL.aux[i] ?? -90)}%"></i><s></s><b>${(LVL.aux[i] ?? -90) <= -89 ? '–∞' : LVL.aux[i]}</b></div>`).join('');
@@ -6599,4 +6626,18 @@ else {   // 網路慢、CDN 被擋時再試一次備用來源
 }
 </script>
 
+<script>
+(function(){
+  const fit = () => {
+    const h = window.visualViewport?.height || innerHeight;
+    document.documentElement.style.setProperty('--wc-vh', Math.round(h)+'px');
+    document.querySelectorAll('.win').forEach(w => {
+      const r=w.getBoundingClientRect();
+      if(r.left<0 || r.right>innerWidth) w.style.left=Math.max(8,Math.min(r.left,innerWidth-r.width-8))+'px';
+      if(r.top<0 || r.bottom>h) w.style.top=Math.max(8,Math.min(r.top,h-r.height-8))+'px';
+    });
+  };
+  addEventListener('resize',fit);window.visualViewport?.addEventListener('resize',fit);fit();
+})();
+</script>
 </body></html>
