@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2135-studio">
+<meta name="webcall-version" content="2026.1111.2146-monitor">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2135-studio';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2146-monitor';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -695,6 +695,41 @@ body.opp{overflow:hidden}
 .host.studio.simple .studioBus,.host.studio.simple .studioDesk{display:none}.host.studio.simple .hmain{grid-template-columns:minmax(0,1fr) 250px;grid-template-rows:minmax(0,1fr)}.host.studio.simple .studioSources{grid-column:1;grid-row:1}
 @media(max-width:1050px){.studio .topbar .sess,.studio .topbar .kpi,.studio .topbar .clock,.studio .topbar .ptimer{display:none}.studio .topbar{gap:5px}.studio .studioBus{grid-template-columns:minmax(0,1fr) 190px}.studioDeskTabs button{padding:0 8px}.studio .topbar .panic{font-size:0;padding:0 5px}.studio .topbar .panic svg{width:17px;height:17px}.studio .keybar .key{font-size:8px;padding:2px 4px}.studio .studioSources .tile .ctl .field{max-width:50px}}
 @media(max-width:600px){.studio .topbar .invk{max-width:95px;overflow:hidden}.studio .topbar .pill,.studio .topbar .modeb{display:none}.studio .topbar .btn{font-size:10px;padding:0 6px}.studioDeskTabs .studio-tool-title{display:none}.studioDeskTabs{height:auto;min-height:26px;flex-wrap:wrap}.studioDeskTabs button{padding:0 6px}.studio .studioBus{grid-template-columns:minmax(0,1fr) 100px}.host.studio .studioBus>.tcol{grid-template-columns:minmax(0,1fr) 26px;grid-template-rows:repeat(7,minmax(18px,1fr));gap:3px}.studioBus>.tcol>.tsel{grid-column:1}.studioBus #ptr{grid-column:1;grid-row:4}.studioBus #cut{grid-column:1;grid-row:5}.studioBus #auto{grid-column:1;grid-row:6}.studioBus #ftb{grid-column:1;grid-row:7}.studioBus #tbar{grid-column:2;grid-row:1/8;width:24px}.host.studio .crystal-console .cc-key{min-width:44px;width:44px}.studio .cc-row{grid-template-columns:42px minmax(0,1fr)}.studio .cc-row .cc-head{font-size:9px}.studio .cc-keys{gap:9px;padding:6px}.studio .switcher .pipbar{height:24px;min-height:24px}.studio .switcher .pipbar #pipsize,.studio .switcher .pipbar #pippos{display:none}.studio .switcher .pipbar #snpgm{font-size:0}.studio .switcher .hd{font-size:8px}.studio .switcher .hd #pgmres{display:none}}
+
+/* The source workspace and the switcher keyboard are separate views. */
+.host.studio:not(.keyboard-only) .hmain>.studioBus{display:none!important}
+.host.studio:not(.simple):not(.keyboard-only)[data-studioview=all] .hmain{grid-template-rows:minmax(0,56fr) minmax(0,44fr)}
+.host.studio:not(.keyboard-only)[data-studioview=all] .studioDesk{grid-row:2}
+#keyboardToggle{display:flex;align-items:center;gap:6px;min-height:25px;padding:3px 10px;border-radius:3px;border:1px solid #3d6a85;background:linear-gradient(#244458,#152b39);color:#b7e5ff;font:600 10px var(--mono);cursor:pointer;white-space:nowrap}
+#keyboardToggle[aria-pressed=true]{background:linear-gradient(#377396,#1b465f);color:#fff;border-color:#75bce5}.keyboard-mode-title{display:none}
+.host.studio.keyboard-only{grid-template-rows:auto minmax(0,1fr)}
+.host.studio.keyboard-only>.topbar{display:none!important}.host.studio.keyboard-only>.keybar{grid-row:1;min-height:42px;max-height:none;flex-wrap:nowrap;padding:8px 12px}.host.studio.keyboard-only>.keybar>*{display:none!important}.host.studio.keyboard-only>.keybar>#keyboardToggle,.host.studio.keyboard-only>.keybar>.keyboard-mode-title{display:flex!important}
+.keyboard-mode-title{align-items:center;flex:1;color:#95c6df;font:600 11px var(--mono);letter-spacing:.12em}
+.host.studio.keyboard-only>.hmain{grid-row:2!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;padding:clamp(8px,2vw,24px);background:radial-gradient(ellipse at top,#1d2e3d,#080e14)}
+.host.studio.keyboard-only .hmain>.studioSources,.host.studio.keyboard-only .hmain>.switcher,.host.studio.keyboard-only .hmain>.studioDesk,.host.studio.keyboard-only .hmain>.dock{display:none!important}
+.host.studio.keyboard-only .hmain>.studioBus{grid-column:1!important;grid-row:1!important;display:grid!important;grid-template-columns:minmax(0,1fr) clamp(150px,18vw,240px);gap:14px;min-height:0;min-width:0}
+.host.studio.keyboard-only .crystal-console{grid-template-rows:30px minmax(0,1fr);gap:12px;padding:14px;background:linear-gradient(135deg,#202e3a,#101c25);border-color:#496071;border-radius:5px}.host.studio.keyboard-only .cc-tools{height:28px;font-size:11px}.host.studio.keyboard-only .cc-tools button{height:25px}.host.studio.keyboard-only .cc-buses{gap:16px}.host.studio.keyboard-only .cc-row{grid-template-columns:76px minmax(0,1fr);border:1px solid #6b2b39;border-radius:3px}.host.studio.keyboard-only .cc-row.cc-preview{border-color:#2e6942}.host.studio.keyboard-only .cc-row .cc-head{font-size:12px}.host.studio.keyboard-only .cc-keys{gap:14px;padding:15px;align-items:center}.host.studio.keyboard-only .crystal-console .cc-key{min-width:54px;width:clamp(54px,6.5vw,96px);height:clamp(54px,15dvh,112px);border-radius:4px}.host.studio.keyboard-only .cc-key b{font-size:clamp(20px,2.4vw,34px)}.host.studio.keyboard-only .cc-key small{font-size:10px;max-width:80px}.host.studio.keyboard-only .studioBus>.tcol{grid-template-columns:repeat(3,minmax(0,1fr)) 38px;grid-template-rows:32px minmax(0,1fr) minmax(0,1fr);gap:6px;padding:10px}.host.studio.keyboard-only .tcol .tbtn{font-size:12px}.host.studio.keyboard-only .tcol .tsel select{height:30px}.host.studio.keyboard-only #tbar{width:32px}
+@media(max-width:700px){.host.studio.keyboard-only .hmain>.studioBus{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) 125px;gap:8px}.host.studio.keyboard-only .crystal-console{padding:8px;gap:7px}.host.studio.keyboard-only .cc-row{grid-template-columns:48px minmax(0,1fr)}.host.studio.keyboard-only .cc-row .cc-head{font-size:9px}.host.studio.keyboard-only .cc-keys{padding:10px;gap:12px}.host.studio.keyboard-only .crystal-console .cc-key{width:54px;min-width:54px;height:65px}.host.studio.keyboard-only .cc-key small{font-size:8px;max-width:42px}.host.studio.keyboard-only .studioBus>.tcol{grid-template-columns:repeat(3,minmax(0,1fr)) 34px;grid-template-rows:27px minmax(0,1fr) minmax(0,1fr)}.host.studio.keyboard-only .tcol>.tsel{grid-row:1;grid-column:auto}.host.studio.keyboard-only #ptr{grid-column:1;grid-row:2}.host.studio.keyboard-only #cut{grid-column:2;grid-row:2}.host.studio.keyboard-only #auto{grid-column:3;grid-row:2}.host.studio.keyboard-only #ftb{grid-column:1/4;grid-row:3}.host.studio.keyboard-only #tbar{grid-column:4;grid-row:1/4;width:30px}.keyboard-mode-title{font-size:9px;letter-spacing:0}.host.studio.keyboard-only>.keybar{padding:6px;gap:8px}}
+@media(max-height:450px){.host.studio.keyboard-only .hmain>.studioBus{grid-template-columns:minmax(0,1fr) 160px;grid-template-rows:minmax(0,1fr)}.host.studio.keyboard-only .crystal-console .cc-key{height:48px;min-height:28px}.host.studio.keyboard-only .cc-keys{padding:7px 10px}.host.studio.keyboard-only .cc-buses{gap:7px}}
+
+/* Default workspace: two large monitors, optional source multiview, separate keyboard. */
+.host.studio:not(.simple):not(.keyboard-only)[data-studioview=all] .hmain{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,55fr) minmax(0,45fr)}
+.host.studio:not(.simple):not(.keyboard-only)[data-studioview=all] .hmain>.switcher{grid-column:1;grid-row:1}
+.host.studio:not(.simple):not(.keyboard-only)[data-studioview=all] .studioDesk{grid-column:1;grid-row:2}
+.studio:not(.sources-open):not([data-studioview=inputs]) .hmain>.studioSources{display:none!important}
+.host.studio.sources-open:not(.keyboard-only)[data-studioview=all] .hmain{grid-template-columns:minmax(0,32fr) minmax(0,68fr)}
+.host.studio.sources-open:not(.keyboard-only)[data-studioview=all] .hmain>.switcher{grid-column:2;grid-row:1}
+.host.studio.sources-open:not(.keyboard-only)[data-studioview=all] .studioSources{display:flex;grid-column:1;grid-row:1}
+.host.studio.sources-open:not(.keyboard-only)[data-studioview=all] .studioDesk{grid-column:1/-1;grid-row:2}
+#sourceViewToggle{height:25px;padding:3px 9px;font:600 10px var(--mono);color:#9bbdd0;background:#182630;border:1px solid #3e5768;border-radius:3px;cursor:pointer;white-space:nowrap}#sourceViewToggle[aria-pressed=true]{color:#dcf3ff;border-color:#5b9fc3;background:#25465d}
+.studio .switcher .hd{height:28px;min-height:28px;font-size:11px}.studio .switcher .hd .lab{font-size:10px}.studio .switcher .hd .src{font-size:10px}.studio .screen{cursor:zoom-in;touch-action:manipulation}
+.monitor-close{display:none;margin-left:auto;flex:none;background:#263e50;color:#e1f2ff;border:1px solid #5d839f;border-radius:4px;padding:5px 10px;cursor:pointer;font-size:12px}
+.host.studio .hmain>.switcher>.mon.monitor-expanded{position:fixed!important;inset:0!important;grid-column:auto!important;grid-row:auto!important;width:100vw!important;max-width:none!important;height:var(--wc-vh,100dvh)!important;max-height:none!important;z-index:10000!important;background:#030609;display:flex!important;flex-direction:column;min-height:0!important;border:0!important;overflow:hidden!important}
+.host.studio .monitor-expanded>.hd{height:42px;min-height:42px;padding:5px 12px;background:#121e27}.host.studio .monitor-expanded>.hd .lab{font-size:13px}.host.studio .monitor-expanded>.hd .src{font-size:12px}.host.studio .monitor-expanded .monitor-close{display:block}
+.host.studio .monitor-expanded>.screen{position:relative;flex:1;min-height:0;max-height:none;height:auto;width:100%;aspect-ratio:auto;border:0;cursor:zoom-out;background:#000}
+.host.studio .monitor-expanded>.screen canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.host.studio .monitor-expanded>.pipbar,.host.studio .monitor-expanded>.dskbar{display:none!important}
+.studioDock .mixer .strip{width:clamp(88px,6vw,112px);grid-template-rows:18px minmax(45px,1fr) 18px repeat(3,24px);padding:5px;gap:3px 4px}.studioDock .strip .num,.studioDock .strip .nm,.studioDock .strip .db,.studioDock .strip .pk{font-size:10px}.studioDock .strip .mb{height:23px;font-size:10px}.studioDock .strip .fwrap{width:45px}.studioDock .strip input[type=range]{width:26px}.studioDeskTabs{height:30px;min-height:30px}.studioDeskTabs button{height:27px;font-size:11px}.studioDock .wtabs{height:27px;min-height:27px}.studioDock .wtab{font-size:10px;padding:3px 10px}
+@media(max-width:700px){.host.studio:not(.simple):not(.keyboard-only)[data-studioview=all] .hmain{grid-template-rows:minmax(0,50fr) minmax(0,50fr)}.studio .switcher .hd{height:26px;min-height:26px}.studioDeskTabs button{font-size:9px;padding:0 6px}.studioDeskTabs{height:auto;min-height:28px}.studioDock .mixer .strip{width:88px}.host.studio .monitor-expanded>.hd{height:38px;min-height:38px}.host.studio .monitor-expanded>.hd .src{max-width:35vw;overflow:hidden;text-overflow:ellipsis}.host.studio .monitor-expanded .monitor-close{font-size:10px;padding:4px 8px}}
 
 </style>
 </head>
@@ -1508,7 +1543,7 @@ function Host(sess){
   let outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
-  let crystalSig = null, crystalPage = 0, sourcePage = 0, mixerPage = 0;
+  let crystalSig = null, crystalPage = 0, sourcePage = 0, mixerPage = 0, keyboardMode = false, showSourceMonitor = false;
   const outputs = new Set();
   const pending = new Map();
   const msgs = []; let unread = 0;
@@ -1697,7 +1732,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v13-STUDIO</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v15-MONITOR</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -1715,7 +1750,7 @@ function Host(sess){
       <button class="btn primary" id="inv">${ic('user')}邀請來賓</button>
       <button class="btn danger" id="endb">結束</button>
     </div>
-    <div class="keybar" id="keys"><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="inputs">來源監看</option><option value="monitor">PVW / PGM</option><option value="switch">切換控盤</option><option value="tools">工具 / 混音台</option></select>
+    <div class="keybar" id="keys"><span class="keyboard-mode-title">PROGRAM / PREVIEW · 導播鍵盤</span><button type="button" id="keyboardToggle" role="switch" aria-checked="false" aria-pressed="false">開啟導播鍵盤</button><button type="button" id="sourceViewToggle" aria-pressed="false">來源監看</button><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option><option value="tools">工具 / 混音台</option></select>
       ${Object.entries(GROUPS).map(([k, d]) => `<div class="key" data-win="${k}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
       <span class="kgap"></span>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
@@ -1761,6 +1796,35 @@ function Host(sess){
   $('#pgms').prepend(pgmCanvas);
   const pvwCanvas = $('#pvwc'), vctx = pvwCanvas.getContext('2d');
   const pvwStream = new MediaStream([pvwCanvas.captureStream(30).getVideoTracks()[0]]);
+  /* Enlarge the existing monitor node; never replace its canvas or video track. */
+  function setupMonitorExpansion(){
+    let active=null,lastTouch=0,lastTouchScreen=null,lastTouchX=0,lastTouchY=0;
+    const setExpanded=mon=>{
+      if(active){active.classList.remove('monitor-expanded');active.querySelector('[data-monitor-close]')?.setAttribute('aria-expanded','false');}
+      active=mon;
+      if(active){active.classList.add('monitor-expanded');active.querySelector('[data-monitor-close]')?.setAttribute('aria-expanded','true');}
+      requestAnimationFrame(()=>{drawTbar();layoutGrid();});
+    };
+    const toggle=mon=>setExpanded(active===mon?null:mon);
+    ['#pvws','#pgms'].forEach(id=>{
+      const screen=$(id),mon=screen.closest('.mon');
+      screen.title='雙擊放大／返回；Esc 關閉放大';
+      const close=document.createElement('button');close.type='button';close.className='monitor-close';close.dataset.monitorClose='';close.textContent='關閉放大 ×';close.setAttribute('aria-label','關閉放大監看');
+      close.onclick=()=>setExpanded(null);$('.hd',mon).appendChild(close);
+      screen.addEventListener('dblclick',e=>{if(Date.now()-lastTouch<650)return;e.preventDefault();toggle(mon);});
+      screen.addEventListener('pointerup',e=>{
+        if(e.pointerType!=='touch')return;
+        const now=Date.now(),same=lastTouchScreen===screen;
+        if(same&&now-lastTouch<320&&Math.hypot(e.clientX-lastTouchX,e.clientY-lastTouchY)<28){e.preventDefault();toggle(mon);lastTouchScreen=null;}
+        else lastTouchScreen=screen;
+        lastTouch=now;lastTouchX=e.clientX;lastTouchY=e.clientY;
+      });
+    });
+    addEventListener('keydown',e=>{if(e.key==='Escape'&&active){e.preventDefault();setExpanded(null);}});
+    return {close:()=>setExpanded(null)};
+  }
+  const monitorExpansion=setupMonitorExpansion();
+
   $('#pgmres').textContent = `${pgmCanvas.width}×${pgmCanvas.height}`;
 
   /* ---------- 啟動畫面（瀏覽器要求先點一下才能播放／處理聲音） ---------- */
@@ -3379,7 +3443,8 @@ function Host(sess){
   function renderMix(){
     const w = WIN.mix; if (!w?.open) return;
     const pct = v => Math.round(v * 100);
-    const per=Math.max(1,Math.floor(((w.body.clientWidth||innerWidth)-100)/78)),pages=Math.max(1,Math.ceil(order.length/per));
+    const channelWidth=Math.min(112,Math.max(88,innerWidth*.06))+6;
+    const per=Math.max(1,Math.floor(((w.body.clientWidth||innerWidth)-130)/channelWidth)),pages=Math.max(1,Math.ceil(order.length/per));
     mixerPage=Math.max(0,Math.min(mixerPage,pages-1));
     w.body.innerHTML = `<div class="mixer">
       ${order.slice(mixerPage*per,(mixerPage+1)*per).map(id => { const x = inputs.get(id); return `<div class="strip" data-id="${id}"><span class="num">${numOf(x)}</span><div class="nm" title="${esc(x.name)}">${esc(x.name)}</div>
@@ -5228,8 +5293,9 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     const box = $('#crystalConsole'); if (!box) return;
     const list = order.map(id => inputs.get(id)).filter(Boolean);
     const width = box.clientWidth || (typeof innerWidth === 'number' ? innerWidth : 1280);
-    const available = width - (width > 1000 ? 270 : 36);
-    const perPage = Math.max(1, Math.floor(available / (width < 600 ? 80 : 92)) - 1);
+    const available = width - (width > 1000 && !keyboardMode ? 270 : 80);
+    const keyPitch = keyboardMode ? Math.min(110,Math.max(68,(typeof innerWidth==='number'?innerWidth:1280)*.065+14)) : (width < 600 ? 80 : 92);
+    const perPage = Math.max(1, Math.floor(available / keyPitch) - 1);
     const pages = Math.max(1, Math.ceil(list.length / perPage));
     crystalPage = Math.max(0, Math.min(crystalPage, pages - 1));
     const visible = list.slice(crystalPage * perPage, (crystalPage + 1) * perPage);
@@ -5267,9 +5333,28 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
 
   const setStudioView=()=>{
     const chosen=$('#studioView').value;
-    $('#hroot').dataset.studioview=chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;
+    $('#hroot').dataset.studioview=keyboardMode?'switch':showSourceMonitor&&innerWidth<1000?'inputs':chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;
     requestAnimationFrame(()=>{layoutGrid();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');});
   };
+  function setKeyboardMode(on){
+    keyboardMode=!!on;
+    if(keyboardMode)monitorExpansion.close();
+    if(keyboardMode&&!UI.sw)setSwMode(true);
+    const root=$('#hroot'),button=$('#keyboardToggle');
+    root.classList.toggle('keyboard-only',keyboardMode);
+    button.textContent=keyboardMode?'關閉鍵盤 · 返回導播介面':'開啟導播鍵盤';
+    button.setAttribute('aria-pressed',String(keyboardMode));
+    button.setAttribute('aria-checked',String(keyboardMode));
+    setStudioView();
+  }
+  $('#sourceViewToggle').onclick=()=>{
+    showSourceMonitor=!showSourceMonitor;
+    $('#hroot').classList.toggle('sources-open',showSourceMonitor);
+    $('#sourceViewToggle').setAttribute('aria-pressed',String(showSourceMonitor));
+    if(showSourceMonitor)$('#studioView').value='all';
+    setStudioView();
+  };
+  $('#keyboardToggle').onclick=()=>setKeyboardMode(!keyboardMode);
   $('#studioView').onchange=setStudioView;
   addEventListener('resize',setStudioView);setStudioView();
   $$('[data-studiopanel]').forEach(b=>b.onclick=()=>openWin(b.dataset.studiopanel,true));
