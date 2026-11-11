@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2155-layout">
+<meta name="webcall-version" content="2026.1111.2208-hardware">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2155-layout';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2208-hardware';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -762,6 +762,32 @@ body.opp{overflow:hidden}
 @media(max-width:700px){.host.studio.keyboard-only .hmain>.studioBus{grid-template-columns:minmax(0,1fr) 105px!important}.host.studio.keyboard-only .cc-row{grid-template-columns:42px minmax(0,1fr)}.host.studio.keyboard-only .studioBus>.tcol{grid-template-columns:minmax(0,1fr) 26px;grid-template-rows:repeat(7,minmax(15px,1fr));padding:4px}.host.studio.keyboard-only .tcol>.tsel{grid-column:1;grid-row:auto}.host.studio.keyboard-only #ptr{grid-column:1;grid-row:4}.host.studio.keyboard-only #cut{grid-column:1;grid-row:5}.host.studio.keyboard-only #auto{grid-column:1;grid-row:6}.host.studio.keyboard-only #ftb{grid-column:1;grid-row:7}.host.studio.keyboard-only #tbar{grid-column:2;grid-row:1/8;width:24px}.lp-options{padding:8px}.layout-settings header{padding:8px 10px}.layout-free.layout-edit .layout-drag-grip{font-size:9px}}
 
 .host.studio:not(.layout-free) .switcher:has(>.mon[data-layout-hidden="true"]){grid-template-columns:minmax(0,1fr)!important}
+/* Hardware switcher skin; all input, transition and layout behavior is unchanged. */
+.host.studio.hardware-console .crystal-console{border:1px solid #59636e;border-radius:5px;background:radial-gradient(circle at 6px 6px,#89959f 0 1px,#10171f 2px,transparent 3px),radial-gradient(circle at calc(100% - 6px) 6px,#89959f 0 1px,#10171f 2px,transparent 3px),radial-gradient(circle at 6px calc(100% - 6px),#89959f 0 1px,#10171f 2px,transparent 3px),radial-gradient(circle at calc(100% - 6px) calc(100% - 6px),#89959f 0 1px,#10171f 2px,transparent 3px),repeating-linear-gradient(0deg,#ffffff03 0 1px,transparent 1px 3px),linear-gradient(130deg,#303944,#17202a 55%,#252e39);box-shadow:inset 0 1px 1px #d6e2ec50,inset 0 -2px 0 #03060b,0 5px 12px #0008;padding:10px}
+.host.studio.hardware-console .cc-row{border:1px solid #66404a;border-radius:3px;background:linear-gradient(#141c25,#0a1017);box-shadow:inset 0 2px 4px #000b}.host.studio.hardware-console .cc-row.cc-preview{border-color:#385d45}.host.studio.hardware-console .cc-row>.cc-head{font:800 10px Arial,sans-serif;color:#f08c96;background:linear-gradient(90deg,#471d27,#251820);text-shadow:0 1px 1px #000;letter-spacing:.05em}.host.studio.hardware-console .cc-preview>.cc-head{color:#86dca5;background:linear-gradient(90deg,#1b3928,#14211a)}
+.host.studio.hardware-console .cc-keys{gap:12px;padding:10px 12px}
+.host.studio.hardware-console .crystal-console .cc-key{--cc-hi:#eef3f9;--cc-mid:#c7d2df;--cc-lo:#75889e;--cc-face:#bac9da;--cc-ink:#16202d;background:linear-gradient(135deg,var(--cc-hi),var(--cc-mid) 50%,var(--cc-lo));border:1px solid #8999ac;border-radius:4px;color:var(--cc-ink);box-shadow:0 0 0 3px #050a10,0 0 0 4px #4f5b6c,inset 1px 2px 1px #ffffffaa,inset -2px -3px 3px #30415499,0 5px 0 #02050a,0 7px 8px #0009;text-shadow:0 1px 0 #fff7}
+.host.studio.hardware-console .cc-key::before{inset:5px;border-radius:8px;border:1px solid #ffffff88;box-shadow:inset 2px 3px 4px #233b5555,inset -1px -2px 2px #ffffff88,0 1px 1px #0005}.host.studio.hardware-console .cc-key::after{inset:2px;border-radius:2px;border-color:#ffffff55}.host.studio.hardware-console .cc-key b{font-weight:800}.host.studio.hardware-console .cc-key small{font-weight:600}
+.host.studio.hardware-console .crystal-console .cc-key.cc-live{--cc-hi:#ff8f91;--cc-mid:#e3263e;--cc-lo:#7b061c;--cc-face:#dc263d;--cc-ink:#3a0611;background:radial-gradient(ellipse at center,#ff526a,#c70d2a 75%,#6f0318);color:var(--cc-ink);border-color:#ee6a7d;box-shadow:0 0 0 3px #14050b,0 0 0 4px #804652,inset 1px 2px 1px #ffc4c888,inset -2px -3px 4px #4e0014,0 5px 0 #22040c,0 0 20px #ff34594d;text-shadow:0 1px 0 #ffb8c055}
+.host.studio.hardware-console .crystal-console .cc-key.cc-next{--cc-hi:#c4ffa5;--cc-mid:#7ce037;--cc-lo:#267909;--cc-face:#81df3d;--cc-ink:#153503;background:radial-gradient(ellipse at center,#a9f95b,#57ba23 75%,#194e08);color:var(--cc-ink);border-color:#a4da75;box-shadow:0 0 0 3px #091206,0 0 0 4px #4c6e39,inset 1px 2px 1px #e6ffba99,inset -2px -3px 4px #1c4609,0 5px 0 #0a1d06,0 0 20px #8aef4b44;text-shadow:0 1px 0 #d9ffaf66}
+.host.studio.hardware-console .cc-key:not(:disabled):active{transform:translateY(3px);box-shadow:0 0 0 3px #04070c,inset 0 2px 5px #0006,0 1px 0 #03060b}
+.host.studio.hardware-console .studioBus>.tcol{position:relative;border:1px solid #65717e;border-radius:5px;background:radial-gradient(circle at 5px 5px,#89939d 0 1px,#111921 2px,transparent 3px),radial-gradient(circle at calc(100% - 5px) calc(100% - 5px),#89939d 0 1px,#111921 2px,transparent 3px),repeating-linear-gradient(0deg,#ffffff03 0 1px,transparent 1px 3px),linear-gradient(130deg,#34404d,#1c2631 60%,#283442);box-shadow:inset 0 1px 1px #e0edff44,inset 0 -2px 0 #06090e,0 5px 12px #0006;grid-template-columns:repeat(3,minmax(0,1fr)) 66px;gap:7px;padding:10px}
+.host.studio.hardware-console .tcol .tsel select{background:linear-gradient(#101923,#162333);border:1px solid #546a7f;border-radius:3px;color:#a9d6ed;font-size:10px;box-shadow:inset 0 2px 4px #0008}
+.host.studio.hardware-console .tcol .tbtn{position:relative;border:1px solid #8e9da9;border-radius:4px;background:linear-gradient(#f0f4f8,#c0cad5 45%,#8f9fae);color:#14202d;font:800 11px Arial,sans-serif;letter-spacing:.06em;box-shadow:inset 0 1px 0 #fff,inset 0 -3px 3px #34465c66,0 3px 0 #080e15,0 4px 7px #0006;text-shadow:0 1px 0 #fff7;min-height:24px}
+.host.studio.hardware-console .tcol .tbtn::after{content:'';position:absolute;inset:4px;border:1px solid #ffffff55;border-radius:3px;pointer-events:none}
+.host.studio.hardware-console .tcol #auto{background:linear-gradient(#ffdd9b,#d08e35 55%,#85501d);color:#382002;border-color:#e0b96e;box-shadow:inset 0 1px 0 #ffecb7,inset 0 -3px 3px #6a371355,0 3px 0 #231606,0 4px 7px #0006}
+.host.studio.hardware-console .tcol #ptr{background:linear-gradient(#596d80,#2d4052);border-color:#71879a;color:#c7e5fb;text-shadow:0 1px 0 #14202b}
+.host.studio.hardware-console .tcol #ftb{background:linear-gradient(#63313d,#301822);border-color:#925461;color:#ffc2c7;text-shadow:0 1px 0 #19080f}
+.host.studio.hardware-console .tcol .tbtn.on,.host.studio.hardware-console .tcol .tbtn:active{transform:translateY(2px);filter:brightness(1.1);box-shadow:inset 0 2px 5px #0006,0 1px 0 #02050a}
+.host.studio.hardware-console #tbar{position:relative;width:min(62px,calc(100% - 4px));min-width:26px;max-height:none;border:1px solid #6e7985;border-radius:6px;background:repeating-linear-gradient(to bottom,transparent 0 13px,#91a8bb66 13px 14px,transparent 14px 26px) 5px 10px/7px calc(100% - 20px) no-repeat,repeating-linear-gradient(to bottom,transparent 0 13px,#91a8bb66 13px 14px,transparent 14px 26px) calc(100% - 5px) 10px/7px calc(100% - 20px) no-repeat,linear-gradient(90deg,#111923,#2e3a46 20%,#182431 50%,#2e3a46 80%,#111923);box-shadow:inset 0 2px 4px #000b,inset 0 0 0 2px #070d14,0 1px 0 #ffffff22;cursor:ns-resize;touch-action:none;overflow:visible}
+.host.studio.hardware-console #tbar .slot{width:9px;left:50%;margin-left:-4.5px;top:10px;bottom:10px;border:1px solid #000;border-radius:4px;background:linear-gradient(90deg,#030609,#111b25,#020508);box-shadow:inset 0 0 3px #000,0 0 0 1px #52627255;pointer-events:none}
+.host.studio.hardware-console #tfill{width:5px;margin-left:-2.5px;background:linear-gradient(#83ddf7,#2784a1);opacity:.8;box-shadow:0 0 5px #50b7d966;pointer-events:none}
+.host.studio.hardware-console #thdl{height:22px;margin-top:-11px;left:3px;right:3px;border-radius:5px;border:1px solid #141a22;background:linear-gradient(#f2f5f8 0%,#b6c1cd 13%,#f1f4f7 29%,#a8b5c4 49%,#73859a 80%,#cad5df 100%);box-shadow:inset 0 1px 0 #fff,0 1px 0 #ffffff55,0 4px 4px #000b;pointer-events:none}
+.host.studio.hardware-console #thdl::before{content:'';position:absolute;left:9px;right:9px;top:4px;bottom:4px;border:1px solid #334353;border-radius:3px;background:linear-gradient(#263645,#12202e 50%,#344555);box-shadow:inset 0 2px 2px #000b}
+.host.studio.hardware-console #thdl::after{content:'';position:absolute;left:14px;right:14px;width:auto;top:50%;height:1px;background:#70879c;box-shadow:0 -3px 0 #70879c99,0 3px 0 #70879c99;pointer-events:none}
+@media(max-width:700px){.host.studio.hardware-console .studioBus>.tcol{padding:6px;gap:4px;grid-template-columns:minmax(0,1fr) 44px}.host.studio.hardware-console .tcol .tbtn{font-size:9px}.host.studio.hardware-console .cc-row>.cc-head{font-size:9px}.host.studio.hardware-console #tbar{width:min(40px,calc(100% - 2px))}.host.studio.hardware-console #thdl::before{left:5px;right:5px}.host.studio.hardware-console #thdl::after{left:9px;right:9px}}
+@media(prefers-reduced-motion:reduce){.hardware-console .cc-key,.hardware-console .tbtn{transition:none}}
+
 </style>
 </head>
 <body>
@@ -1771,7 +1797,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v16-LAYOUT</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v17-HARDWARE</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -2305,6 +2331,7 @@ function Host(sess){
     const bar = $('#tbar'); if (!bar) return;
     const _b = bar, vertical = getComputedStyle(bar).cursor !== 'ew-resize';
     const p = SW.tpos, h = $('#thdl'), f = $('#tfill');
+    bar.setAttribute('role','slider');bar.setAttribute('aria-label','轉場 T-Bar');bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax','100');bar.setAttribute('aria-valuenow',String(Math.round(p*100)));bar.setAttribute('aria-orientation',vertical?'vertical':'horizontal');
     if (vertical) {
       const top = 10 + (bar.clientHeight - 20) * p;
       h.style.top = top + 'px'; h.style.left = ''; f.style.top = Math.min(top, 10 + (bar.clientHeight - 20) * SW.base) + 'px'; f.style.height = Math.abs(top - (10 + (bar.clientHeight - 20) * SW.base)) + 'px'; f.style.left = ''; f.style.width = '';
@@ -5390,7 +5417,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     const labels={pvw:'PREVIEW 預覽',pgm:'PROGRAM 播出',inputs:'來源監看',keyboard:'導播鍵盤',transition:'轉場 / T-Bar'};
     const defaults=mode=>({visible:{pvw:true,pgm:true,inputs:mode==='classic',keyboard:mode==='custom',transition:mode!=='studio'},rects:structuredClone(mode==='classic'?classic:seed)});
     let saved={};try{saved=JSON.parse(store(KEY)||'{}')||{};}catch{}
-    const prefs={mode:['studio','classic','custom'].includes(saved.mode)?saved.mode:'studio',edit:false,profiles:{}};
+    const prefs={mode:['studio','classic','custom'].includes(saved.mode)?saved.mode:'studio',skin:saved.skin==='dark'?'dark':'hardware',edit:false,profiles:{}};
     ['studio','classic','custom'].forEach(mode=>{
       const d=defaults(mode),p=saved.profiles?.[mode];
       Object.keys(labels).forEach(id=>{if(typeof p?.visible?.[id]==='boolean')d.visible[id]=p.visible[id];if(p?.rects?.[id])d.rects[id]=fitPanelRect(p.rects[id],1000,700);});prefs.profiles[mode]=d;
@@ -5402,6 +5429,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     function refresh(){layoutGrid();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');}
     function apply(){
       const free=prefs.mode!=='studio'&&!keyboardMode;
+      root.classList.toggle('hardware-console',prefs.skin==='hardware');
       root.classList.toggle('layout-free',free);root.classList.toggle('layout-classic',prefs.mode==='classic');root.classList.toggle('layout-edit',free&&prefs.edit);
       const p=profile(),W=area.clientWidth||1000,H=area.clientHeight||700;
       Object.entries(nodes).forEach(([id,node])=>{
@@ -5434,8 +5462,9 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     }
     function renderDialog(){
       if(!dialog)return;const p=profile();
-      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${prefs.mode==='studio'?'disabled':''}> 顯示拖曳／縮放把手</label><span>自動儲存在這台瀏覽器；不同樣式分別記憶。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${(id==='keyboard'&&prefs.mode==='studio'?keyboardMode:p.visible[id])?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${prefs.mode==='studio'?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>舊版排列保留左預覽、中央轉場、右播出。自訂模式可分別拖曳與縮放。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
+      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label>控盤材質 <select id="lpSkin"><option value="hardware">實體導播台</option><option value="dark">深色平面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${prefs.mode==='studio'?'disabled':''}> 顯示拖曳／縮放把手</label><span>自動儲存在這台瀏覽器；不同樣式分別記憶。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${(id==='keyboard'&&prefs.mode==='studio'?keyboardMode:p.visible[id])?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${prefs.mode==='studio'?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>舊版排列保留左預覽、中央轉場、右播出。自訂模式可分別拖曳與縮放。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
       $('#lpMode',dialog).value=prefs.mode;$('#lpMode',dialog).onchange=e=>setMode(e.target.value);
+      $('#lpSkin',dialog).value=prefs.skin;$('#lpSkin',dialog).onchange=e=>change(()=>prefs.skin=e.target.value==='dark'?'dark':'hardware');
       $('#lpEdit',dialog).onchange=e=>change(()=>prefs.edit=e.target.checked);
       $$('[data-lpclose]',dialog).forEach(b=>b.onclick=closeDialog);
       $$('[data-lp-visible]',dialog).forEach(b=>b.onchange=()=>{const id=b.dataset.lpVisible;if(id==='keyboard'&&prefs.mode==='studio'){setKeyboardMode(b.checked);renderDialog();return;}change(()=>p.visible[id]=b.checked);});
