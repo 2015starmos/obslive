@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1106.1200">
+<meta name="webcall-version" content="2026.1111.1830">
 <script>
 /* 自動更新載入器：系統管理員在派發平台發布的新版本會先存在這台裝置（wc_pkg），開啟時直接換成新版本
  * 網址加 ?builtin=1 可以強制使用這個檔案內建的版本（新版本有問題時救援用） */
@@ -730,6 +730,40 @@ body.oppanel .op header{position:sticky;top:0;z-index:5}
 body.cpbigv .op.panel .opmain{grid-template-columns:1fr}
 body.cpbigv .op.panel .opv{order:0}
 body.cpbigv .op.panel .opvbox{max-height:none}
+/* ---------- 控盤鍵列（實體切換台外觀） ---------- */
+.hwbus{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:10px;border-radius:10px;background:linear-gradient(#2a2f38,#1c2028);border:1px solid #3a414d;box-shadow:inset 0 1px 0 #ffffff14}
+.hwbuses{display:grid;gap:10px;min-width:0}
+.hwrow{border-radius:8px;overflow:hidden;border:1px solid #444b57;background:#14171d}
+.hwlab{font:800 13px Inter,var(--mono);letter-spacing:.14em;text-align:center;padding:4px 0;color:#bcd7ff;text-shadow:0 1px 2px #000}
+.hwlab.pgm{background:linear-gradient(90deg,#5c0f0f,#c0262b 50%,#5c0f0f)}
+.hwlab.pvw{background:linear-gradient(90deg,#0c3d14,#27a33c 50%,#0c3d14)}
+.hwlab.fn{background:linear-gradient(90deg,#1f2937,#475569 50%,#1f2937);color:#fff;border-radius:6px 6px 0 0}
+.hwkeys{display:flex;gap:10px;padding:10px;overflow-x:auto;scrollbar-width:thin}
+.hwk{flex:none;min-width:64px;height:60px;padding:0 8px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:transform .05s,background .08s;-webkit-tap-highlight-color:transparent}
+.hwk b{font:800 22px Inter,var(--mono);line-height:1}.hwk small{font:600 9.5px var(--sans);max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.75}
+.hwk:active{transform:translateY(2px)}
+.hwbus.light .hwk{background:linear-gradient(#ffffff,#d7dbe2 60%,#c3c8d1);border:1px solid #8c939f;color:#1b2130;box-shadow:inset 0 2px 0 #fff,inset 0 -4px 6px #00000022,0 3px 0 #4b515c,0 5px 10px #000a}
+.hwbus.dark .hwk{background:linear-gradient(#3a414d,#262b34);border:1px solid #4b5563;color:#e5e7eb;box-shadow:inset 0 1px 0 #ffffff22,0 3px 0 #0b0d10,0 5px 10px #000a}
+.hwbus .hwk.red{background:linear-gradient(#ff6b5e,#d81f16);border-color:#ff8a80;color:#fff;box-shadow:inset 0 2px 0 #ffffff66,0 3px 0 #6b0d08,0 0 18px #ff3b3baa}
+.hwbus .hwk.grn{background:linear-gradient(#b4f56d,#4fbf1f);border-color:#c7ff8f;color:#0b2300;box-shadow:inset 0 2px 0 #ffffff88,0 3px 0 #245c0a,0 0 18px #6ee72faa}
+.hwbus .hwk.yel{background:linear-gradient(#ffe27a,#e0a90f);border-color:#ffeaa0;color:#1a1200;box-shadow:inset 0 2px 0 #ffffff88,0 3px 0 #6b4f05,0 0 12px #f5c51888}
+.hwk.lost{opacity:.45}.hwk.blk b{font-size:17px}
+.hwfn{display:grid;align-content:start;gap:8px;border:1px solid #444b57;border-radius:8px;background:#14171d;padding-bottom:10px;min-width:250px}
+.hwfk{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:0 10px}.hwfk.big{grid-template-columns:repeat(3,1fr)}
+.hwk.sm{min-width:0;height:40px}.hwk.sm b{font-size:12px}
+.hwfk.big .hwk{min-width:0;height:58px}.hwfk.big .hwk b{font-size:17px}
+.hwbus.sz-l .hwk{min-width:84px;height:78px}.hwbus.sz-l .hwk b{font-size:28px}.hwbus.sz-l .hwfk.big .hwk{height:74px}
+@media (max-width:1100px){.hwbus{grid-template-columns:1fr}.hwfn{min-width:0}.hwfk{grid-template-columns:repeat(7,1fr)}}
+body.mob .hwbus{padding:6px;gap:8px}body.mob .hwk{min-width:56px;height:54px}body.mob .hwkeys{gap:7px;padding:8px}body.mob .hwfk{grid-template-columns:repeat(4,1fr)}
+.host.role-view .hwbus,.host.role-aud .hwbus{pointer-events:none;opacity:.5}
+/* 遠端控盤：白色鍵帽外觀 */
+.op.keycap .pk{background:linear-gradient(#ffffff,#d7dbe2 60%,#c3c8d1);border:1px solid #8c939f;color:#1b2130;box-shadow:inset 0 2px 0 #fff,inset 0 -4px 6px #00000022,0 3px 0 #4b515c,0 5px 10px #000a}
+.op.keycap .pk small{color:#4b5563}
+.op.keycap .pk.red{background:linear-gradient(#ff6b5e,#d81f16);color:#fff;border-color:#ff8a80;box-shadow:0 0 18px #ff3b3baa,0 3px 0 #6b0d08}
+.op.keycap .pk.grn{background:linear-gradient(#b4f56d,#4fbf1f);color:#0b2300;border-color:#c7ff8f;box-shadow:0 0 18px #6ee72faa,0 3px 0 #245c0a}
+.op.keycap .pk.yel{background:linear-gradient(#ffe27a,#e0a90f);color:#1a1200}
+.op.keycap .pk.red small,.op.keycap .pk.grn small{color:inherit}
+.op.keycap .cphd .lbl{color:#fff}
 </style>
 </head>
 <body>
@@ -1693,6 +1727,7 @@ function Host(sess){
             <button class="btn sm" id="cppgm">${ic('link')}PGM 網址</button></div>
           <div class="dskbar" data-dsk></div>
         </div>
+        <div class="hwbus" id="hwbus"></div>
       </div>
       <main class="multiview" id="mv"></main>
       <aside class="dock" id="dock"></aside>
@@ -2182,6 +2217,7 @@ function Host(sess){
     const n = id => { const x = inputs.get(id); return x ? `${numOf(x)}. ${x.name}` : '—'; };
     $('#pvwn').textContent = n(SW.pvw); $('#pgmn').textContent = n(SW.pgm);
     order.forEach(id => updateTile(inputs.get(id)));
+    try { renderHwBus(); } catch {}
   }
   function srcEl(inp){
     if (!inp) return null;
@@ -2313,7 +2349,8 @@ function Host(sess){
   }
   let lastTally = '', followArm = false;   // 只有導播自己切換時，字幕條才會跟著顯示
   function updateTally(){
-    try { opBroadcast(); } catch {}   // 遠端控盤的燈號跟著更新
+    try { opBroadcast(); } catch {}
+    try { renderHwBus(); } catch {}   // 遠端控盤的燈號跟著更新
     const live = new Set();
     if (SW.ftb < .99) {
       if (SW.pgm) live.add(SW.pgm);
@@ -3014,7 +3051,12 @@ function Host(sess){
   function toggleRec(){ if (REC.size) stopRec(); else { const ks = ['pgm', 'clean', 'aux1', 'aux2', 'aux3', 'aux4', ...order].filter(k => store('wc_rec_' + k) === '1' && recStreamOf(k)); startRec(ks.length ? ks : ['pgm'], +(store('wc_reckb') || 8000)); } }
   function renderSet(){
     const w = WIN.set; if (!w?.open) return;
-    w.body.innerHTML = `<div class="wsec"><h4>轉場</h4>
+    w.body.innerHTML = `<div class="wsec"><h4>控盤鍵列（PROGRAM／PREVIEW 實體鍵外觀）</h4>
+        <div class="row" style="flex-wrap:wrap"><label class="note" style="margin:0"><input type="checkbox" id="shw" ${HW.on ? 'checked' : ''}> 在切換台下方顯示控盤鍵列</label>
+          ${[['light', '白色鍵帽'], ['dark', '深色鍵帽']].map(([k, n]) => `<button class="btn sm ${HW.skin === k ? 'on' : ''}" data-hws="${k}">${n}</button>`).join('')}
+          ${[['m', '標準'], ['l', '大鍵']].map(([k, n]) => `<button class="btn sm ${HW.size === k ? 'on' : ''}" data-hwz="${k}">${n}</button>`).join('')}</div>
+        <div class="note">PROGRAM 列按下＝直接切上節目（紅燈），PREVIEW 列＝選下一個（綠燈），BLK＝黑畫面。右邊是轉場鍵、CUT、AUTO、FTB。也可以用平板當控盤（系統 → 操作員）。</div></div>
+      <div class="wsec"><h4>轉場</h4>
         <div class="row" style="flex-wrap:wrap">${TRANS.map(([k, n]) => `<button class="btn sm ${SW.type === k ? 'on' : ''}" data-tt="${k}">${n}</button>`).join('')}</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">DIP 過場色</span><input type="color" id="sdc" value="${SW.dipColor}"><span class="note" style="margin:0">劃變邊框</span><input type="range" min="0" max="20" value="${SW.border}" id="swb" style="width:90px"><input type="color" id="swc" value="${SW.borderColor}"></div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">FTB 時間</span><select class="field sm" id="sfd">${[300, 600, 1000, 1500, 2000, 3000].map(v => `<option value="${v}" ${SW.ftbDur === v ? 'selected' : ''}>${v / 1000}s</option>`).join('')}</select></div></div>
@@ -3028,6 +3070,9 @@ function Host(sess){
       <div class="wsec"><h4>節目輸出</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="note">4K／2K 需要效能較好的電腦，畫面變卡時請調低。</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">主音量</span><input type="range" min="0" max="150" value="${Math.round(Number(store('wc_master') || 1) * 100)}" id="smv" style="flex:1"><label class="note" style="margin:0"><input type="checkbox" id="slm" ${limiterOn ? 'checked' : ''}> 限幅器（防爆音）</label></div></div>`;
     const B = w.body;
+    $('#shw', w.body).onchange = e => { HW.on = e.target.checked; saveHW(); renderHwBus(true); };
+    $$('[data-hws]', w.body).forEach(b => b.onclick = () => { HW.skin = b.dataset.hws; saveHW(); renderHwBus(true); renderSet(); });
+    $$('[data-hwz]', w.body).forEach(b => b.onclick = () => { HW.size = b.dataset.hwz; saveHW(); renderHwBus(true); renderSet(); });
     $$('[data-tt]', B).forEach(b => b.onclick = () => { SW.type = b.dataset.tt; store('wc_trans', SW.type); $('#ttype').value = SW.type; renderTdir(); renderSet(); });
     $('#sdc', B).oninput = e => { SW.dipColor = e.target.value; store('wc_dipc', SW.dipColor); };
     $('#swb', B).oninput = e => { SW.border = +e.target.value; store('wc_wb', SW.border); }; $('#swc', B).oninput = e => { SW.borderColor = e.target.value; store('wc_wbc', SW.borderColor); };
@@ -5098,6 +5143,39 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     });
   }
 
+  /* ---------- 控盤鍵列：像實體切換台的 PROGRAM／PREVIEW 按鍵 ---------- */
+  const HW = (() => { let o = {}; try { o = JSON.parse(store('wc_hw') || '{}'); } catch {} return { on: o.on !== false, skin: o.skin === 'dark' ? 'dark' : 'light', size: o.size === 'l' ? 'l' : 'm', sig: '' }; })();
+  function saveHW(){ store('wc_hw', JSON.stringify({ on: HW.on, skin: HW.skin, size: HW.size })); }
+  function renderHwBus(force){
+    const box = $('#hwbus'); if (!box) return;
+    box.classList.toggle('hidden', !HW.on); box.className = `hwbus ${HW.skin} sz-${HW.size} ${HW.on ? '' : 'hidden'}`;
+    if (!HW.on) return;
+    const list = order.map(id => inputs.get(id)).filter(Boolean);
+    const sig = list.map(x => x.id + x.name + (x.lost ? 1 : 0)).join(',') + SW.type;
+    if (force || sig !== HW.sig) {
+      HW.sig = sig;
+      const key = (x, a) => `<button class="hwk ${x.lost ? 'lost' : ''}" ${a}="${x.id}" title="${esc(x.name)}"><b>${numOf(x)}</b><small>${esc(x.name)}</small></button>`;
+      box.innerHTML = `<div class="hwbuses">
+          <div class="hwrow"><div class="hwlab pgm">PROGRAM</div><div class="hwkeys"><button class="hwk blk" data-hpg=""><b>BLK</b></button>${list.map(x => key(x, 'data-hpg')).join('')}</div></div>
+          <div class="hwrow"><div class="hwlab pvw">PREVIEW</div><div class="hwkeys"><button class="hwk blk" data-hpv=""><b>BLK</b></button>${list.map(x => key(x, 'data-hpv')).join('')}</div></div>
+        </div>
+        <div class="hwfn"><div class="hwlab fn">TRANSITION</div>
+          <div class="hwfk">${TRANS.filter(t => t[0] !== 'stinger').map(([k, n]) => `<button class="hwk sm" data-htt="${k}"><b>${n.split(' ')[0]}</b></button>`).join('')}</div>
+          <div class="hwfk big"><button class="hwk cutk" data-hc="cut"><b>CUT</b></button><button class="hwk autok" data-hc="auto"><b>AUTO</b></button><button class="hwk ftbk" data-hc="ftb"><b>FTB</b></button></div>
+        </div>`;
+      $$('[data-hpg]', box).forEach(b => b.onclick = () => { const id = b.dataset.hpg || null; if (!canSw()) return roleDeny(); if (id === null) { cutTo(null); return; } cutTo(id); });
+      $$('[data-hpv]', box).forEach(b => b.onclick = () => setPvw(b.dataset.hpv || null));
+      $$('[data-htt]', box).forEach(b => b.onclick = () => { if (!canSw()) return roleDeny(); $('#ttype').value = b.dataset.htt; $('#ttype').dispatchEvent(new Event('change')); renderHwBus(); });
+      $$('[data-hc]', box).forEach(b => b.onclick = () => { const c = b.dataset.hc; if (c === 'cut') doCut(); else if (c === 'auto') doAuto(); else $('#ftb').click(); setTimeout(renderHwBus, 50); });
+    }
+    $$('[data-hpg]', box).forEach(b => b.classList.toggle('red', (b.dataset.hpg || null) === (SW.pgm || null)));
+    $$('[data-hpv]', box).forEach(b => b.classList.toggle('grn', (b.dataset.hpv || null) === (SW.pvw || null)));
+    $$('[data-htt]', box).forEach(b => b.classList.toggle('yel', b.dataset.htt === SW.type));
+    $$('[data-hc="ftb"]', box).forEach(b => b.classList.toggle('red', !!SW.ftbOn));
+    $$('[data-hc="auto"]', box).forEach(b => b.classList.toggle('red', !!SW.anim));
+  }
+  setTimeout(() => renderHwBus(true), 0);
+  setInterval(() => { if (!ended && HW.on && UI.sw) renderHwBus(); }, 250);   // AUTO 轉場中的燈號
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
@@ -6278,7 +6356,7 @@ function Operator(){
   const views = [['mv', 'MULTIVIEW'], ['pgm', 'PGM 節目'], ['pvw', 'PREVIEW'], ['clean', 'CLEAN'], ['aux1', 'AUX 1'], ['aux2', 'AUX 2'], ['aux3', 'AUX 3'], ['aux4', 'AUX 4']];
   app.innerHTML = `<div class="op ${PANEL ? 'panel' : ''}">
     <header>${brand()}<span class="pill oprole r-${R}">${RN[R]}</span><b id="opl" class="grow"></b><span class="pill" id="ops"><span class="dot wait"></span>連線中</span>
-      <input class="field sm" id="opn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px">${PANEL ? '<button class="btn sm" id="opmd" title="選這台裝置負責的功能">模組</button><button class="btn sm" id="opfs" title="全螢幕">全螢幕</button><button class="btn sm" id="opvt" title="顯示／隱藏監看畫面（隱藏比較省電）">監看</button>' : ''}</header>
+      <input class="field sm" id="opn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px">${PANEL ? '<button class="btn sm" id="opmd" title="選這台裝置負責的功能">模組</button><button class="btn sm" id="opsk" title="按鍵外觀：白色鍵帽／深色">外觀</button><button class="btn sm" id="opfs" title="全螢幕">全螢幕</button><button class="btn sm" id="opvt" title="顯示／隱藏監看畫面（隱藏比較省電）">監看</button>' : ''}</header>
     <div class="opmain"><section class="opv"><div class="row" style="padding:6px 0"><select class="field sm" id="opw">${views.map(([k, n]) => `<option value="${k}" ${k === (R === 'aud' ? 'pgm' : 'mv') ? 'selected' : ''}>${n}</option>`).join('')}</select>
         <label class="note" style="margin:0"><input type="checkbox" id="opa" ${R === 'aud' ? 'checked' : ''}> 聽聲音</label><span class="grow"></span><span class="note" style="margin:0" id="opsrc"></span></div>
         <div class="opvbox"><video id="opvid" autoplay playsinline muted></video><div class="opnov" id="opnov">等待畫面…</div></div>
@@ -6437,6 +6515,8 @@ function Operator(){
     $('#opvt').onclick = () => { const on = document.body.classList.toggle('cpnov'); store('wc_cpnov', on ? '1' : null); send(on ? { type: 'watch', what: '' } : { type: 'watch', what: $('#opw').value }); };
     if (store('wc_cpnov') === '1') document.body.classList.add('cpnov');
     $('#opmd').onclick = () => { modBar = !modBar; $('#cpmb')?.classList.toggle('hidden', !modBar); };
+    const opRoot = $('.op'); opRoot.classList.toggle('keycap', store('wc_cpskin') !== 'dark');
+    $('#opsk').onclick = () => { const on = !opRoot.classList.contains('keycap'); opRoot.classList.toggle('keycap', on); store('wc_cpskin', on ? 'light' : 'dark'); };
     setInterval(() => { if (S && $('#cpclk', C)) patchPanel(); }, 1000);
     // 平板接鍵盤：1～9＝PREVIEW、Shift＋1～9＝PROGRAM、空白＝CUT、Enter＝AUTO
     addEventListener('keydown', e => { if (!S || R !== 'dir' || !mods.includes('sw') || e.target.closest('input,select,textarea')) return; const n = +e.key;
