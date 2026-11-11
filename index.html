@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2130">
+<meta name="webcall-version" content="2026.1111.2120-local">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2130';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2120-local';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -663,6 +663,18 @@ html,body,#app{width:100%;max-width:100%;height:var(--wc-vh,100dvh);min-height:0
 @media(max-width:700px){.opmain{grid-template-columns:1fr;grid-template-rows:minmax(0,36fr) minmax(0,64fr);padding:8px;gap:8px}.opvbox{max-height:25dvh}.host .topbar{gap:6px;padding:5px 8px}.host .keybar{padding:4px}.host .keybar .key{min-width:46px}.win{left:8px!important;top:8px!important;width:calc(100vw - 16px)!important;height:calc(var(--wc-vh,100dvh) - 16px)!important;resize:none}.host.simple .hmain{grid-template-columns:minmax(0,1fr) minmax(0,32%)}.host .dock{width:100%;max-width:none}}
 @media(max-height:500px){.host .topbar{max-height:52px}.host .keybar{max-height:44px}.home h1{font-size:19px;margin-top:10px}.home .card{padding:10px}.host:not(.simple) .hmain{grid-template-rows:minmax(0,70fr) minmax(0,30fr)}.host .screen{max-height:28dvh}.opmain{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}}
 
+/* Keep the monitors and both switcher key rows visible in the director workspace. */
+body.opp{overflow:hidden}
+.host:not(.simple) .hmain{grid-template-rows:minmax(0,1fr) minmax(96px,22%)}
+.host:not(.simple) .hmain .switcher{height:100%;overflow:hidden;grid-template-rows:minmax(0,1fr) auto;gap:6px;padding:7px 10px;align-content:stretch}
+.host .switcher>.mon{min-height:0;overflow:hidden;gap:4px}.host .switcher>.mon>.screen{flex:1;min-height:32px;max-height:none;height:auto;aspect-ratio:auto}.host .switcher>.mon>.hd{flex:none;min-height:20px}.host .switcher>.mon>.pipbar,.host .switcher>.mon>.dskbar{flex:none;gap:3px}.host .switcher .swfn{overflow:hidden;flex-wrap:nowrap;min-width:0}.host .switcher .swfn button{white-space:nowrap;min-width:0;padding:3px 5px;font-size:10px}
+.host .switcher>.tcol{padding-top:0;min-height:0;gap:4px}.host .switcher .tbtn{height:26px;min-height:24px;flex:none;font-size:11px}.host .switcher .tbar{min-height:30px;max-height:none;margin:0 auto;flex:1}.host .switcher .tcol select{height:26px;min-height:24px}
+.host .crystal-console{padding:9px;gap:8px;min-height:0}.host .cc-tools{font-size:10px}.host .cc-tools button{min-height:22px}.host .cc-buses{gap:8px}.host .cc-head{padding:4px;font-size:12px}.host .cc-keys{padding:10px 12px 13px;gap:16px;min-height:0}.host .crystal-console .cc-key{width:clamp(46px,6dvh,62px);min-width:clamp(46px,6dvh,62px);height:clamp(46px,6dvh,62px)}.host .cc-key b{font-size:22px}.host .cc-key small{font-size:8px}.host .cc-functions-grid{gap:12px;padding:12px}.host .cc-functions-grid .cc-key{width:100%;min-width:0;height:clamp(44px,6dvh,60px)}.host .cc-functions-grid .cc-key b{font-size:14px}.host .cc-hint{display:none}
+.host .multiview .emptyv{height:100%;max-height:100%;width:100%;max-width:none;padding:6px 12px;flex-wrap:nowrap;gap:12px;overflow:hidden}.host .emptyv .qr{max-height:100%;height:100%;aspect-ratio:1;flex:none}.host .emptyv .qr img,.host .emptyv .qr canvas{width:auto!important;max-width:100%;height:100%!important;max-height:100%}.host .emptyv h2{font-size:13px}.host .emptyv ol{margin:3px 0;line-height:1.4;font-size:10px}
+@media(min-width:1101px){.host .switcher{grid-template-columns:minmax(0,1fr) 128px minmax(0,1fr)}.host .crystal-console{grid-template-columns:minmax(0,1fr) 180px}}
+@media(max-width:1100px){.host .crystal-console{grid-template-columns:minmax(0,1fr) 148px}.host .cc-functions-grid{grid-template-columns:repeat(2,1fr)}.host .switcher{grid-template-columns:minmax(0,1fr) 96px minmax(0,1fr)}.host .switcher>.tcol{grid-column:auto;grid-row:auto;flex-direction:column;align-items:stretch;flex-wrap:nowrap}}
+@media(max-width:650px),(max-height:560px){.host .hmain{position:relative}.host:not(.simple) .hmain .switcher{grid-template-rows:minmax(0,1fr) auto}.host .cc-keys{gap:12px;padding:8px 10px 11px}.host .cc-head{font-size:10px}.host .crystal-console{grid-template-columns:minmax(0,1fr) 100px;padding:6px}.host .cc-functions-grid{gap:9px;padding:9px}.host .cc-functions-grid .cc-key b{font-size:10px}.host .cc-functions-grid .cc-key small{display:none}.host .crystal-console .cc-key{min-width:40px;width:40px;height:40px}.host .cc-key b{font-size:17px}.host .cc-key small{max-width:32px;font-size:7px}.host .switcher .pipbar .lbl,.host .switcher .dskbar{display:none}.host .switcher .pipbar{max-height:29px;overflow:hidden}.host .emptyv ol{display:none}}
+
 </style>
 </head>
 <body>
@@ -1203,6 +1215,7 @@ class GuestFX {
     this.aspect = null;                  // 強制畫面比例（寬/高），null＝跟鏡頭一樣
     this.maxLong = 1280;                 // 輸出長邊上限（跟畫質走）
     this.camOn = true;
+    this.mirrorFront = false; this.mirrorCanvas = null; this.mirTrack = null;
     this.base = null;                    // 分享畫面 / 影片 <video>
     this.baseMax = 1920;
     this.pip = { size: 'm', pos: 'br' };
@@ -1221,14 +1234,34 @@ class GuestFX {
     this.watch = setInterval(() => this.syncTicker(), 500);
   }
   syncTicker(){
-    const need = this.needsGL() || !!this.base;
+    const need = this.needsGL() || !!this.base || this.mirrorFront;
     if (need && !this.ticker) this.ticker = makeTicker(30, () => this.frame());
     else if (!need && this.ticker) { this.ticker.stop(); this.ticker = null; }
   }
   cropNeeded(){ return false; }   // 不裁切：來賓鏡頭給什麼比例就送什麼比例（直的 9:16／3:4、橫的 16:9／4:3 都照原樣）
   needsGL(){ return this.glOk && (this.beauty.on || this.bg.mode !== 'none' || this.zoom > 1.01 || this.cropNeeded()); }
   needsSeg(){ return this.bg.mode === 'blur' || this.bg.mode === 'image'; }
-  outputTrack(){ this.syncTicker(); return this.base ? this.cmpTrack : this.needsGL() ? this.glTrack : null; }   // null = 直接送原始鏡頭
+  outputTrack(){ if (this.mirrorFront) this.ensureMirror(); this.syncTicker(); return this.base ? this.cmpTrack : this.mirrorFront ? this.mirTrack : this.needsGL() ? this.glTrack : null; }   // null = 直接送原始鏡頭
+  ensureMirror(){
+    if (this.mirrorCanvas) return;
+    this.mirrorCanvas = document.createElement('canvas');
+    this.mirrorCanvas.width = 640; this.mirrorCanvas.height = 360;
+    this.mirrorCtx = this.mirrorCanvas.getContext('2d', { alpha: false });
+    this.mirTrack = this.mirrorCanvas.captureStream(30).getVideoTracks()[0];
+    this.renderMirror();
+  }
+  renderMirror(){
+    const src = this.needsGL() ? this.glc : this.cam;
+    const sw = src.videoWidth || src.width, sh = src.videoHeight || src.height;
+    if (!sw || !sh || !this.mirrorCtx) return;
+    const sc = Math.min(1, this.maxLong / Math.max(sw, sh));
+    const W = Math.max(2, Math.round(sw * sc / 2) * 2), H = Math.max(2, Math.round(sh * sc / 2) * 2);
+    const c = this.mirrorCanvas, g = this.mirrorCtx;
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    g.save(); g.setTransform(-1, 0, 0, 1, W, 0);
+    g.drawImage(src, 0, 0, W, H); g.restore();
+    this.mirTrack?.requestFrame?.();
+  }
   initGL(){
     const gl = this.gl = this.glc.getContext('webgl', { premultipliedAlpha: false, antialias: false, preserveDrawingBuffer: false });
     if (!gl) { this.glOk = false; return; }
@@ -1405,7 +1438,7 @@ class GuestFX {
     g.drawImage(base, 0, 0, W, H);
     const size = { s: .2, m: .28, l: .38 }[this.pip.size];
     if (!size || !this.camOn) return;
-    const src = this.needsGL() ? this.glc : this.cam;
+    const src = this.mirrorFront ? this.mirrorCanvas : this.needsGL() ? this.glc : this.cam;
     const sw = src.videoWidth || src.width, sh = src.videoHeight || src.height; if (!sw || !sh) return;
     const pw = Math.round(Math.max(W, H) * size * (sw >= sh ? 1 : .6)), ph = Math.round(pw * sh / sw), m = Math.round(W * .025);
     const x = this.pip.pos.includes('l') ? m : W - pw - m, y = this.pip.pos.includes('t') ? m : H - ph - m;
@@ -1416,12 +1449,36 @@ class GuestFX {
   frame(){
     const now = performance.now();
     if (this.needsGL()) { if (this.bg.mode === 'image' || this.bg.mode === 'chroma') this.loadBgImage(this.bg.img); this.runML(now); this.renderGL(); }
+    if (this.mirrorFront) { this.ensureMirror(); this.renderMirror(); }
     if (this.base) this.renderComposite();
     const ms = performance.now() - now;
     this.frameMs = this.frameMs * .92 + ms * .08;   // 每張畫面的處理時間（CPU 負載估計用）
   }
-  destroy(){ clearInterval(this.watch); this.ticker?.stop(); try { this.seg?.close(); this.lm?.close(); } catch {} }
+  destroy(){ clearInterval(this.watch); this.ticker?.stop(); this.mirTrack?.stop(); try { this.seg?.close(); this.lm?.close(); } catch {} }
 }
+/* Transform the director's local camera once, before all previews and outputs. */
+function localCameraOrientation(raw){
+  const video = document.createElement('video'); video.autoplay=true;video.playsInline=true;video.muted=true;video.srcObject=raw;
+  const canvas=document.createElement('canvas');canvas.width=640;canvas.height=360;
+  const ctx=canvas.getContext('2d',{alpha:false});
+  const track=canvas.captureStream(30).getVideoTracks()[0];
+  const stream=new MediaStream([track,...raw.getAudioTracks()]);
+  let mirrored=true,closed=false;
+  const frame=()=>{
+    const w=video.videoWidth,h=video.videoHeight;
+    if(closed||!w||!h||video.readyState<2)return;
+    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+    ctx.save();ctx.setTransform(mirrored?-1:1,0,0,1,mirrored?w:0,0);ctx.drawImage(video,0,0,w,h);ctx.restore();
+    track.requestFrame?.();
+  };
+  const ticker=makeTicker(30,frame),nativeStop=track.stop.bind(track);
+  const cleanup=()=>{if(closed)return;closed=true;ticker.stop();nativeStop();raw.getTracks().forEach(t=>t.stop());video.pause();video.srcObject=null;};
+  track.stop=cleanup;
+  raw.getVideoTracks()[0]?.addEventListener('ended',()=>{cleanup();track.dispatchEvent(new Event('ended'));},{once:true});
+  video.addEventListener('loadeddata',frame);video.play().catch(()=>{});
+  return {stream,get mirrored(){return mirrored;},setMirror(on){mirrored=!!on;frame();},cleanup};
+}
+
 /* ===================== 導播台 ===================== */
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
@@ -1618,7 +1675,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v12-LR</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -2748,6 +2805,7 @@ function Host(sess){
         <label class="note" style="margin:0"><input type="checkbox" id="mpa" ${inp.autoPause ? 'checked' : ''}> 離開 ON AIR 時暫停</label></div></div>` : ''}
       <div class="msec"><span class="lbl">畫面</span>
         <div class="row" style="flex-wrap:wrap">${[['blur', '模糊填滿'], ['contain', '完整（黑邊）'], ['cover', '裁切填滿'], ['stretch', '拉伸']].map(([k, n]) => `<button class="btn sm ${V.fit === k ? 'on' : ''}" data-fit="${k}">${n}</button>`).join('')}
+          ${inp.cameraOrientation ? `<button class="btn sm ${inp.cameraOrientation.mirrored ? 'on' : ''}" id="slocalmirror">左右對調</button>` : ''}
           <button class="btn sm ${V.freeze ? 'on' : ''}" id="sfz">${V.freeze ? '解除凍結' : '凍結畫面'}</button></div>
         ${sl('cl', '裁左', Math.round(V.cl * 100), 0, 40)}${sl('cr', '裁右', Math.round(V.cr * 100), 0, 40)}${sl('ct', '裁上', Math.round(V.ct * 100), 0, 40)}${sl('cb', '裁下', Math.round(V.cb * 100), 0, 40)}
         ${sl('br', '亮度', Math.round(V.br * 100), -50, 50)}${sl('co', '對比', Math.round(V.co * 100), -50, 50)}${sl('sa', '飽和', Math.round(V.sa * 100), -100, 100)}
@@ -2770,6 +2828,7 @@ function Host(sess){
       $('#sshow', m).onclick = () => showTitle(inp);
       $('#siso', m).onchange = e => { inp.isoGfx = e.target.checked; buildIso(inp); toast(inp.isoGfx ? 'ISO 輸出會疊上字幕條' : 'ISO 輸出恢復乾淨畫面'); };
       $$('[data-fit]', m).forEach(b => b.onclick = () => { V.fit = b.dataset.fit; $$('[data-fit]', m).forEach(x => x.classList.toggle('on', x === b)); });
+      const lr = $('#slocalmirror', m); if (lr) lr.onclick = () => { const camera=inp.cameraOrientation;camera.setMirror(!camera.mirrored);lr.classList.toggle('on',camera.mirrored); };
       $('#sfz', m).onclick = e => { V.freeze = !V.freeze; if (V.freeze) { const el = srcEl({ ...inp, view: { freeze: false } }), [w, h] = srcDims(el); if (w) { inp.frozen = Object.assign(document.createElement('canvas'), { width: w, height: h }); inp.frozen.getContext('2d').drawImage(el, 0, 0); } } e.target.classList.toggle('on', V.freeze); e.target.textContent = V.freeze ? '解除凍結' : '凍結畫面'; updateTile(inp); };
       $$('[data-v]', m).forEach(x => x.oninput = () => { const k = x.dataset.v, v = +x.value; x.nextElementSibling.textContent = v; if (k === 'gap') L.gap = v / 1000; else V[k] = v / 100; });
       srcSettingsPro(inp, m);
@@ -3565,7 +3624,8 @@ function Host(sess){
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video: { deviceId: vid ? { exact: vid } : undefined, width: { ideal: W }, height: { ideal: H }, frameRate: { ideal: fps } },
           audio: aid ? { deviceId: { exact: aid }, echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false });
-        const inp = newInput('L-' + rnd(6), 'local', name); setStream(inp, s);
+        const inp = newInput('L-' + rnd(6), 'local', name);
+        inp.cameraOrientation = localCameraOrientation(s); setStream(inp, inp.cameraOrientation.stream);
         s.getVideoTracks()[0].onended = () => removeInput(inp.id);
         toast('已加入「' + name + '」'); renderAll();
       } catch (e) { toast('無法開啟：' + e.message); }
@@ -5316,6 +5376,10 @@ function GuestMain(inv, roomKey){
   </div>`;
   const selfV = $('#self'), retA = $('#retA'), retV = $('#retV'), camRaw = $('#camRaw'), fileV = $('#fileV'), shareV = $('#shareV');
   const fx = new GuestFX(camRaw);
+  function guestVideoTrack(){
+    fx.mirrorFront = facing === 'user';
+    return fx.outputTrack() || camTrack;
+  }
   const onCamSize = () => { syncSenders(); fitSelf(); };
   camRaw.addEventListener('loadedmetadata', onCamSize); camRaw.addEventListener('resize', onCamSize);
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
@@ -5458,8 +5522,8 @@ function GuestMain(inv, roomKey){
   const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
-    const vt = fx.outputTrack() || camTrack;
-    const pv = fx.base ? vt : camTrack;   // 預覽一律顯示鏡頭原始畫面（跟 index2 一樣）；只有分享畫面時顯示合成畫面
+    const vt = guestVideoTrack();
+    const pv = vt; // Both ends use the same processed and oriented video track.
     if (selfV.srcObject?.getVideoTracks()[0] !== pv) { selfV.srcObject = new MediaStream([pv]); selfV.play().catch(() => {}); }
     selfV.classList.remove('mirror'); // Match the actual video track received by the director.
     setTimeout(fitSelf, 50);
@@ -6126,7 +6190,7 @@ function GuestMain(inv, roomKey){
     {
       ensureMix();
       // 四條：畫面、節目麥、對講麥、回放聲音（順序固定，導播端也會用軌道 ID 對應）
-      audioTracks(); sentTracks = { video: fx.outputTrack() || camTrack, pgm: pgmSend(), ic: icSend(), media: mix.track };
+      audioTracks(); sentTracks = { video: guestVideoTrack(), pgm: pgmSend(), ic: icSend(), media: mix.track };
       Object.keys(sentTracks).forEach(k => { if (!sentTracks[k]) delete sentTracks[k]; });
       SND = null;
       const out = new MediaStream(Object.values(sentTracks));
