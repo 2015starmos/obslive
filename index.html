@@ -764,6 +764,21 @@ body.mob .hwbus{padding:6px;gap:8px}body.mob .hwk{min-width:56px;height:54px}bod
 .op.keycap .pk.yel{background:linear-gradient(#ffe27a,#e0a90f);color:#1a1200}
 .op.keycap .pk.red small,.op.keycap .pk.grn small{color:inherit}
 .op.keycap .cphd .lbl{color:#fff}
+
+.gp:has(#gbar.hidden) .gaudmon{display:none}
+.meterline{height:12px;border-radius:4px;background:#05090e}.meterline i{background:linear-gradient(90deg,#20cf95,#ffd258 85%,#ff4e58)}
+/* Mobile audio confidence monitor and illuminated production console */
+.gaudmon{position:absolute;left:16px;bottom:calc(170px + var(--sab,0px));width:min(300px,calc(100% - 32px));padding:12px 14px;background:#101822e8;border:1px solid #ffffff25;border-radius:14px;z-index:6;backdrop-filter:blur(18px);box-shadow:0 8px 28px #0006;pointer-events:none;color:#d9e5f3;font:11px var(--sans)}
+.gaudhead{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;letter-spacing:.04em}.gaudhead strong{font-family:var(--mono);color:#6ee7b7}
+.gaudtrack{height:12px;border-radius:3px;background:#05090e;overflow:hidden}.gaudtrack i{display:block;height:100%;width:0;background:linear-gradient(90deg,#20cf95 0 70%,#ffd258 70% 90%,#ff4e58 90%);background-size: min(272px,calc(100vw - 60px)) 100%;transition:width .09s}
+.gaudscale{display:flex;justify-content:space-between;color:#8b9bad;font:9px var(--mono);margin:5px 0}.gaudmon.clipping{border-color:#ff4e58}.gaudmon.clipping strong{color:#ff6570}
+.gtop{flex-wrap:wrap;gap:6px}.gtop #gmirror{cursor:pointer;font-size:11px}
+.hwrow:has(.hwlab.pgm){border:2px solid #a82c36}.hwrow:has(.hwlab.pvw){border:2px solid #279f50}
+.hwlab.pgm,.hwlab.pvw{padding:8px;color:#b6eaff;font-size:15px}
+.hwk{border-radius:6px}.hwbus.sz-l .hwkeys{gap:16px;padding:16px}.hwbus.sz-l .hwk{min-width:84px;height:80px}
+@media(max-width:600px){.gaudmon{left:12px;bottom:calc(165px + var(--sab,0px));width:220px;padding:9px 12px}.gp .gbar{gap:4px;padding-left:8px;padding-right:8px}.gp .cbtn{min-width:0;flex:1}.gp .cbtn .c{width:42px;height:42px}.gp .cbtn>span:last-child{font-size:10px}.gp .gtally{font-size:14px;padding:8px 12px}}
+@media(max-height:500px){.gaudmon{bottom:92px;width:220px;padding:7px 10px}.gaudscale{display:none}}
+
 </style>
 </head>
 <body>
@@ -1530,7 +1545,8 @@ function Host(sess){
   const ac = audioCtx();
   const WIN = {}; let zTop = 200;
   const CTL = { sel: null };
-  const UI = { sw: store('wc_swmode') === 'on', pro: store('wc_pro') === '1' };
+  if (store('wc_console_1111') !== '1') { store('wc_swmode', 'on'); store('wc_console_1111', '1'); store('wc_hw', JSON.stringify({on:true,skin:'light',size:'l'})); }
+  const UI = { sw: store('wc_swmode') !== 'off', pro: store('wc_pro') === '1' };
   // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
   const GROUPS = {
     ic:   { key: '對講／IFB', title: 'INTERCOM 對講台／IFB 返送／倒數', w: 780, h: 620, tabs: ['ic', 'ifb', 'timer'] },
@@ -5233,6 +5249,7 @@ function GuestMain(inv, roomKey){
     if (micTrack) micTrack.enabled = pgmMic && !(icMic && icMutesPgm);   // 對講時節目麥自動靜音（可以關掉這個設定）
     if (icTrack) icTrack.enabled = icMic;
   }
+  let previewMirror = store('wc_preview_mirror') === '1';
   let facing = 'user', camOn = true, pgmMic = true, icMic = false, torchOn = false, guides = 0;
   let zoom = { hw: false, min: 1, max: 2, step: .1, value: 1 }, torchCap = false;
   let qMode = store('wc_qmode') || 'auto', tier = '720', rec = null, warn = '', retVol = 1;
@@ -5250,11 +5267,12 @@ function GuestMain(inv, roomKey){
 
   app.innerHTML = `
   <div class="gp" id="gp">
-    <div class="stage" id="stage"><video id="self" class="mirror" autoplay playsinline muted></video><div class="guides" id="gd"></div></div>
+    <div class="stage" id="stage"><video id="self" autoplay playsinline muted></video><div class="guides" id="gd"></div></div>
     <div class="frame" id="frame"></div>
     <div class="gtop">
       <span class="pill" id="gst"><span class="dot"></span>準備中</span>
       <button class="pill" id="grot" style="cursor:pointer" title="畫面方向：預設固定直式，按一下改成跟著手機旋轉"></button>
+      <button class="pill" id="gmirror" title="只改變本機前鏡頭預覽，不改變導播收到的畫面">正向預覽</button>
       <span class="pill hidden" id="gq"><span class="bars" id="bars"><i></i><i></i><i></i></span><span class="mono" id="gqt"></span></span>
       <span class="gtally hidden" id="tally">STBY</span>
     </div>
@@ -5269,6 +5287,7 @@ function GuestMain(inv, roomKey){
     <div class="gccpill hidden" id="gcc">● 字幕辨識中</div>
     <div class="ret hidden" id="rw"><video id="retV" autoplay playsinline muted></video><span>RETURN 回看</span><div class="rb"><button id="rwm" title="縮小">－</button><button id="rwp" title="放大">＋</button></div><div class="rz" id="rwz"></div></div>
     <audio id="retA" autoplay playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
+    <div class="gaudmon" id="gaudmon"><div class="gaudhead"><span id="gaudroute">MIC · 收音預覽</span><strong id="gauddb">−∞ dBFS</strong></div><div class="gaudtrack"><i id="gaudfill"></i></div><div class="gaudscale"><span>−60</span><span>−36</span><span>−18</span><span>−6</span><span>0</span></div><div id="gaudstatus">等待麥克風</div></div>
     <div class="zoombig" id="zb">1.0×</div>
     <div class="zoomui hidden" id="zui"></div>
     <div class="player hidden" id="pl">
@@ -5294,6 +5313,7 @@ function GuestMain(inv, roomKey){
   </div>`;
   const selfV = $('#self'), retA = $('#retA'), retV = $('#retV'), camRaw = $('#camRaw'), fileV = $('#fileV'), shareV = $('#shareV');
   const fx = new GuestFX(camRaw);
+  $('#gmirror').onclick = () => { previewMirror = !previewMirror; store('wc_preview_mirror', previewMirror ? '1' : '0'); syncSenders(); toast(previewMirror ? '自拍鏡像：只影響自己預覽' : '正向預覽：與送出畫面一致'); };
   const onCamSize = () => { syncSenders(); fitSelf(); };
   camRaw.addEventListener('loadedmetadata', onCamSize); camRaw.addEventListener('resize', onCamSize);
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
@@ -5415,12 +5435,19 @@ function GuestMain(inv, roomKey){
     applyOrient(); syncSenders(); sendState();
   }
   let meter = () => 0;
-  const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
+  const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%';
+    $('#gaudfill').style.width = (v * 100) + '%';
+    $('#gauddb').textContent = v > 0 ? Math.round(v * 60 - 60) + ' dBFS' : '−∞ dBFS';
+    $('#gaudroute').textContent = icMic ? 'INTERCOM · 對講' : 'PROGRAM · 節目麥';
+    $('#gaudstatus').textContent = !micTrack ? '等待麥克風' : !(pgmMic || icMic) ? '麥克風已靜音' : v > .95 ? '電平過高 · 請降低收音' : v > .35 ? '收音中' : '低電平 · 等待聲音';
+    $('#gaudmon').classList.toggle('clipping', v > .95); ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
     const vt = fx.outputTrack() || camTrack;
     if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
-    selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
+    selfV.classList.toggle('mirror', previewMirror && facing === 'user' && !fx.base);
+    $('#gmirror').textContent = previewMirror ? '自拍鏡像' : '正向預覽';
+    $('#gmirror').setAttribute('aria-pressed', String(previewMirror));
     setTimeout(fitSelf, 50);
     const pc = call?.peerConnection; if (!pc) return;
     // 第一次：記下每個 sender 是哪一條（之後換鏡頭／麥克風才知道要換哪一條）
