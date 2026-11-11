@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2120-local">
+<meta name="webcall-version" content="2026.1111.2135-studio">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2120-local';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2135-studio';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -674,6 +674,27 @@ body.opp{overflow:hidden}
 @media(min-width:1101px){.host .switcher{grid-template-columns:minmax(0,1fr) 128px minmax(0,1fr)}.host .crystal-console{grid-template-columns:minmax(0,1fr) 180px}}
 @media(max-width:1100px){.host .crystal-console{grid-template-columns:minmax(0,1fr) 148px}.host .cc-functions-grid{grid-template-columns:repeat(2,1fr)}.host .switcher{grid-template-columns:minmax(0,1fr) 96px minmax(0,1fr)}.host .switcher>.tcol{grid-column:auto;grid-row:auto;flex-direction:column;align-items:stretch;flex-wrap:nowrap}}
 @media(max-width:650px),(max-height:560px){.host .hmain{position:relative}.host:not(.simple) .hmain .switcher{grid-template-rows:minmax(0,1fr) auto}.host .cc-keys{gap:12px;padding:8px 10px 11px}.host .cc-head{font-size:10px}.host .crystal-console{grid-template-columns:minmax(0,1fr) 100px;padding:6px}.host .cc-functions-grid{gap:9px;padding:9px}.host .cc-functions-grid .cc-key b{font-size:10px}.host .cc-functions-grid .cc-key small{display:none}.host .crystal-console .cc-key{min-width:40px;width:40px;height:40px}.host .cc-key b{font-size:17px}.host .cc-key small{max-width:32px;font-size:7px}.host .switcher .pipbar .lbl,.host .switcher .dskbar{display:none}.host .switcher .pipbar{max-height:29px;overflow:hidden}.host .emptyv ol{display:none}}
+
+/* WebCall production workspace: sources + two monitors, bus rows, docked tools. */
+.host.studio{--studio-line:#303b43;--studio-cyan:#229bbb;--studio-panel:#13191e;background:#090d10;grid-template-rows:auto auto minmax(0,1fr)}
+.studio .topbar{background:linear-gradient(#242c33,#151c22);padding:5px 8px;gap:8px;max-height:76px;border-bottom:1px solid #424d57}.studio .topbar .sess span{display:none}.studio .topbar .sess b{font-size:11px}.studio .topbar .lufs{display:none}.studio .topbar .btn{height:28px;font-size:11px}.studio .topbar .invk{padding:3px 8px}.studio .topbar .invk b{font-size:12px}.studio .keybar{background:#11171c;padding:4px 7px;gap:3px;max-height:70px;flex-wrap:wrap;overflow:hidden}.studio .keybar .key{height:25px;min-width:46px;font-size:9px;border-radius:2px}.studio-view-select{height:25px;max-width:145px;background:#1a2832;border:1px solid #3a5668;color:#bedbe8;border-radius:3px;font-size:10px}
+.host.studio:not(.simple) .hmain{display:grid;grid-template-columns:minmax(0,38fr) minmax(0,62fr);grid-template-rows:minmax(0,44fr) minmax(112px,23fr) minmax(0,33fr);gap:5px;padding:5px;background:#080c0f;min-height:0;overflow:hidden}
+.studioSources{grid-column:1;grid-row:1;display:flex;flex-direction:column;border:1px solid var(--studio-line);background:#0c1216;min-height:0;min-width:0;overflow:hidden}.studioSectionHead{height:23px;flex:none;display:flex;align-items:center;gap:6px;padding:0 7px;background:linear-gradient(#29343c,#171e24);border-bottom:1px solid #35444d;font:600 10px var(--mono);color:#80b6cd;letter-spacing:.06em}.studioSectionHead .grow{flex:1}.studioPageBtn{height:19px;min-width:24px;border:1px solid #49616e;background:#1d303c;color:#c2dfec;border-radius:2px;font-size:11px;cursor:pointer}.studioPageBtn:disabled{opacity:.3;cursor:default}
+.host.studio .studioSources .multiview{grid-column:auto;grid-row:auto;flex:1;min-height:0;min-width:0;padding:5px;gap:4px;align-content:stretch;justify-content:stretch}.studio .studioSources .tile{min-width:0;min-height:0;border-radius:2px;gap:0}.studio .studioSources .tile .tv{flex:1;min-height:0;aspect-ratio:auto}.studio .studioSources .tile .ctl{height:25px;min-height:25px;flex:none;gap:2px;padding:2px}.studio .studioSources .tile .ctl .btn{height:21px;font-size:9px;padding:0 4px}.studio .studioSources .tile .ctl .field{min-width:0;height:21px;font-size:9px}.studio .studioSources .tile .opt,.studio .studioSources .tile .opt2{display:none}.studio .studioSources .tile .lower .st{display:none}.studio .studioSources .tile .num{font-size:10px}.studio .studioSources .emptyv{width:100%;max-width:none;min-width:0;min-height:0;padding:8px;display:flex;flex-direction:column;gap:4px;justify-content:center}.studio .studioSources .emptyv .qr{height:clamp(40px,10dvh,90px);width:auto}.studio .studioSources .emptyv ol{display:none}.studio .studioSources .emptyv h2{font-size:11px;margin:3px}.studio .studioSources .emptyv>div:last-child{font-size:10px;text-align:center}
+.host.studio:not(.simple) .hmain>.switcher{grid-column:2;grid-row:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:5px;padding:0;height:100%;min-height:0;overflow:hidden;background:transparent;border:0}.studio .switcher>.mon{min-width:0;min-height:0;border:1px solid var(--studio-line);gap:0;background:#0d1419;overflow:hidden}.studio .switcher .hd{height:23px;min-height:23px;padding:0 5px;font-size:9px;background:linear-gradient(#26323a,#141d23)}.studio .switcher .hd .lab{font-size:9px;padding:2px 5px;letter-spacing:.05em;border-radius:1px}.studio .switcher .hd .src{font-size:9px}.studio .switcher .swfn{display:none}.studio .switcher>.mon>.screen{min-height:0;flex:1;height:auto;max-height:none;border-radius:0;border-width:1px;aspect-ratio:auto}.studio .switcher .pipbar{height:25px;min-height:25px;flex:none;padding:2px 4px;flex-wrap:nowrap;overflow:hidden;font-size:9px}.studio .switcher .pipbar .btn,.studio .switcher .pipbar .field{height:21px;font-size:9px;padding:0 4px}.studio .switcher .pipbar input[type=range]{max-width:40px}.studio .switcher .pipbar .note,.studio .switcher .pipbar .lbl,.studio .switcher .dskbar{display:none}.studio .switcher .pipbar #cppgm{margin-left:auto}
+.studioBus{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:5px;min-width:0;min-height:0;overflow:hidden}
+.host.studio .studioBus .crystal-console{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:20px minmax(0,1fr);gap:3px;padding:5px;border:1px solid var(--studio-line);border-radius:2px;background:linear-gradient(#1c252c,#10171b);box-shadow:inset 0 1px 0 #ffffff0c;min-height:0;overflow:hidden}.studio .cc-tools{height:20px;color:#758f9b;font-size:9px}.studio .cc-tools button{min-height:18px;height:18px;border-radius:2px}.studio .cc-buses{gap:5px;grid-template-rows:repeat(2,minmax(0,1fr));min-height:0}.studio .cc-row{display:grid;grid-template-columns:58px minmax(0,1fr);border:0;border-radius:1px;background:#0b1014;min-height:0;box-shadow:inset 0 1px 3px #000}.studio .cc-row .cc-head{display:grid;place-items:center;background:none;border:0;letter-spacing:.03em;color:#de5963;font-size:11px;padding:0}.studio .cc-row.cc-preview .cc-head{color:#64bc78}.studio .cc-keys{padding:6px 8px;gap:10px;min-height:0;align-items:stretch}.host.studio .crystal-console .cc-key{--cc-hi:#46515a;--cc-mid:#20292f;--cc-lo:#070d11;--cc-face:#1c252b;--cc-ink:#d6e0e7;min-width:54px;width:54px;height:auto;min-height:26px;border:1px solid #5d6b75;border-radius:2px;box-shadow:0 0 0 2px #040708,inset 0 1px 0 #c0d6e54d,0 3px 0 #030507;text-shadow:0 1px 2px #000}
+.studio .cc-key::before{inset:3px;border-radius:3px;border-color:#a7c4d229;box-shadow:inset 0 1px 2px #0008}.studio .cc-key::after{inset:1px;border-radius:2px;border-color:#b0d1df1a}.studio .cc-key b{font-size:15px;font-weight:600}.studio .cc-key.cc-black b{font-size:13px}.studio .cc-key small{font-size:8px;max-width:48px}.host.studio .cc-key.cc-live{--cc-hi:#fa7778;--cc-mid:#b91b2d;--cc-lo:#4c0710;--cc-face:#ac1a2d;--cc-ink:#fff0f0;border-color:#d85c68;background:linear-gradient(#bf2437,#790b1a);color:#fff;box-shadow:0 0 0 2px #140307,inset 0 1px 0 #ffb5b566,0 0 8px #ef34433d}.host.studio .cc-key.cc-next{--cc-hi:#a8e99a;--cc-mid:#287b37;--cc-lo:#092c12;--cc-face:#297438;--cc-ink:#ebffee;border-color:#71ac73;background:linear-gradient(#317f42,#164622);color:#fff;box-shadow:0 0 0 2px #031007,inset 0 1px 0 #c4ffc466,0 0 8px #64d97833}.studio .crystal-console .cc-functions{display:none}
+.host.studio .studioBus>.tcol{margin:0;padding:5px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 35px;grid-template-rows:25px minmax(0,1fr) minmax(0,1fr);gap:4px;border:1px solid var(--studio-line);background:#111a21;min-height:0;overflow:hidden;align-items:stretch}.studioBus>.tcol>.tsel{min-width:0}.studioBus>.tcol>.tsel select{width:100%;height:25px;font-size:9px;padding:0 13px 0 4px}.studioBus #ptr{grid-column:1;grid-row:2}.studioBus #cut{grid-column:2;grid-row:2}.studioBus #auto{grid-column:3;grid-row:2}.studioBus #ftb{grid-column:1/4;grid-row:3}.studioBus #tbar{grid-column:4;grid-row:1/4;width:29px;height:100%;min-height:0;max-height:none;margin:0}.studioBus .tbtn{height:auto!important;min-height:0!important;font-size:10px;border-radius:2px}.studioBus .tbtn.auto{background:linear-gradient(#bc702f,#71370f);border-color:#b77a44}.studioBus .tbtn.cut{background:linear-gradient(#35444f,#19232b)}
+.studioDesk{grid-column:1/-1;grid-row:3;min-height:0;min-width:0;display:flex;flex-direction:column;border:1px solid var(--studio-line);background:#0c1217;overflow:hidden}.studioDeskTabs{height:26px;flex:none;display:flex;align-items:center;padding:0 6px;gap:3px;border-bottom:1px solid #34434d;background:linear-gradient(#28343e,#141e26)}.studioDeskTabs button{height:23px;border:1px solid transparent;border-bottom:0;background:transparent;color:#8398a6;font:600 10px var(--mono);padding:0 14px;cursor:pointer}.studioDeskTabs button.active{background:#111b23;border-color:#3b5669;color:#72c8ed;box-shadow:inset 0 2px 0 #3288ad}.studioDeskTabs .studio-tool-title{margin-left:auto;color:#647d8d;font:9px var(--mono)}.studioDock{position:relative;flex:1;min-height:0;min-width:0;overflow:hidden}
+.host.studio .studioDock>.win{position:absolute!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:0!important;max-width:none!important;min-height:0!important;max-height:none!important;border:0;border-radius:0;box-shadow:none;resize:none;background:#10171c;display:flex;flex-direction:column}.studioDock>.win>header{display:none}.studioDock .wtabs{height:23px;min-height:23px;flex:none;padding:0 5px;overflow:auto}.studioDock .wtab{font-size:9px;padding:2px 9px;border-radius:1px}.studioDock .wb{padding:5px 7px;min-height:0;min-width:0;flex:1;overscroll-behavior:contain}.studioDock .wb[data-w=mix]:not(.hidden){display:flex;flex-direction:column;overflow:hidden}.studioDock .wb[data-w=mix]>.mixer{height:auto;min-height:0;flex:1;overflow:hidden;padding-bottom:2px;gap:4px}.studioDock .wb[data-w=mix]>.note{display:none}.studioDock .wb[data-w=mix]>.row{height:24px;flex:none;margin-top:2px!important}.studioDock .wb[data-w=mix]>.row .btn{height:21px;font-size:9px}.studioDock .wb[data-w=mix]>.row .note{display:none}
+.studioDock .mixer .strip{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:14px minmax(20px,1fr) 13px repeat(3,18px);align-items:stretch;justify-items:center;min-height:0;width:74px;gap:2px 3px;padding:3px;background:linear-gradient(#1d272e,#111a20);border:1px solid #2b3943;border-radius:1px}.studioDock .strip .num{font-size:8px;grid-column:1;grid-row:1}.studioDock .strip .nm{font-size:8px;grid-column:2;grid-row:1}.studioDock .strip .fwrap{grid-column:1/3;grid-row:2;min-height:0;height:100%;width:34px}.studioDock .strip input[type=range]{height:100%;min-height:0;width:20px}.studioDock .strip .db{grid-column:1;grid-row:3;font-size:8px}.studioDock .strip .pk{grid-column:2;grid-row:3;font-size:8px}.studioDock .strip .mb{height:17px;font-size:8px;border-radius:1px}.studioDock .strip.master{background:#182b38;border-color:#355e78}.studioDock .strip.master select{grid-column:1/3;grid-row:4;height:20px;font-size:8px}.studioDock .wb .field{max-width:100%}.studioDock .mixer .note{font-size:10px}
+.host.studio[data-studioview=inputs] .hmain,.host.studio[data-studioview=monitor] .hmain,.host.studio[data-studioview=switch] .hmain,.host.studio[data-studioview=tools] .hmain{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+.studio[data-studioview=inputs] .hmain>.switcher,.studio[data-studioview=inputs] .studioBus,.studio[data-studioview=inputs] .studioDesk,.studio[data-studioview=monitor] .studioSources,.studio[data-studioview=monitor] .studioBus,.studio[data-studioview=monitor] .studioDesk,.studio[data-studioview=switch] .studioSources,.studio[data-studioview=switch] .hmain>.switcher,.studio[data-studioview=switch] .studioDesk,.studio[data-studioview=tools] .studioSources,.studio[data-studioview=tools] .hmain>.switcher,.studio[data-studioview=tools] .studioBus{display:none!important}
+.host.studio:not(.simple)[data-studioview] .hmain>.studioSources,.host.studio:not(.simple)[data-studioview] .hmain>.switcher,.studio[data-studioview] .studioBus,.studio[data-studioview] .studioDesk{min-height:0}.studio[data-studioview=inputs] .studioSources,.host.studio:not(.simple)[data-studioview=monitor] .hmain>.switcher,.studio[data-studioview=switch] .studioBus,.studio[data-studioview=tools] .studioDesk{grid-column:1!important;grid-row:1!important}
+.host.studio.simple .studioBus,.host.studio.simple .studioDesk{display:none}.host.studio.simple .hmain{grid-template-columns:minmax(0,1fr) 250px;grid-template-rows:minmax(0,1fr)}.host.studio.simple .studioSources{grid-column:1;grid-row:1}
+@media(max-width:1050px){.studio .topbar .sess,.studio .topbar .kpi,.studio .topbar .clock,.studio .topbar .ptimer{display:none}.studio .topbar{gap:5px}.studio .studioBus{grid-template-columns:minmax(0,1fr) 190px}.studioDeskTabs button{padding:0 8px}.studio .topbar .panic{font-size:0;padding:0 5px}.studio .topbar .panic svg{width:17px;height:17px}.studio .keybar .key{font-size:8px;padding:2px 4px}.studio .studioSources .tile .ctl .field{max-width:50px}}
+@media(max-width:600px){.studio .topbar .invk{max-width:95px;overflow:hidden}.studio .topbar .pill,.studio .topbar .modeb{display:none}.studio .topbar .btn{font-size:10px;padding:0 6px}.studioDeskTabs .studio-tool-title{display:none}.studioDeskTabs{height:auto;min-height:26px;flex-wrap:wrap}.studioDeskTabs button{padding:0 6px}.studio .studioBus{grid-template-columns:minmax(0,1fr) 100px}.host.studio .studioBus>.tcol{grid-template-columns:minmax(0,1fr) 26px;grid-template-rows:repeat(7,minmax(18px,1fr));gap:3px}.studioBus>.tcol>.tsel{grid-column:1}.studioBus #ptr{grid-column:1;grid-row:4}.studioBus #cut{grid-column:1;grid-row:5}.studioBus #auto{grid-column:1;grid-row:6}.studioBus #ftb{grid-column:1;grid-row:7}.studioBus #tbar{grid-column:2;grid-row:1/8;width:24px}.host.studio .crystal-console .cc-key{min-width:44px;width:44px}.studio .cc-row{grid-template-columns:42px minmax(0,1fr)}.studio .cc-row .cc-head{font-size:9px}.studio .cc-keys{gap:9px;padding:6px}.studio .switcher .pipbar{height:24px;min-height:24px}.studio .switcher .pipbar #pipsize,.studio .switcher .pipbar #pippos{display:none}.studio .switcher .pipbar #snpgm{font-size:0}.studio .switcher .hd{font-size:8px}.studio .switcher .hd #pgmres{display:none}}
 
 </style>
 </head>
@@ -1487,7 +1508,7 @@ function Host(sess){
   let outUrl = s => `${shareBase()}?mode=out&o=${roomKey}&slot=${s}`;
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
-  let crystalSig = null, crystalPage = 0;
+  let crystalSig = null, crystalPage = 0, sourcePage = 0, mixerPage = 0;
   const outputs = new Set();
   const pending = new Map();
   const msgs = []; let unread = 0;
@@ -1496,6 +1517,7 @@ function Host(sess){
   const WIN = {}; let zTop = 200;
   const CTL = { sel: null };
   if (store('wc_crystal_rows_v1') !== '1') { store('wc_swmode', 'on'); store('wc_crystal_rows_v1', '1'); }
+  if (store('wc_studio_v13') !== '1') { store('wc_swmode','on'); store('wc_studio_v13','1'); }
   const UI = { sw: store('wc_swmode') !== 'off', pro: store('wc_pro') === '1' };
   // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
   const GROUPS = {
@@ -1673,9 +1695,9 @@ function Host(sess){
   const lufsT = setInterval(() => { if (ended) return clearInterval(lufsT); lufsTick(); }, 100);
 
   app.innerHTML = `
-  <div class="host ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
+  <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v12-LR</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v13-STUDIO</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -1693,7 +1715,7 @@ function Host(sess){
       <button class="btn primary" id="inv">${ic('user')}邀請來賓</button>
       <button class="btn danger" id="endb">結束</button>
     </div>
-    <div class="keybar" id="keys">
+    <div class="keybar" id="keys"><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="inputs">來源監看</option><option value="monitor">PVW / PGM</option><option value="switch">切換控盤</option><option value="tools">工具 / 混音台</option></select>
       ${Object.entries(GROUPS).map(([k, d]) => `<div class="key" data-win="${k}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
       <span class="kgap"></span>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
@@ -1712,7 +1734,16 @@ function Host(sess){
             <label class="note" style="margin:0"><input type="checkbox" id="pipaud"> 聲音</label>
           </div>
         </div>
-        <div class="tcol">
+        <div class="mon pgm"><div class="hd"><span class="lab">PROGRAM</span><span class="src" id="pgmn">—</span><span class="grow"></span><span class="mono" style="color:var(--mute);font-size:10px" id="pgmres"></span></div>
+          <div class="screen" id="pgms"><span class="ftb hidden" id="ftbtag">FADE TO BLACK</span></div>
+          <div class="pipbar"><span class="lbl" style="margin:0">PGM AUDIO</span><div class="hmeter grow"><i id="pgmvu"></i></div>
+            <button class="btn sm" id="snpgm" title="PGM 截圖存成 JPG（J）">${ic('cam')}截圖</button>
+            <button class="btn sm" id="cppgm">${ic('link')}PGM 網址</button></div>
+          <div class="dskbar" data-dsk></div>
+        </div>
+      </div>
+      <section class="studioSources"><div class="studioSectionHead"><b>INPUTS / 來源監看</b><span class="grow"></span><button type="button" class="studioPageBtn" id="sourcePrev" aria-label="上一頁來源">‹</button><span id="sourcePageLabel">1 / 1</span><button type="button" class="studioPageBtn" id="sourceNext" aria-label="下一頁來源">›</button></div><main class="multiview" id="mv"></main></section>
+      <section class="studioBus"><div class="crystal-console" id="crystalConsole" aria-label="切換控盤"></div>        <div class="tcol">
           <div class="tsel"><select class="field sm" id="ttype">${TRANS.map(([k, n]) => `<option value="${k}" ${k === SW.type ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
           <div class="tsel"><select class="field sm" id="tdir"></select></div>
           <div class="tsel"><select class="field sm" id="tdur">${[200, 300, 500, 800, 1000, 1500, 2000, 3000].map(d => `<option value="${d}" ${d === SW.dur ? 'selected' : ''}>${d / 1000}s</option>`).join('')}</select></div>
@@ -1722,16 +1753,8 @@ function Host(sess){
           <div class="tbar" id="tbar"><div class="slot"></div><div class="fill" id="tfill"></div><div class="hdl" id="thdl"></div></div>
           <button class="tbtn ftb" id="ftb">FTB</button>
         </div>
-        <div class="mon pgm"><div class="hd"><span class="lab">PROGRAM</span><span class="src" id="pgmn">—</span><span class="grow"></span><span class="mono" style="color:var(--mute);font-size:10px" id="pgmres"></span></div>
-          <div class="screen" id="pgms"><span class="ftb hidden" id="ftbtag">FADE TO BLACK</span></div>
-          <div class="pipbar"><span class="lbl" style="margin:0">PGM AUDIO</span><div class="hmeter grow"><i id="pgmvu"></i></div>
-            <button class="btn sm" id="snpgm" title="PGM 截圖存成 JPG（J）">${ic('cam')}截圖</button>
-            <button class="btn sm" id="cppgm">${ic('link')}PGM 網址</button></div>
-          <div class="dskbar" data-dsk></div>
-        </div>
-        <div class="crystal-console" id="crystalConsole" aria-label="水晶切換控盤"></div>
-      </div>
-      <main class="multiview" id="mv"></main>
+</section>
+      <section class="studioDesk"><nav class="studioDeskTabs" aria-label="工具面板"><button type="button" data-studiopanel="mix">AUDIO MIXER</button><button type="button" data-studiopanel="src">SOURCES</button><button type="button" data-studiopanel="still">MEDIA</button><button type="button" data-studiopanel="gfx">TITLES / CG</button><button type="button" data-studiopanel="scene">SCENES</button><button type="button" data-studiopanel="rec">RECORD</button><span class="studio-tool-title" id="studioToolTitle">PRODUCTION DESK</span></nav><div class="studioDock" id="studioDock"></div></section>
       <aside class="dock" id="dock"></aside>
     </div>
   </div>`;
@@ -2071,23 +2094,25 @@ function Host(sess){
     }
   }
   function layoutGrid(){
-    const mv = $('#mv'); if (!mv) return; const n = order.length;
-    if (!n) { renderEmpty(); return; }
-    const W = mv.clientWidth - 20, H = mv.clientHeight - 20, gap = 8, extra = 36;
-    let best = { c: 1, w: 0 };
-    for (let c = 1; c <= n; c++) {
-      const r = Math.ceil(n / c);
-      let w = (W - gap * (c - 1)) / c;
-      const hNeed = r * (w * 9 / 16 + extra) + gap * (r - 1);
-      if (hNeed > H) w = ((H - gap * (r - 1)) / r - extra) * 16 / 9;
-      w = Math.min(w, (W - gap * (c - 1)) / c);
-      if (w > best.w) best = { c, w };
-    }
-    mv.style.gridTemplateColumns = `repeat(${best.c}, ${Math.max(150, Math.floor(best.w))}px)`;
+    const mv = $('#mv'); if (!mv) return;
+    const W=Math.max(1,mv.clientWidth-10),H=Math.max(1,mv.clientHeight-10);
+    const cols=Math.max(1,Math.floor(W/145)),rows=Math.max(1,Math.floor(H/95));
+    const per=Math.max(1,Math.min(12,cols*rows)),pages=Math.max(1,Math.ceil(order.length/per));
+    sourcePage=Math.max(0,Math.min(sourcePage,pages-1));
+    $('#sourcePageLabel').textContent=(sourcePage+1)+' / '+pages;
+    $('#sourcePrev').disabled=sourcePage===0;$('#sourceNext').disabled=sourcePage===pages-1;
+    if(!order.length){renderEmpty();return;}
+    const visible=order.slice(sourcePage*per,(sourcePage+1)*per);
+    order.forEach(id=>{const el=inputs.get(id)?.el;if(el)el.style.display=visible.includes(id)?'':'none';});
+    const c=Math.min(cols,visible.length),r=Math.ceil(visible.length/c);
+    mv.style.gridTemplateColumns=`repeat(${c},minmax(0,1fr))`;
+    mv.style.gridTemplateRows=`repeat(${r},minmax(0,1fr))`;
   }
+  $('#sourcePrev').onclick=()=>{sourcePage--;layoutGrid();};
+  $('#sourceNext').onclick=()=>{sourcePage++;layoutGrid();};
   new ResizeObserver(layoutGrid).observe($('#mv'));
   function renderEmpty(){
-    const mv = $('#mv'); mv.style.gridTemplateColumns = '';
+    const mv = $('#mv'); mv.style.gridTemplateColumns = ''; mv.style.gridTemplateRows = '';
     mv.innerHTML = `<div class="emptyv"><div class="qr" id="eqr"></div>
       <div><h2>等待來賓連線</h2>本房間最多 <b>${LINES}</b> 路
         <ol><li>來賓用手機掃描 QR Code，或按右上「邀請來賓」複製連結</li>
@@ -3178,6 +3203,15 @@ function Host(sess){
     keyEl(id)?.classList.add('on');
     if (id === 'msg') { unread = 0; $('#mbdg').classList.add('hidden'); }
     WDEF[id].render();
+    dockStudioGroup(G,id);
+  }
+  function dockStudioGroup(G,id){
+    const dock=$('#studioDock');if(!dock)return;
+    Object.entries(GW).forEach(([gid,other])=>{if(other!==G&&other.el.parentElement===dock&&other.open)closeGroup(gid);});
+    if(G.el.parentElement!==dock)dock.appendChild(G.el);
+    $$('[data-studiopanel]').forEach(b=>b.classList.toggle('active',b.dataset.studiopanel===id));
+    $('#studioToolTitle').textContent=TABN[id]||id.toUpperCase();
+    if(id==='mix')requestAnimationFrame(()=>{if(WIN.mix?.open)softRender('mix');});
   }
   // 視窗正在被操作（拖拉滑桿、按住按鈕、輸入文字）時，延後重畫
   const ctlSig = g => { const st = g.state; return JSON.stringify([g.id, st.icMutesPgm, st.monMedia, st.retMute, st.videoAudio, g.multi, st.pgmMic, st.icMic, st.cam, st.torch, st.zoom && [st.zoom.hw, st.zoom.min, st.zoom.max], st.guides, st.quality && [st.quality.mode, st.quality.tier, st.quality.rec, st.quality.warn], st.beauty, st.bg, st.share, st.playing, st.leaveMode, st.canShare, st.fxStatus, g.ctl]); };
@@ -3345,8 +3379,10 @@ function Host(sess){
   function renderMix(){
     const w = WIN.mix; if (!w?.open) return;
     const pct = v => Math.round(v * 100);
+    const per=Math.max(1,Math.floor(((w.body.clientWidth||innerWidth)-100)/78)),pages=Math.max(1,Math.ceil(order.length/per));
+    mixerPage=Math.max(0,Math.min(mixerPage,pages-1));
     w.body.innerHTML = `<div class="mixer">
-      ${order.map(id => { const x = inputs.get(id); return `<div class="strip" data-id="${id}"><span class="num">${numOf(x)}</span><div class="nm" title="${esc(x.name)}">${esc(x.name)}</div>
+      ${order.slice(mixerPage*per,(mixerPage+1)*per).map(id => { const x = inputs.get(id); return `<div class="strip" data-id="${id}"><span class="num">${numOf(x)}</span><div class="nm" title="${esc(x.name)}">${esc(x.name)}</div>
         <div class="fwrap"><div class="vu"><i id="mx-${id}"></i></div><input type="range" min="0" max="150" value="${pct(x.fader)}" data-f></div>
         <span class="db" data-db>${pct(x.fader)}%</span><span class="pk proonly" title="峰值（dBFS，保持 1.5 秒）；紅燈＝過載（-1 dBFS 以上）"><i id="mxcl-${id}"></i><span id="mxpk-${id}">–∞</span></span>
         <button class="mb mute ${x.mute ? 'on' : ''}" data-m>MUTE</button><button class="mb pfl ${x.pfl ? 'on' : ''}" data-p title="導播監聽這一路">PFL</button><button class="mb solo ${x.solo ? 'on' : ''}" data-so title="SOLO：導播耳機只聽這一路（其他監聽全部暫停）">SOLO</button>
@@ -3356,7 +3392,8 @@ function Host(sess){
         <div class="fwrap"><div class="vu"><i id="mx-mon"></i></div><input type="range" min="0" max="150" value="${pct(monitorBus.gain.value)}" id="monv"></div>
         <span class="db" id="mondb">${pct(monitorBus.gain.value)}%</span>
         <select class="field sm" id="mondev" style="width:100%;padding:0 14px 0 4px" title="監聽輸出裝置"><option value="">預設輸出</option></select></div>
-    </div><div class="row" style="margin-top:6px"><button class="btn sm" id="mxp" style="${PANIC ? 'background:var(--live);color:#fff' : ''}">${ic('micoff')}${PANIC ? '已全部靜音' : '全部靜音'}</button><button class="btn sm" id="mxr">${ic('headset')}聲音路由（監聽／每個輸出送什麼聲音）</button><span class="note" style="margin:0">主音量與限幅器在「切換台設定」。</span></div><div class="note">推桿＝送到節目／OBS 的音量（遠端音量控制）。FX＝等化器、壓縮器、噪音閘。PFL＝只有導播耳機聽得到，不會輸出。MON 表＝導播耳機實際聽到的音量。</div>`;
+    </div><div class="row" style="margin-top:6px"><button type="button" class="studioPageBtn" data-mixpage="-1" ${mixerPage===0?'disabled':''}>‹</button><span class="mono" style="font-size:9px">${mixerPage+1}/${pages}</span><button type="button" class="studioPageBtn" data-mixpage="1" ${mixerPage===pages-1?'disabled':''}>›</button><button class="btn sm" id="mxp" style="${PANIC ? 'background:var(--live);color:#fff' : ''}">${ic('micoff')}${PANIC ? '已全部靜音' : '全部靜音'}</button><button class="btn sm" id="mxr">${ic('headset')}聲音路由（監聽／每個輸出送什麼聲音）</button><span class="note" style="margin:0">主音量與限幅器在「切換台設定」。</span></div><div class="note">推桿＝送到節目／OBS 的音量（遠端音量控制）。FX＝等化器、壓縮器、噪音閘。PFL＝只有導播耳機聽得到，不會輸出。MON 表＝導播耳機實際聽到的音量。</div>`;
+    $$('[data-mixpage]',w.body).forEach(b=>b.onclick=()=>{mixerPage+=Number(b.dataset.mixpage);renderMix();});
     $$('.strip[data-id]', w.body).forEach(s => {
       const x = inputs.get(s.dataset.id);
       $('[data-f]', s).oninput = e => { x.fader = e.target.value / 100; $('[data-db]', s).textContent = e.target.value + '%'; applyGains(x); };
@@ -5228,6 +5265,15 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   renderCrystalConsole();
   const crystalTimer=setInterval(()=>{if(ended){clearInterval(crystalTimer);return;}if(!document.hidden) renderCrystalConsole();},200);
 
+  const setStudioView=()=>{
+    const chosen=$('#studioView').value;
+    $('#hroot').dataset.studioview=chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;
+    requestAnimationFrame(()=>{layoutGrid();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');});
+  };
+  $('#studioView').onchange=setStudioView;
+  addEventListener('resize',setStudioView);setStudioView();
+  $$('[data-studiopanel]').forEach(b=>b.onclick=()=>openWin(b.dataset.studiopanel,true));
+  openWin('mix',true);
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
