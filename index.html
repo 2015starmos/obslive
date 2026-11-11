@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2045">
+<meta name="webcall-version" content="2026.1111.2110">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2045';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2110';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -641,6 +641,12 @@ table.eart th{max-width:64px;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:reduce){.crystal-console .cc-key{transition:none}}
 
 .host:not(.simple) .hmain .switcher{max-height:calc(100dvh - 150px);overflow:auto;align-content:start}
+
+/* Chosen mobile monitor style ④, independent of camera and button layout. */
+.guest-led{left:12px;right:auto;top:auto;bottom:calc(150px + var(--sab));width:min(250px,calc(100% - 24px));height:34px;padding:8px 12px;display:flex;align-items:center;justify-content:flex-start;gap:8px;border-radius:11px;background:#182230d9;border:1px solid #ffffff30;backdrop-filter:blur(14px);box-shadow:0 3px 12px #0004;color:#e4edf8}
+.guest-led svg{width:16px;height:16px;flex:none}.gmin-label{font:600 11px Arial,sans-serif;letter-spacing:.04em;min-width:26px}.gmin-track{flex:1;height:4px;border-radius:4px;background:#ffffff29;overflow:hidden}.gmin-track>span{display:block;height:100%;width:0;background:#4ade80;border-radius:4px;transition:width .065s linear}.guest-led.clipping .gmin-track>span{background:#ff5865}.guest-led.muted{opacity:.6}
+@media(max-height:500px){.guest-led{bottom:calc(92px + var(--sab));width:190px;height:30px;padding:6px 10px}}
+
 </style>
 </head>
 <body>
@@ -5242,7 +5248,7 @@ function GuestMain(inv, roomKey){
 
   app.innerHTML = `
   <div class="gp" id="gp">
-    <div class="stage" id="stage"><video id="self" class="mirror" autoplay playsinline muted></video><div class="guides" id="gd"></div></div>
+    <div class="stage" id="stage"><video id="self" autoplay playsinline muted></video><div class="guides" id="gd"></div></div>
     <div class="frame" id="frame"></div>
     <div class="gtop">
       <span class="pill" id="gst"><span class="dot"></span>準備中</span>
@@ -5250,7 +5256,7 @@ function GuestMain(inv, roomKey){
       <span class="pill hidden" id="gq"><span class="bars" id="bars"><i></i><i></i><i></i></span><span class="mono" id="gqt"></span></span>
       <span class="gtally hidden" id="tally">STBY</span>
     </div>
-    <div class="guest-led hidden" id="guestLed" aria-label="麥克風即時電平">${Array.from({length:9},(_,i)=>`<i style="--n:${i%5}" class="${i>=8?'clip':i>=6?'warn':''}"></i>`).join('')}</div>
+    <div class="guest-led hidden" id="guestLed" aria-label="麥克風即時電平">${ic('mic')}<span class="gmin-label" id="gminLabel">MIC</span><span class="gmin-track"><span id="gminFill"></span></span></div>
     <div class="gnotes">
       <div class="gic hidden" id="gic">${ic('talk')}<div>導播對講中<small>你的聲音只有導播聽得到，不會播出</small></div></div>
       <div class="gaudio hidden" id="gau">${ic('speaker')}聽不到導播？點這裡開啟聲音</div>
@@ -5432,7 +5438,7 @@ function GuestMain(inv, roomKey){
     const vt = fx.outputTrack() || camTrack;
     const pv = fx.base ? vt : camTrack;   // 預覽一律顯示鏡頭原始畫面（跟 index2 一樣）；只有分享畫面時顯示合成畫面
     if (selfV.srcObject?.getVideoTracks()[0] !== pv) { selfV.srcObject = new MediaStream([pv]); selfV.play().catch(() => {}); }
-    selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
+    selfV.classList.remove('mirror'); // Match the actual video track received by the director.
     setTimeout(fitSelf, 50);
     const pc = call?.peerConnection; if (!pc) return;
     // 第一次：記下每個 sender 是哪一條（之後換鏡頭／麥克風才知道要換哪一條）
@@ -5979,7 +5985,7 @@ function GuestMain(inv, roomKey){
 
   /* ---------- 導播聲音 ---------- */
   let retMeter = () => 0, retScope = null;
-  /* ---------- 真實節目麥克風 LED 電平：直接讀 Web Audio Analyser 波形 ---------- */
+  /* Style ④: a real continuous microphone level, never decorative animation. */
   let guestLedSmooth = 0;
   (function drawGuestLed(){
     requestAnimationFrame(drawGuestLed);
@@ -5987,20 +5993,24 @@ function GuestMain(inv, roomKey){
     const led = $('#guestLed'); if (!led) return;
     led.classList.toggle('hidden', !joined);
     const now = performance.now(); if (now - (drawGuestLed.last || 0) < 65) return;
+    const elapsed = Math.min(250, now - (drawGuestLed.last || now));
     drawGuestLed.last = now;
+    const talking = joined && icMic;
+    const enabled = joined && (talking || (pgmMic && !(icMic && icMutesPgm)));
+    const scope = talking ? AUD?.scIc : AUD?.scPgm;
     let peak = 0;
-    const enabled = joined && pgmMic && !(icMic && icMutesPgm);
-    led.classList.toggle('muted', !enabled);
-    if (enabled && AUD?.scPgm?.read) {
-      const samples = AUD.scPgm.read();
+    if (enabled && scope?.read) {
+      const samples = scope.read();
       for (let i = 0; i < samples.length; i++) peak = Math.max(peak, Math.abs(samples[i]));
     }
     const dbfs = 20 * Math.log10(Math.max(peak, 1e-6));
-    const target = enabled ? Math.max(0, Math.min(9, Math.ceil((dbfs + 54) / 6))) : 0;
-    guestLedSmooth = target > guestLedSmooth ? target : Math.max(target, guestLedSmooth - .7);
-    const active = Math.round(guestLedSmooth);
-    led.querySelectorAll('i').forEach((bar,i) => bar.classList.toggle('active', i < active));
-    led.setAttribute('aria-label', enabled ? `節目麥克風峰值 ${Math.round(dbfs)} dBFS` : '節目麥克風已關閉');
+    const target = enabled ? Math.max(0, Math.min(100, (dbfs + 54) / 54 * 100)) : 0;
+    guestLedSmooth = !enabled ? 0 : Math.max(target, guestLedSmooth - elapsed * .09);
+    $('#gminFill').style.width = guestLedSmooth + '%';
+    $('#gminLabel').textContent = !enabled ? '靜音' : talking ? 'TALK' : 'MIC';
+    led.classList.toggle('muted', !enabled);
+    led.classList.toggle('clipping', enabled && dbfs >= -3);
+    led.setAttribute('aria-label', enabled ? `${talking ? '對講' : '節目'}麥克風峰值 ${Math.round(dbfs)} dBFS` : '麥克風已關閉');
   })();
   function ensureRetPlaying(){
     if (!retA.srcObject) return;
