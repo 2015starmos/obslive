@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2146-monitor">
+<meta name="webcall-version" content="2026.1111.2155-layout">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2146-monitor';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2155-layout';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -660,7 +660,7 @@ html,body,#app{width:100%;max-width:100%;height:var(--wc-vh,100dvh);min-height:0
 .modal{max-width:100%;height:var(--wc-vh,100dvh);bottom:auto;padding:8px}.modal .m{max-height:calc(var(--wc-vh,100dvh) - 16px);min-width:0;overscroll-behavior:contain}
 .op header{flex:none;min-width:0;max-height:100px;overflow:auto}.opmain{min-height:0;min-width:0;overflow:hidden;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.opv,.opc{min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain}.opvbox{max-height:45dvh}.op .opmix{min-height:0}.op .crystal-console{min-width:0}
 .crystal-console .cc-keys{overflow:hidden}.cc-tools{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;color:#a9c4e6;font:11px Arial,sans-serif}.cc-tools span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cc-tools button{border:1px solid #657c9c;color:#dcecff;background:#263b57;border-radius:5px;min-width:38px;min-height:30px;cursor:pointer}.cc-tools button:disabled{opacity:.35;cursor:default}.cc-pages{display:flex;gap:6px;flex:none}
-@media(max-width:700px){.opmain{grid-template-columns:1fr;grid-template-rows:minmax(0,36fr) minmax(0,64fr);padding:8px;gap:8px}.opvbox{max-height:25dvh}.host .topbar{gap:6px;padding:5px 8px}.host .keybar{padding:4px}.host .keybar .key{min-width:46px}.win{left:8px!important;top:8px!important;width:calc(100vw - 16px)!important;height:calc(var(--wc-vh,100dvh) - 16px)!important;resize:none}.host.simple .hmain{grid-template-columns:minmax(0,1fr) minmax(0,32%)}.host .dock{width:100%;max-width:none}}
+@media(max-width:700px){.opmain{grid-template-columns:1fr;grid-template-rows:minmax(0,36fr) minmax(0,64fr);padding:8px;gap:8px}.opvbox{max-height:25dvh}.host .topbar{gap:6px;padding:5px 8px}.host .keybar{padding:4px}.host .keybar .key{min-width:46px}.host.simple .hmain{grid-template-columns:minmax(0,1fr) minmax(0,32%)}.host .dock{width:100%;max-width:none}}
 @media(max-height:500px){.host .topbar{max-height:52px}.host .keybar{max-height:44px}.home h1{font-size:19px;margin-top:10px}.home .card{padding:10px}.host:not(.simple) .hmain{grid-template-rows:minmax(0,70fr) minmax(0,30fr)}.host .screen{max-height:28dvh}.opmain{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}}
 
 /* Keep the monitors and both switcher key rows visible in the director workspace. */
@@ -731,6 +731,37 @@ body.opp{overflow:hidden}
 .studioDock .mixer .strip{width:clamp(88px,6vw,112px);grid-template-rows:18px minmax(45px,1fr) 18px repeat(3,24px);padding:5px;gap:3px 4px}.studioDock .strip .num,.studioDock .strip .nm,.studioDock .strip .db,.studioDock .strip .pk{font-size:10px}.studioDock .strip .mb{height:23px;font-size:10px}.studioDock .strip .fwrap{width:45px}.studioDock .strip input[type=range]{width:26px}.studioDeskTabs{height:30px;min-height:30px}.studioDeskTabs button{height:27px;font-size:11px}.studioDock .wtabs{height:27px;min-height:27px}.studioDock .wtab{font-size:10px;padding:3px 10px}
 @media(max-width:700px){.host.studio:not(.simple):not(.keyboard-only)[data-studioview=all] .hmain{grid-template-rows:minmax(0,50fr) minmax(0,50fr)}.studio .switcher .hd{height:26px;min-height:26px}.studioDeskTabs button{font-size:9px;padding:0 6px}.studioDeskTabs{height:auto;min-height:28px}.studioDock .mixer .strip{width:88px}.host.studio .monitor-expanded>.hd{height:38px;min-height:38px}.host.studio .monitor-expanded>.hd .src{max-width:35vw;overflow:hidden;text-overflow:ellipsis}.host.studio .monitor-expanded .monitor-close{font-size:10px;padding:4px 8px}}
 
+/* Standalone feature windows keep the original draggable/resizable behavior. */
+.studioDesk{display:none!important}
+.host.studio:not(.simple):not(.keyboard-only):not(.layout-free)[data-studioview=all] .hmain{grid-template-rows:minmax(0,1fr)}
+#layoutPrefsButton{height:25px;min-width:72px;background:#28394a;color:#dcf0ff;border:1px solid #60768d;border-radius:3px;font:600 10px var(--mono);cursor:pointer}
+.host.studio.keyboard-only>.keybar>#layoutPrefsButton{display:flex!important;align-items:center;justify-content:center}
+.host.studio.keyboard-only{grid-template-rows:auto auto minmax(0,1fr)}
+.host.studio.keyboard-only>.topbar{display:flex!important}
+.host.studio.keyboard-only>.keybar{grid-row:2}
+.host.studio.keyboard-only>.hmain{grid-row:3!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,55fr) minmax(150px,45fr)!important;padding:6px;gap:6px}
+.host.studio.keyboard-only .hmain>.switcher{display:grid!important;grid-column:1!important;grid-row:1!important;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);height:100%;min-height:0;padding:0;gap:6px}
+.host.studio.keyboard-only .hmain>.studioBus{grid-column:1!important;grid-row:2!important;grid-template-columns:minmax(0,1fr) clamp(130px,18vw,230px)!important;grid-template-rows:minmax(0,1fr)!important;gap:8px}
+.host.studio.keyboard-only .crystal-console{padding:8px;gap:5px;grid-template-rows:24px minmax(0,1fr)}.host.studio.keyboard-only .cc-tools{height:22px}.host.studio.keyboard-only .cc-buses{gap:7px}.host.studio.keyboard-only .cc-keys{padding:8px;gap:12px}.host.studio.keyboard-only .crystal-console .cc-key{height:clamp(35px,7dvh,70px);min-height:30px}.host.studio.keyboard-only .cc-key b{font-size:clamp(17px,2vw,27px)}
+.keyboard-temporarily-hidden{display:none!important}
+.win.floating-feature{resize:both;min-width:min(260px,calc(100vw - 8px));min-height:min(140px,calc(var(--wc-vh,100dvh) - 8px));max-width:calc(100vw - 8px);max-height:calc(var(--wc-vh,100dvh) - 8px)}
+.feature-resize-edge{position:absolute;z-index:20;touch-action:none}.feature-resize-edge.edge-left{left:0;top:0;bottom:0;width:5px;cursor:ew-resize}.feature-resize-edge.edge-right{right:0;top:0;bottom:0;width:5px;cursor:ew-resize}.feature-resize-edge.edge-top{top:0;left:0;right:0;height:5px;cursor:ns-resize}.feature-resize-edge.edge-bottom{bottom:0;left:0;right:0;height:5px;cursor:ns-resize}
+.host.studio .hmain [data-layout-panel][data-layout-hidden=true]{display:none!important}
+.host.studio.layout-free:not(.keyboard-only) .hmain{display:block!important;position:relative;min-width:0;min-height:0;padding:0!important;overflow:hidden;background:linear-gradient(#0c151e,#080f15)}
+.host.studio.layout-free:not(.keyboard-only) .hmain>.switcher,.host.studio.layout-free:not(.keyboard-only) .hmain>.studioBus{display:contents!important;position:static!important}
+.host.studio.layout-free:not(.keyboard-only) .hmain [data-layout-panel]{position:absolute!important;grid-column:auto!important;grid-row:auto!important;max-width:none;max-height:none;min-width:0;min-height:0;margin:0;box-sizing:border-box;border:1px solid #40576b;overflow:hidden}
+.host.studio.layout-free:not(.keyboard-only) .hmain [data-layout-panel=pvw],.host.studio.layout-free:not(.keyboard-only) .hmain [data-layout-panel=pgm]{display:flex!important;flex-direction:column;background:#0b131b}
+.host.studio.layout-free:not(.keyboard-only) .hmain [data-layout-panel=inputs]{display:flex!important;flex-direction:column}
+.host.studio.layout-free:not(.keyboard-only) .hmain [data-layout-panel=keyboard]{display:grid!important;grid-template-columns:minmax(0,1fr);grid-template-rows:23px minmax(0,1fr);padding:6px}
+.host.studio.layout-free:not(.keyboard-only) .hmain [data-layout-panel=transition]{display:flex!important;flex-direction:column;gap:4px;padding:6px;background:#16212b;overflow:auto}
+.host.studio.layout-free .hmain .mon>.hd{height:27px;flex:none}.host.studio.layout-free .hmain .mon>.screen{position:relative;flex:1;min-height:0;width:100%;height:auto;max-height:none;aspect-ratio:auto}.host.studio.layout-free .hmain .mon>.screen canvas{object-fit:contain}.host.studio.layout-free [data-layout-panel=transition] .tbar{min-height:30px;max-height:none;flex:1;width:34px}
+.host.studio.layout-free:not(.keyboard-only) .hmain [data-layout-panel][data-layout-hidden=true]{display:none!important}
+.host.studio.layout-free .hmain .mon.monitor-expanded{position:fixed!important;inset:0!important;left:0!important;top:0!important;width:100vw!important;height:var(--wc-vh,100dvh)!important;z-index:10000!important}
+.layout-drag-grip,.layout-resize-grip{display:none;position:absolute;z-index:900;touch-action:none}.layout-free.layout-edit:not(.keyboard-only) .layout-drag-grip:not([hidden]){display:flex;align-items:center;justify-content:space-between;height:24px;background:#245b7ce8;border:1px solid #6db4dd;color:#e6f6ff;font:600 10px var(--mono);padding:2px 4px;cursor:grab;box-sizing:border-box}.layout-drag-grip button{border:0;background:#152f40;color:#fff;cursor:pointer}.layout-free.layout-edit:not(.keyboard-only) .layout-resize-grip:not([hidden]){display:block;transform:translate(-100%,-100%);width:23px;height:23px;background:#3280aa;border:1px solid #a3daf9;color:#fff;cursor:nwse-resize;padding:0}
+.layout-settings{position:fixed;inset:0;z-index:11000;background:#0009;display:grid;place-items:center;padding:12px}.layout-settings>section{width:min(780px,100%);max-height:calc(var(--wc-vh,100dvh) - 24px);overflow:auto;background:#131f2b;color:#d4e6f5;border:1px solid #5a7994;border-radius:8px;box-shadow:0 20px 70px #000a;font:12px/1.6 Arial,sans-serif}.layout-settings header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #39546a;background:#203448}.layout-settings button,.layout-settings select{background:#294861;border:1px solid #5d7e98;border-radius:4px;color:#e7f4ff;min-height:29px;cursor:pointer;padding:3px 9px}.lp-options{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px}.lp-options label{display:flex;gap:6px;align-items:center}.lp-options span{font-size:10px;color:#8eaac0}.lp-table{overflow:auto;margin:0 12px}.lp-table table{width:100%;border-collapse:collapse;min-width:480px}.lp-table th,.lp-table td{text-align:left;padding:6px;border-bottom:1px solid #2f465a}.lp-table input[type=number]{width:58px;min-height:27px;background:#0c1721;color:#dcf2ff;border:1px solid #486278;border-radius:3px;padding:3px}.lp-table input:disabled{opacity:.4}.layout-settings p{padding:0 14px;color:#8eafc7;font-size:11px}.layout-settings footer{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid #39546a}
+@media(max-width:700px){.host.studio.keyboard-only .hmain>.studioBus{grid-template-columns:minmax(0,1fr) 105px!important}.host.studio.keyboard-only .cc-row{grid-template-columns:42px minmax(0,1fr)}.host.studio.keyboard-only .studioBus>.tcol{grid-template-columns:minmax(0,1fr) 26px;grid-template-rows:repeat(7,minmax(15px,1fr));padding:4px}.host.studio.keyboard-only .tcol>.tsel{grid-column:1;grid-row:auto}.host.studio.keyboard-only #ptr{grid-column:1;grid-row:4}.host.studio.keyboard-only #cut{grid-column:1;grid-row:5}.host.studio.keyboard-only #auto{grid-column:1;grid-row:6}.host.studio.keyboard-only #ftb{grid-column:1;grid-row:7}.host.studio.keyboard-only #tbar{grid-column:2;grid-row:1/8;width:24px}.lp-options{padding:8px}.layout-settings header{padding:8px 10px}.layout-free.layout-edit .layout-drag-grip{font-size:9px}}
+
+.host.studio:not(.layout-free) .switcher:has(>.mon[data-layout-hidden="true"]){grid-template-columns:minmax(0,1fr)!important}
 </style>
 </head>
 <body>
@@ -1535,6 +1566,13 @@ function localCameraOrientation(raw){
   return {stream,get mirrored(){return mirrored;},setMirror(on){mirrored=!!on;frame();},cleanup};
 }
 
+function fitPanelRect(r,W,H){
+  const num=(v,d)=>Number.isFinite(Number(v))?Number(v):d;
+  const minW=Math.min(100,Math.max(8,80/Math.max(1,W)*100)),minH=Math.min(100,Math.max(8,60/Math.max(1,H)*100));
+  const w=Math.min(100,Math.max(minW,num(r?.w,40))),h=Math.min(100,Math.max(minH,num(r?.h,40)));
+  return {x:Math.min(100-w,Math.max(0,num(r?.x,0))),y:Math.min(100-h,Math.max(0,num(r?.y,0))),w,h};
+}
+
 /* ===================== 導播台 ===================== */
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
@@ -1544,6 +1582,7 @@ function Host(sess){
   const polls = []; const bgLib = new Map();   // 投票紀錄、導播上傳的背景圖
   const inputs = new Map(); const order = [];
   let crystalSig = null, crystalPage = 0, sourcePage = 0, mixerPage = 0, keyboardMode = false, showSourceMonitor = false;
+  let layoutManager = null;
   const outputs = new Set();
   const pending = new Map();
   const msgs = []; let unread = 0;
@@ -1732,7 +1771,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v15-MONITOR</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v16-LAYOUT</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -1750,7 +1789,7 @@ function Host(sess){
       <button class="btn primary" id="inv">${ic('user')}邀請來賓</button>
       <button class="btn danger" id="endb">結束</button>
     </div>
-    <div class="keybar" id="keys"><span class="keyboard-mode-title">PROGRAM / PREVIEW · 導播鍵盤</span><button type="button" id="keyboardToggle" role="switch" aria-checked="false" aria-pressed="false">開啟導播鍵盤</button><button type="button" id="sourceViewToggle" aria-pressed="false">來源監看</button><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option><option value="tools">工具 / 混音台</option></select>
+    <div class="keybar" id="keys"><button type="button" id="layoutPrefsButton">版面偏好</button><span class="keyboard-mode-title">PROGRAM / PREVIEW · 導播鍵盤</span><button type="button" id="keyboardToggle" role="switch" aria-checked="false" aria-pressed="false">開啟導播鍵盤</button><button type="button" id="sourceViewToggle" aria-pressed="false">來源監看</button><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option></select>
       ${Object.entries(GROUPS).map(([k, d]) => `<div class="key" data-win="${k}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
       <span class="kgap"></span>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
@@ -3234,11 +3273,12 @@ function Host(sess){
     el.innerHTML = `<header><span class="led"></span><b>${d.title}</b><span class="grow"></span><button class="btn ghost sm icon" data-x>${ic('x')}</button></header>`;
     document.body.appendChild(el);
     const G = GW[fid] = { id: fid, el, open: false, cur: null };
+    enableFeatureResizing(G);
     $('[data-x]', el).onclick = () => closeGroup(fid);
     el.addEventListener('pointerdown', () => { focusWin(G); if (G.cur && WIN[G.cur]) WIN[G.cur].busy = true; });
     const hd = $('header', el); let drag = null;
     hd.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; drag = { x: e.clientX - el.offsetLeft, y: e.clientY - el.offsetTop }; hd.setPointerCapture(e.pointerId); });
-    hd.addEventListener('pointermove', e => { if (!drag) return; el.style.left = clamp(e.clientX - drag.x, 0, innerWidth - 80) + 'px'; el.style.top = clamp(e.clientY - drag.y, 0, innerHeight - 34) + 'px'; });
+    hd.addEventListener('pointermove', e => { if (!drag) return; el.style.left = clamp(e.clientX - drag.x, 0, Math.max(0,innerWidth - el.offsetWidth)) + 'px'; el.style.top = clamp(e.clientY - drag.y, 0, Math.max(0,innerHeight - el.offsetHeight)) + 'px'; });
     hd.addEventListener('pointerup', () => { drag = null; saveWin(G); });
     new ResizeObserver(() => saveWin(G)).observe(el);
     return G;
@@ -3270,12 +3310,24 @@ function Host(sess){
     dockStudioGroup(G,id);
   }
   function dockStudioGroup(G,id){
-    const dock=$('#studioDock');if(!dock)return;
-    Object.entries(GW).forEach(([gid,other])=>{if(other!==G&&other.el.parentElement===dock&&other.open)closeGroup(gid);});
-    if(G.el.parentElement!==dock)dock.appendChild(G.el);
-    $$('[data-studiopanel]').forEach(b=>b.classList.toggle('active',b.dataset.studiopanel===id));
-    $('#studioToolTitle').textContent=TABN[id]||id.toUpperCase();
+    if(G.el.parentElement!==document.body)document.body.appendChild(G.el);
+    G.el.classList.add('floating-feature');
+    G.el.classList.toggle('keyboard-temporarily-hidden',keyboardMode);
     if(id==='mix')requestAnimationFrame(()=>{if(WIN.mix?.open)softRender('mix');});
+  }
+  function enableFeatureResizing(G){
+    const el=G.el;
+    ['left','right','top','bottom'].forEach(edge=>{
+      const handle=document.createElement('div');handle.className='feature-resize-edge edge-'+edge;handle.title='拖曳調整視窗大小';el.appendChild(handle);let drag=null;
+      handle.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=el.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,left:r.left,top:r.top,w:r.width,h:r.height};handle.setPointerCapture(e.pointerId);focusWin(G);});
+      handle.addEventListener('pointermove',e=>{if(!drag)return;const W=innerWidth,H=window.visualViewport?.height||innerHeight,dx=e.clientX-drag.x,dy=e.clientY-drag.y,minW=Math.min(260,W-8),minH=Math.min(140,H-8);let {left,top,w,h}=drag;
+        if(edge==='right')w=clamp(w+dx,minW,W-left);if(edge==='bottom')h=clamp(h+dy,minH,H-top);
+        if(edge==='left'){left=clamp(left+dx,0,drag.left+drag.w-minW);w=drag.left+drag.w-left;}
+        if(edge==='top'){top=clamp(top+dy,0,drag.top+drag.h-minH);h=drag.top+drag.h-top;}
+        Object.assign(el.style,{left:left+'px',top:top+'px',width:w+'px',height:h+'px'});
+      });
+      const done=()=>{if(!drag)return;drag=null;saveWin(G);if(G.cur==='mix')softRender('mix');};handle.addEventListener('pointerup',done);handle.addEventListener('pointercancel',done);
+    });
   }
   // 視窗正在被操作（拖拉滑桿、按住按鈕、輸入文字）時，延後重畫
   const ctlSig = g => { const st = g.state; return JSON.stringify([g.id, st.icMutesPgm, st.monMedia, st.retMute, st.videoAudio, g.multi, st.pgmMic, st.icMic, st.cam, st.torch, st.zoom && [st.zoom.hw, st.zoom.min, st.zoom.max], st.guides, st.quality && [st.quality.mode, st.quality.tier, st.quality.rec, st.quality.warn], st.beauty, st.bg, st.share, st.playing, st.leaveMode, st.canShare, st.fxStatus, g.ctl]); };
@@ -5331,10 +5383,79 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   renderCrystalConsole();
   const crystalTimer=setInterval(()=>{if(ended){clearInterval(crystalTimer);return;}if(!document.hidden) renderCrystalConsole();},200);
 
+  function createLayoutPreferences(){
+    const KEY='wc_layout_preferences_v16';
+    const seed={pvw:{x:0,y:0,w:49,h:53},pgm:{x:51,y:0,w:49,h:53},inputs:{x:0,y:55,w:100,h:45},keyboard:{x:0,y:56,w:78,h:44},transition:{x:80,y:56,w:20,h:44}};
+    const classic={pvw:{x:0,y:0,w:43,h:58},pgm:{x:57,y:0,w:43,h:58},transition:{x:44,y:0,w:12,h:58},inputs:{x:0,y:60,w:100,h:40},keyboard:{x:0,y:60,w:100,h:40}};
+    const labels={pvw:'PREVIEW 預覽',pgm:'PROGRAM 播出',inputs:'來源監看',keyboard:'導播鍵盤',transition:'轉場 / T-Bar'};
+    const defaults=mode=>({visible:{pvw:true,pgm:true,inputs:mode==='classic',keyboard:mode==='custom',transition:mode!=='studio'},rects:structuredClone(mode==='classic'?classic:seed)});
+    let saved={};try{saved=JSON.parse(store(KEY)||'{}')||{};}catch{}
+    const prefs={mode:['studio','classic','custom'].includes(saved.mode)?saved.mode:'studio',edit:false,profiles:{}};
+    ['studio','classic','custom'].forEach(mode=>{
+      const d=defaults(mode),p=saved.profiles?.[mode];
+      Object.keys(labels).forEach(id=>{if(typeof p?.visible?.[id]==='boolean')d.visible[id]=p.visible[id];if(p?.rects?.[id])d.rects[id]=fitPanelRect(p.rects[id],1000,700);});prefs.profiles[mode]=d;
+    });
+    const root=$('#hroot'),area=$('.hmain',root),nodes={pvw:$('#pvws').closest('.mon'),pgm:$('#pgms').closest('.mon'),inputs:$('.studioSources',root),keyboard:$('#crystalConsole'),transition:$('.studioBus>.tcol',root)};
+    const controls={};let dialog=null,paintFrame=0;
+    const profile=()=>prefs.profiles[prefs.mode];
+    const save=()=>{store(KEY,JSON.stringify({...prefs,edit:false}));};
+    function refresh(){layoutGrid();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');}
+    function apply(){
+      const free=prefs.mode!=='studio'&&!keyboardMode;
+      root.classList.toggle('layout-free',free);root.classList.toggle('layout-classic',prefs.mode==='classic');root.classList.toggle('layout-edit',free&&prefs.edit);
+      const p=profile(),W=area.clientWidth||1000,H=area.clientHeight||700;
+      Object.entries(nodes).forEach(([id,node])=>{
+        node.dataset.layoutPanel=id;
+        const visible=keyboardMode?['pvw','pgm','keyboard','transition'].includes(id):p.visible[id];
+        node.dataset.layoutHidden=String(!visible);
+        if(free){const r=fitPanelRect(p.rects[id],W,H);p.rects[id]=r;Object.assign(node.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%',height:r.h+'%'});
+          const c=controls[id];Object.assign(c.grip.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%'});Object.assign(c.resize.style,{left:(r.x+r.w)+'%',top:(r.y+r.h)+'%'});c.grip.hidden=c.resize.hidden=!visible;
+        }else ['left','top','width','height'].forEach(k=>node.style.removeProperty(k));
+      });
+      if(!keyboardMode){showSourceMonitor=p.visible.inputs;root.classList.toggle('sources-open',showSourceMonitor);$('#sourceViewToggle').setAttribute('aria-pressed',String(showSourceMonitor));if(prefs.mode==='studio'){const chosen=$('#studioView').value;root.dataset.studioview=showSourceMonitor&&innerWidth<1000?'inputs':chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;}}
+      if(paintFrame)cancelAnimationFrame(paintFrame);paintFrame=requestAnimationFrame(()=>{paintFrame=0;refresh();});
+    }
+    function change(mutator){monitorExpansion.close();mutator();save();apply();if(dialog)renderDialog();}
+    Object.entries(nodes).forEach(([id,node])=>{
+      const grip=document.createElement('div');grip.className='layout-drag-grip';grip.innerHTML=`<span>⠿ ${labels[id]}</span><button type="button" aria-label="隱藏${labels[id]}">×</button>`;
+      const resize=document.createElement('button');resize.type='button';resize.className='layout-resize-grip';resize.title='拖曳調整 '+labels[id]+' 大小';resize.setAttribute('aria-label',resize.title);resize.textContent='◢';area.append(grip,resize);controls[id]={grip,resize};
+      $('button',grip).onclick=()=>change(()=>profile().visible[id]=false);
+      const bind=(handle,resizing)=>{
+        let drag=null;
+        handle.addEventListener('pointerdown',e=>{if(!prefs.edit||prefs.mode==='studio'||(e.target.closest('button')&&handle===grip))return;e.preventDefault();const r=profile().rects[id];drag={x:e.clientX,y:e.clientY,r:{...r}};handle.setPointerCapture(e.pointerId);});
+        handle.addEventListener('pointermove',e=>{if(!drag)return;const W=area.clientWidth,H=area.clientHeight;if(!W||!H)return;const dx=(e.clientX-drag.x)/W*100,dy=(e.clientY-drag.y)/H*100;profile().rects[id]=fitPanelRect({...drag.r,...(resizing?{w:drag.r.w+dx,h:drag.r.h+dy}:{x:drag.r.x+dx,y:drag.r.y+dy})},W,H);apply();});
+        const finish=()=>{if(!drag)return;drag=null;save();refresh();};handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',finish);
+      };bind(grip,false);bind(resize,true);
+    });
+    function setMode(mode){
+      if(!['studio','classic','custom'].includes(mode))return;
+      monitorExpansion.close();if(keyboardMode)setKeyboardMode(false);prefs.mode=mode;prefs.edit=mode==='custom';$('#studioView').value='all';
+      if(!UI.sw)setSwMode(true);save();setStudioView();apply();if(dialog)renderDialog();
+    }
+    function renderDialog(){
+      if(!dialog)return;const p=profile();
+      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${prefs.mode==='studio'?'disabled':''}> 顯示拖曳／縮放把手</label><span>自動儲存在這台瀏覽器；不同樣式分別記憶。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${(id==='keyboard'&&prefs.mode==='studio'?keyboardMode:p.visible[id])?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${prefs.mode==='studio'?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>舊版排列保留左預覽、中央轉場、右播出。自訂模式可分別拖曳與縮放。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
+      $('#lpMode',dialog).value=prefs.mode;$('#lpMode',dialog).onchange=e=>setMode(e.target.value);
+      $('#lpEdit',dialog).onchange=e=>change(()=>prefs.edit=e.target.checked);
+      $$('[data-lpclose]',dialog).forEach(b=>b.onclick=closeDialog);
+      $$('[data-lp-visible]',dialog).forEach(b=>b.onchange=()=>{const id=b.dataset.lpVisible;if(id==='keyboard'&&prefs.mode==='studio'){setKeyboardMode(b.checked);renderDialog();return;}change(()=>p.visible[id]=b.checked);});
+      $$('[data-lp-field]',dialog).forEach(i=>i.onchange=()=>change(()=>p.rects[i.dataset.lpId][i.dataset.lpField]=Number(i.value)));
+      $('#lpReset',dialog).onclick=()=>change(()=>prefs.profiles[prefs.mode]=defaults(prefs.mode));
+      $('#lpReveal',dialog).onclick=()=>{if(prefs.mode==='studio')setMode('custom');change(()=>Object.keys(nodes).forEach(id=>profile().visible[id]=true));};
+    }
+    function closeDialog(){dialog?.remove();dialog=null;}
+    function openDialog(){if(dialog)return;dialog=document.createElement('div');dialog.className='layout-settings';document.body.appendChild(dialog);renderDialog();}
+    function capture(id,on){if(id in profile().visible){profile().visible[id]=!!on;save();}}
+    $('#layoutPrefsButton').onclick=openDialog;
+    addEventListener('resize',apply);addEventListener('keydown',e=>{if(e.key==='Escape'&&dialog)closeDialog();});
+    return {prefs,apply,capture,openDialog};
+  }
+
   const setStudioView=()=>{
     const chosen=$('#studioView').value;
     $('#hroot').dataset.studioview=keyboardMode?'switch':showSourceMonitor&&innerWidth<1000?'inputs':chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;
     requestAnimationFrame(()=>{layoutGrid();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');});
+    layoutManager?.apply();
   };
   function setKeyboardMode(on){
     keyboardMode=!!on;
@@ -5345,10 +5466,12 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     button.textContent=keyboardMode?'關閉鍵盤 · 返回導播介面':'開啟導播鍵盤';
     button.setAttribute('aria-pressed',String(keyboardMode));
     button.setAttribute('aria-checked',String(keyboardMode));
+    $$('.win.floating-feature').forEach(w=>w.classList.toggle('keyboard-temporarily-hidden',keyboardMode));
     setStudioView();
   }
   $('#sourceViewToggle').onclick=()=>{
     showSourceMonitor=!showSourceMonitor;
+    layoutManager?.capture('inputs',showSourceMonitor);
     $('#hroot').classList.toggle('sources-open',showSourceMonitor);
     $('#sourceViewToggle').setAttribute('aria-pressed',String(showSourceMonitor));
     if(showSourceMonitor)$('#studioView').value='all';
@@ -5358,7 +5481,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   $('#studioView').onchange=setStudioView;
   addEventListener('resize',setStudioView);setStudioView();
   $$('[data-studiopanel]').forEach(b=>b.onclick=()=>openWin(b.dataset.studiopanel,true));
-  openWin('mix',true);
+  layoutManager=createLayoutPreferences();layoutManager.apply();setStudioView();
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
