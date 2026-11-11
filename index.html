@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.1830">
+<meta name="webcall-version" content="2026.1111.1930">
 <script>
 /* 自動更新載入器：系統管理員在派發平台發布的新版本會先存在這台裝置（wc_pkg），開啟時直接換成新版本
  * 網址加 ?builtin=1 可以強制使用這個檔案內建的版本（新版本有問題時救援用） */
@@ -730,99 +730,62 @@ body.oppanel .op header{position:sticky;top:0;z-index:5}
 body.cpbigv .op.panel .opmain{grid-template-columns:1fr}
 body.cpbigv .op.panel .opv{order:0}
 body.cpbigv .op.panel .opvbox{max-height:none}
-/* ---------- 控盤鍵列（實體切換台外觀） ---------- */
-.hwbus{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:10px;border-radius:10px;background:linear-gradient(#2a2f38,#1c2028);border:1px solid #3a414d;box-shadow:inset 0 1px 0 #ffffff14}
-.hwbuses{display:grid;gap:10px;min-width:0}
-.hwrow{border-radius:8px;overflow:hidden;border:1px solid #444b57;background:#14171d}
-.hwlab{font:800 13px Inter,var(--mono);letter-spacing:.14em;text-align:center;padding:4px 0;color:#bcd7ff;text-shadow:0 1px 2px #000}
-.hwlab.pgm{background:linear-gradient(90deg,#5c0f0f,#c0262b 50%,#5c0f0f)}
-.hwlab.pvw{background:linear-gradient(90deg,#0c3d14,#27a33c 50%,#0c3d14)}
-.hwlab.fn{background:linear-gradient(90deg,#1f2937,#475569 50%,#1f2937);color:#fff;border-radius:6px 6px 0 0}
-.hwkeys{display:flex;gap:10px;padding:10px;overflow-x:auto;scrollbar-width:thin}
-.hwk{flex:none;min-width:64px;height:60px;padding:0 8px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:transform .05s,background .08s;-webkit-tap-highlight-color:transparent}
-.hwk b{font:800 22px Inter,var(--mono);line-height:1}.hwk small{font:600 9.5px var(--sans);max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.75}
-.hwk:active{transform:translateY(2px)}
-.hwbus.light .hwk{background:linear-gradient(#ffffff,#d7dbe2 60%,#c3c8d1);border:1px solid #8c939f;color:#1b2130;box-shadow:inset 0 2px 0 #fff,inset 0 -4px 6px #00000022,0 3px 0 #4b515c,0 5px 10px #000a}
-.hwbus.dark .hwk{background:linear-gradient(#3a414d,#262b34);border:1px solid #4b5563;color:#e5e7eb;box-shadow:inset 0 1px 0 #ffffff22,0 3px 0 #0b0d10,0 5px 10px #000a}
-.hwbus .hwk.red{background:linear-gradient(#ff6b5e,#d81f16);border-color:#ff8a80;color:#fff;box-shadow:inset 0 2px 0 #ffffff66,0 3px 0 #6b0d08,0 0 18px #ff3b3baa}
-.hwbus .hwk.grn{background:linear-gradient(#b4f56d,#4fbf1f);border-color:#c7ff8f;color:#0b2300;box-shadow:inset 0 2px 0 #ffffff88,0 3px 0 #245c0a,0 0 18px #6ee72faa}
-.hwbus .hwk.yel{background:linear-gradient(#ffe27a,#e0a90f);border-color:#ffeaa0;color:#1a1200;box-shadow:inset 0 2px 0 #ffffff88,0 3px 0 #6b4f05,0 0 12px #f5c51888}
-.hwk.lost{opacity:.45}.hwk.blk b{font-size:17px}
-.hwfn{display:grid;align-content:start;gap:8px;border:1px solid #444b57;border-radius:8px;background:#14171d;padding-bottom:10px;min-width:250px}
-.hwfk{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:0 10px}.hwfk.big{grid-template-columns:repeat(3,1fr)}
-.hwk.sm{min-width:0;height:40px}.hwk.sm b{font-size:12px}
-.hwfk.big .hwk{min-width:0;height:58px}.hwfk.big .hwk b{font-size:17px}
-.hwbus.sz-l .hwk{min-width:84px;height:78px}.hwbus.sz-l .hwk b{font-size:28px}.hwbus.sz-l .hwfk.big .hwk{height:74px}
-@media (max-width:1100px){.hwbus{grid-template-columns:1fr}.hwfn{min-width:0}.hwfk{grid-template-columns:repeat(7,1fr)}}
-body.mob .hwbus{padding:6px;gap:8px}body.mob .hwk{min-width:56px;height:54px}body.mob .hwkeys{gap:7px;padding:8px}body.mob .hwfk{grid-template-columns:repeat(4,1fr)}
-.host.role-view .hwbus,.host.role-aud .hwbus{pointer-events:none;opacity:.5}
-/* 遠端控盤：白色鍵帽外觀 */
-.op.keycap .pk{background:linear-gradient(#ffffff,#d7dbe2 60%,#c3c8d1);border:1px solid #8c939f;color:#1b2130;box-shadow:inset 0 2px 0 #fff,inset 0 -4px 6px #00000022,0 3px 0 #4b515c,0 5px 10px #000a}
-.op.keycap .pk small{color:#4b5563}
-.op.keycap .pk.red{background:linear-gradient(#ff6b5e,#d81f16);color:#fff;border-color:#ff8a80;box-shadow:0 0 18px #ff3b3baa,0 3px 0 #6b0d08}
-.op.keycap .pk.grn{background:linear-gradient(#b4f56d,#4fbf1f);color:#0b2300;border-color:#c7ff8f;box-shadow:0 0 18px #6ee72faa,0 3px 0 #245c0a}
-.op.keycap .pk.yel{background:linear-gradient(#ffe27a,#e0a90f);color:#1a1200}
-.op.keycap .pk.red small,.op.keycap .pk.grn small{color:inherit}
-.op.keycap .cphd .lbl{color:#fff}
-
-.gp:has(#gbar.hidden) .gaudmon{display:none}
-.meterline{height:12px;border-radius:4px;background:#05090e}.meterline i{background:linear-gradient(90deg,#20cf95,#ffd258 85%,#ff4e58)}
-/* Mobile audio confidence monitor and illuminated production console */
-.gaudmon{position:absolute;left:16px;bottom:calc(170px + var(--sab,0px));width:min(300px,calc(100% - 32px));padding:12px 14px;background:#101822e8;border:1px solid #ffffff25;border-radius:14px;z-index:6;backdrop-filter:blur(18px);box-shadow:0 8px 28px #0006;pointer-events:none;color:#d9e5f3;font:11px var(--sans)}
-.gaudhead{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;letter-spacing:.04em}.gaudhead strong{font-family:var(--mono);color:#6ee7b7}
-.gaudtrack{height:12px;border-radius:3px;background:#05090e;overflow:hidden}.gaudtrack i{display:block;height:100%;width:0;background:linear-gradient(90deg,#20cf95 0 70%,#ffd258 70% 90%,#ff4e58 90%);background-size: min(272px,calc(100vw - 60px)) 100%;transition:width .09s}
-.gaudscale{display:flex;justify-content:space-between;color:#8b9bad;font:9px var(--mono);margin:5px 0}.gaudmon.clipping{border-color:#ff4e58}.gaudmon.clipping strong{color:#ff6570}
-
-.hwrow:has(.hwlab.pgm){border:2px solid #a82c36}.hwrow:has(.hwlab.pvw){border:2px solid #279f50}
-.hwlab.pgm,.hwlab.pvw{padding:8px;color:#b6eaff;font-size:15px}
-.hwk{border-radius:6px}.hwbus.sz-l .hwkeys{gap:16px;padding:16px}.hwbus.sz-l .hwk{min-width:84px;height:80px}
-@media(max-width:600px){.gaudmon{left:12px;bottom:calc(165px + var(--sab,0px));width:220px;padding:9px 12px}}
-@media(max-height:500px){.gaudmon{bottom:92px;width:220px;padding:7px 10px}.gaudscale{display:none}}
-
-
-/* Selected style ④: compact microphone activity strip */
-.gaudmon{display:flex;align-items:center;gap:10px;width:min(280px,calc(100% - 32px));padding:10px 12px;border-radius:12px;background:#141c27d9;box-shadow:0 4px 16px #0003}
-.gaudhead{display:flex;align-items:center;gap:7px;flex:none;margin:0;font-size:11px;letter-spacing:.04em;white-space:nowrap}
-.gaudhead svg{width:16px;height:16px;flex:none;color:#d9e5f3}
-.gaudtrack{flex:1;min-width:0;height:4px;border-radius:4px;background:#ffffff26}
-.gaudtrack i{background:#4ade80;transition:width .1s ease-out;border-radius:4px}
-.gaudmon.clipping .gaudtrack i{background:#ff5964}
-.gaudmon.muted{opacity:.65}.gaudmon.muted .gaudhead{color:#94a3b8}
-#gauddb,.gaudscale,#gaudstatus{display:none}
-@media(max-width:600px){.gaudmon{width:min(260px,calc(100% - 24px));padding:10px 12px}}
-@media(max-height:500px){.gaudmon{width:220px;padding:8px 10px}}
-
-/* Broadcast console: recessed panel, sculpted translucent keycaps */
-.hwbus{padding:18px;gap:18px;border-radius:5px;border:1px solid #596575;background:repeating-linear-gradient(0deg,#ffffff02 0 1px,transparent 1px 3px),linear-gradient(125deg,#303c4e,#172131 55%,#202b3b);box-shadow:inset 0 1px 0 #aabbd066,inset 0 -2px 0 #050a12,0 12px 28px #0007}
-.hwbuses{gap:18px}.hwrow{border-radius:3px;background:linear-gradient(120deg,#0c1422,#202c3d);box-shadow:inset 0 2px 6px #0009,0 1px 0 #ffffff15}
-.hwrow:has(.pgm){border:1px solid #c12b3b}.hwrow:has(.pvw){border:1px solid #299a4b}
-.hwlab{position:relative;letter-spacing:.06em;font-family:Arial,sans-serif;font-weight:800}
-.hwlab.pgm,.hwlab.pvw{color:#9fe5ff;font-size:16px;padding:9px 12px;text-shadow:0 0 8px #29bfff55,0 2px 1px #000}
-.hwlab.pgm{background:linear-gradient(90deg,#a31b30aa,#47283b88 55%,#a31b30aa);border-bottom:1px solid #db536533}
-.hwlab.pvw{background:linear-gradient(90deg,#125b3bcc,#25443899 55%,#125b3bcc);border-bottom:1px solid #3fc97033}
-.hwkeys,.hwbus.sz-l .hwkeys{padding:20px 18px 22px;gap:18px;scrollbar-color:#52647b #101827}
-.hwbus .hwk,.hwbus.light .hwk,.hwbus.dark .hwk,.op .pk,.op.keycap .pk{--cap-top:#eaf3ff;--cap-mid:#b9cce5;--cap-bottom:#8ca3c2;--cap-face:#cbdcf1;--cap-ink:#111b2c;position:relative;isolation:isolate;overflow:hidden;border:1px solid #7388a5;border-radius:5px;background:linear-gradient(140deg,var(--cap-top),var(--cap-mid) 42%,var(--cap-bottom));color:var(--cap-ink);text-shadow:0 1px 0 #ffffff55;box-shadow:0 0 0 3px #080e19,0 0 0 4px #536379,inset 1px 2px 1px #ffffffa0,inset -2px -3px 2px #24365380,0 7px 0 #060c16,0 10px 9px #000a;transition:transform .08s,filter .12s,box-shadow .08s;cursor:pointer}
-.hwbus .hwk::before,.op .pk::before{content:'';position:absolute;inset:7px;z-index:-1;border-radius:12px 12px 9px 9px;border:1px solid #ffffff66;background:radial-gradient(ellipse at 50% 35%,#ffffff22,transparent 70%),linear-gradient(135deg,var(--cap-top),var(--cap-face) 28% 75%,var(--cap-bottom));box-shadow:inset 2px 2px 4px #31486740,inset -1px -1px 2px #fff7,0 1px 2px #ffffff70}
-.hwbus .hwk::after,.op .pk::after{content:'';position:absolute;inset:3px;border-radius:3px;pointer-events:none;background:linear-gradient(135deg,#ffffff44,transparent 18% 80%,#0002);border:1px solid #ffffff33}
-.hwbus .hwk b,.op .pk b{position:relative;z-index:1;font-family:Arial,sans-serif;font-weight:700;letter-spacing:.015em}
-.hwbus .hwk small,.op .pk small{position:relative;z-index:1;opacity:.8;font-size:9px;max-width:66px;color:inherit}
-.hwbus .hwk,.hwbus.sz-l .hwk{min-width:82px;width:82px;height:82px;padding:10px;gap:5px}.hwbus.sz-l .hwk b{font-size:29px}.hwbus .hwk.blk b{font-size:22px}
-.hwbus .hwk.red,.op .pk.red,.op.keycap .pk.red{--cap-top:#ff8b8a;--cap-mid:#f21e31;--cap-bottom:#8f0012;--cap-face:#f52635;--cap-ink:#310308;background:radial-gradient(ellipse at 50% 45%,#ff6172,#db0b23 65%,#780010);border-color:#e24758;color:var(--cap-ink);box-shadow:0 0 0 3px #10060b,0 0 0 4px #79404d,inset 1px 2px 2px #ffb2b2aa,inset -2px -3px 4px #4d000a,0 6px 0 #1e0309,0 0 24px #ff183c55;text-shadow:0 1px 0 #ff9b9b55}
-.hwbus .hwk.grn,.op .pk.grn,.op.keycap .pk.grn{--cap-top:#bcff8a;--cap-mid:#5bef15;--cap-bottom:#1b7800;--cap-face:#62ed20;--cap-ink:#103300;background:radial-gradient(ellipse at 50% 45%,#a0ff3f,#42ca08 65%,#175800);border-color:#7fc541;color:var(--cap-ink);box-shadow:0 0 0 3px #041006,0 0 0 4px #3e6538,inset 1px 2px 2px #d7ffaaaa,inset -2px -3px 4px #124000,0 6px 0 #031303,0 0 24px #65ff1950;text-shadow:0 1px 0 #ccff8b77}
-.hwbus .hwk.yel,.op .pk.yel,.op.keycap .pk.yel{--cap-top:#fff3b5;--cap-mid:#efc449;--cap-bottom:#98711c;--cap-face:#ffdb6b;--cap-ink:#3d2c04;background:linear-gradient(var(--cap-top),var(--cap-bottom));color:var(--cap-ink)}
-.hwbus .hwk:active,.op .pk:active{transform:translateY(4px);filter:brightness(.95);box-shadow:0 0 0 3px #080e19,inset 0 2px 7px #0006,0 2px 0 #050a10}
-.hwbus .hwk:focus-visible,.op .pk:focus-visible{outline:2px solid #83dbff;outline-offset:6px}
-.hwfn{min-width:260px;border-radius:3px;border-color:#58677c;background:linear-gradient(125deg,#1f2b3d,#111a29);gap:14px;box-shadow:inset 0 1px 2px #0008}
-.hwlab.fn{background:linear-gradient(90deg,#2e3a50,#172131);color:#a6dfff;padding:9px;font-size:13px;border-radius:0;border-bottom:1px solid #5e7088}
-.hwfk{padding:0 16px;gap:14px}.hwbus .hwfk .hwk{width:auto;min-width:0;height:52px}.hwbus .hwfk .hwk b{font-size:11px}.hwbus .hwfk.big .hwk{height:76px}.hwbus .hwfk.big .hwk b{font-size:18px}
-.op .cpbus{border-radius:4px;background:linear-gradient(125deg,#2a374b,#152031);border:1px solid #53627a;box-shadow:inset 0 1px 0 #ffffff30,0 6px 20px #0005}
-.op .cprow{padding:17px 12px 20px;gap:17px}.op .cprow.pgmrow{border:1px solid #b72c3d;background:#0e1725}.op .cprow.pvwrow{border:1px solid #278f49;background:#0e1725}
-.op .cphd:has(#cppgm){background:linear-gradient(90deg,#a42034,#452537);padding:8px 12px;margin-bottom:0}.op .cphd:has(#cppvw){background:linear-gradient(90deg,#17663a,#233e36);padding:8px 12px;margin-bottom:0}
-.op .cphd:has(#cppgm) .lbl,.op .cphd:has(#cppvw) .lbl{font-size:15px;color:#a3e6ff}.op .pk{min-width:72px;min-height:72px}.op .pk.tt{min-height:48px}.op .pk.blk b{font-size:18px}
-@media(max-width:1100px){.hwbus{grid-template-columns:1fr}.hwfn{min-width:0}.hwfk{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:600px){body.mob .hwbus,.hwbus{padding:12px;gap:14px}.hwkeys,.hwbus.sz-l .hwkeys,body.mob .hwkeys{padding:16px 12px 20px;gap:14px}.hwbus .hwk,.hwbus.sz-l .hwk,body.mob .hwk{min-width:68px;width:68px;height:70px}.hwbus.sz-l .hwk b{font-size:25px}.hwbus .hwfk .hwk{width:auto;min-width:0;height:48px}.hwbus .hwfk.big .hwk{height:66px}.hwlab.pgm,.hwlab.pvw{font-size:14px}}
-@media(prefers-reduced-motion:reduce){.hwbus .hwk,.op .pk{transition:none}}
-
+/* ---------- 控盤介面（仿實體切換台） ---------- */
+.hwp{position:fixed;left:0;right:0;bottom:0;z-index:150;display:flex;flex-direction:column;gap:12px;padding:10px 14px 16px;overflow:auto;
+  background:radial-gradient(1200px 500px at 50% -10%,#232833 0%,transparent 60%),repeating-linear-gradient(90deg,#ffffff05 0 1px,transparent 1px 3px),linear-gradient(#14171c,#0a0c0f);--hkf:'Helvetica Neue',Arial,'PingFang TC','Noto Sans TC',sans-serif}
+.hwhd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:-10px;z-index:2;margin:-10px -14px 0;padding:8px 14px;background:linear-gradient(#1b1f26,#12151a);border-bottom:1px solid #000;box-shadow:0 1px 0 #ffffff0d}
+.hwhd b{font:800 12px var(--hkf);letter-spacing:.28em;color:#d9dee6;text-shadow:0 1px 0 #000}
+.hwhd #hwst{font:600 11px var(--mono);color:#8b94a3}
+.hwmon{display:grid;grid-template-columns:2fr 3fr;gap:14px;align-items:start}
+.hwm{position:relative;border-radius:8px;padding:0 5px 5px;background:linear-gradient(#2a2f37,#16191e);box-shadow:0 0 0 1px #000,0 10px 26px #000c,inset 0 1px 0 #ffffff14}
+.hwm canvas{display:block;width:100%;aspect-ratio:16/9;max-height:max(160px,calc(100vh - 690px));object-fit:contain;background:#000;border:3px solid;border-top:0;border-radius:0 0 4px 4px;box-shadow:inset 0 0 30px #000}
+.hwm.pgm canvas{border-color:#c7191c}.hwm.pvw canvas{border-color:#1c9c3d}
+.hwl{margin:5px 0 0;padding:4px 0 3px;border-radius:4px 4px 0 0;font:800 13px var(--hkf);letter-spacing:.14em;text-align:center;color:#ffe9e9;text-shadow:0 1px 1px #0008}
+.hwm.pgm .hwl{background:linear-gradient(#ea3a33,#b5130f 60%,#8f0c09);box-shadow:inset 0 1px 0 #ff8c84}
+.hwm.pvw .hwl{background:linear-gradient(#3ccf62,#169a3b 60%,#0f7a2c);box-shadow:inset 0 1px 0 #9dffb6;color:#eafff0}
+.hwctl{display:grid;grid-template-columns:auto 1fr;gap:14px}
+.hwg{position:relative;border-radius:8px;padding:6px 14px 12px;background:linear-gradient(#1c2027,#14171c);border:1px solid #444c58;box-shadow:inset 0 1px 0 #ffffff12,0 6px 16px #0009}
+.hwt{display:flex;align-items:center;gap:12px;margin:0 0 10px;font:800 15px var(--hkf);letter-spacing:.08em;color:#f2f4f7;text-shadow:0 1px 0 #000}
+.hwt::before,.hwt::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,transparent,#6a7381 20%,#6a7381 80%,transparent);box-shadow:0 1px 0 #000}
+.hwbus{grid-column:1/-1;position:relative;border-radius:10px;overflow:hidden;background:linear-gradient(#15181d,#0f1115);border:2px solid;box-shadow:0 8px 20px #000a,inset 0 0 0 1px #0008}
+.hwbus.pgmb{border-color:#b51d20;box-shadow:0 0 0 1px #000,0 0 18px #ff1e1e22,0 8px 20px #000a}
+.hwbus.pvwb{border-color:#1a8f39;box-shadow:0 0 0 1px #000,0 0 18px #2bff5a1c,0 8px 20px #000a}
+.hwbh{position:relative;text-align:center;font:800 16px var(--hkf);letter-spacing:.06em;color:#a8c8ff;padding:5px 0 4px;text-shadow:0 1px 2px #000a;border-bottom:1px solid #000}
+.pgmb .hwbh{background:repeating-linear-gradient(90deg,#ffffff0a 0 6px,transparent 6px 12px),linear-gradient(90deg,#5c0b0b,#a8161a 18%,#c61f22 50%,#a8161a 82%,#5c0b0b);box-shadow:inset 0 1px 0 #ff6b66,inset 0 -1px 0 #3a0505}
+.pvwb .hwbh{background:repeating-linear-gradient(90deg,#ffffff0a 0 6px,transparent 6px 12px),linear-gradient(90deg,#0a3a17,#14843a 18%,#1aa346 50%,#14843a 82%,#0a3a17);box-shadow:inset 0 1px 0 #6dff95,inset 0 -1px 0 #04250d;color:#a8c8ff}
+.hwk-row{display:flex;flex-wrap:wrap;gap:22px;padding:14px 20px 18px;justify-content:center}
+.hwg .hwk-row{padding:2px 2px 4px;gap:14px}
+/* 按鍵：坐在黑色鍵座裡的白色方鍵，按下會下沉；亮燈時像半透明壓克力鍵帽發光 */
+.hk{position:relative;width:86px;height:86px;border:0;border-radius:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  font:800 34px/1 var(--hkf);color:#14171c;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  background:linear-gradient(180deg,#ffffff 0%,#f1f3f6 38%,#d7dce3 78%,#c3c9d2 100%);
+  box-shadow:0 0 0 3px #07080a,0 0 0 4px #4a525e,0 6px 0 3px #07080a,0 10px 16px 3px #000c,inset 0 2px 1px #fff,inset 0 -5px 8px #00000024,inset 0 0 0 1px #9aa2ad;
+  transition:transform .06s,box-shadow .06s,background .1s}
+.hk::before{content:'';position:absolute;left:6%;right:6%;top:4%;height:34%;border-radius:9px 9px 50% 50%/9px 9px 10px 10px;background:linear-gradient(#ffffffb0,#ffffff00);pointer-events:none}
+.hk b{position:relative;font:inherit;text-shadow:0 1px 0 #fff}
+.hk small{position:relative;font:700 11px var(--hkf);color:#4d5562;max-width:88%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.02em}
+.hk:active{transform:translateY(4px);box-shadow:0 0 0 3px #07080a,0 0 0 4px #4a525e,0 2px 0 3px #07080a,0 4px 8px 3px #000c,inset 0 2px 1px #fff,inset 0 -3px 6px #00000030,inset 0 0 0 1px #9aa2ad}
+.hk.sm{width:auto;min-width:96px;height:64px;padding:0 12px;font-size:16px;letter-spacing:.05em}
+.hk.blk b{font-size:29px;letter-spacing:.02em}
+.hk.red{color:#2b0504;background:radial-gradient(120% 90% at 50% 30%,#ff8a7c 0%,#f2372b 45%,#c5150e 80%,#9d0d08 100%);
+  box-shadow:0 0 0 3px #07080a,0 0 0 4px #ff6b60,0 6px 0 3px #07080a,0 0 30px 6px #ff251b80,0 10px 16px 3px #000c,inset 0 2px 1px #ffd0ca,inset 0 -6px 12px #6d050366,inset 0 0 14px #ffb4ab66}
+.hk.red::before{background:linear-gradient(#ffffff45,#ffffff00)}
+.hk.red b{text-shadow:0 1px 0 #ff9c92}.hk.red small{color:#3a0705}
+.hk.grn{color:#0b2400;background:radial-gradient(120% 90% at 50% 30%,#d6ff9c 0%,#7fe03a 45%,#4cbc1c 80%,#349a10 100%);
+  box-shadow:0 0 0 3px #07080a,0 0 0 4px #b9ff7a,0 6px 0 3px #07080a,0 0 30px 6px #66ff2e70,0 10px 16px 3px #000c,inset 0 2px 1px #f2ffe2,inset 0 -6px 12px #1f5a0866,inset 0 0 14px #eaffc866}
+.hk.grn::before{background:linear-gradient(#ffffff50,#ffffff00)}
+.hk.grn b{text-shadow:0 1px 0 #e4ffc7}.hk.grn small{color:#123a02}
+.hk.yel{color:#2b1d00;background:radial-gradient(120% 90% at 50% 30%,#fff2b0 0%,#ffd23a 45%,#e0a80a 80%,#b88705 100%);
+  box-shadow:0 0 0 3px #07080a,0 0 0 4px #ffe27a,0 6px 0 3px #07080a,0 0 24px 4px #ffc81f66,0 10px 16px 3px #000c,inset 0 2px 1px #fffbe6,inset 0 -6px 12px #6b500366}
+.hk.yel::before{background:linear-gradient(#ffffff55,#ffffff00)}
+.hk.red:active,.hk.grn:active,.hk.yel:active{transform:translateY(4px)}
+body.mob .hwp{bottom:calc(56px + var(--sab));padding:8px 10px 12px}
+body.mob .hwhd{top:-8px;margin:-8px -10px 0;padding:6px 10px}
+body.mob .hwm canvas{max-height:none}
+@media (max-width:760px){ .hwmon{grid-template-columns:1fr 1fr;gap:8px} .hwctl{grid-template-columns:1fr;gap:10px} .hwk-row{gap:14px;padding:12px 12px 14px} .hwg .hwk-row{gap:12px}
+  .hk{width:66px;height:66px;font-size:25px;border-radius:9px} .hk small{font-size:9.5px} .hk.blk b{font-size:20px} .hk.sm{min-width:70px;height:52px;padding:0 8px;font-size:11.5px;letter-spacing:0}
+  .hwl{font-size:11px} .hwbh{font-size:14px} .hwt{font-size:13px;margin-bottom:8px}
+  .hwbus{order:-1} .hwg{padding:6px 10px 10px} .hwg .hwk-row{gap:10px} .hwg .hk.sm{min-width:60px;height:44px;font-size:11px;border-radius:8px} }
 </style>
 </head>
 <body>
@@ -1108,9 +1071,7 @@ function makeAnalyser(node, rms){
 }
 function streamMeter(stream){
   if (!stream?.getAudioTracks().length) return () => 0;
-  const source = audioCtx().createMediaStreamSource(stream), sample = makeAnalyser(source);
-  sample.dispose = () => { try { source.disconnect(); } catch {} };
-  return sample;
+  return makeAnalyser(audioCtx().createMediaStreamSource(stream));
 }
 function beep(f = 880, ms = 160, vol = .08){ try { const ac = audioCtx(), o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = f; g.gain.value = vol; o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + ms / 1000); } catch {} }
 function blackTrack(w = 320, h = 180){
@@ -1591,8 +1552,7 @@ function Host(sess){
   const ac = audioCtx();
   const WIN = {}; let zTop = 200;
   const CTL = { sel: null };
-  if (store('wc_console_1111') !== '1') { store('wc_swmode', 'on'); store('wc_console_1111', '1'); store('wc_hw', JSON.stringify({on:true,skin:'light',size:'l'})); }
-  const UI = { sw: store('wc_swmode') !== 'off', pro: store('wc_pro') === '1' };
+  const UI = { sw: store('wc_swmode') === 'on', pro: store('wc_pro') === '1' };
   // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
   const GROUPS = {
     ic:   { key: '對講／IFB', title: 'INTERCOM 對講台／IFB 返送／倒數', w: 780, h: 620, tabs: ['ic', 'ifb', 'timer'] },
@@ -1758,6 +1718,7 @@ function Host(sess){
       <span class="kgap"></span>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
       <div class="key" id="swk" title="開啟／關閉切換台（PREVIEW、PROGRAM、T-Bar）（W）"><span class="led"></span>切換台</div>
+      <div class="key" id="hwk" title="仿實體切換台的控盤介面：PROGRAM／PREVIEW 大按鍵"><span class="led"></span>控盤介面</div>
     </div>
     <div class="hmain">
       <div class="switcher">
@@ -1789,7 +1750,6 @@ function Host(sess){
             <button class="btn sm" id="cppgm">${ic('link')}PGM 網址</button></div>
           <div class="dskbar" data-dsk></div>
         </div>
-        <div class="hwbus" id="hwbus"></div>
       </div>
       <main class="multiview" id="mv"></main>
       <aside class="dock" id="dock"></aside>
@@ -2201,13 +2161,13 @@ function Host(sess){
   function doCut(){
     if (!canSw()) return roleDeny();
     if (!UI.sw) { const pv = inputs.get(SW.pvw); if (!pv) return toast('沒有設為 PVW 的來源'); order.forEach(id => { const x = inputs.get(id); if (x !== pv && x.manual === 'live') x.manual = 'off'; }); setManual(pv, 'live'); return; }
-    if (SW.pvw != null && !inputs.has(SW.pvw)) return toast('PREVIEW 來源已移除');
+    if (!SW.pvw) return toast('PREVIEW 沒有畫面');
     if (SW.prevTrans) return toast('轉場預覽中：CUT 不會播出，先關閉 PREV TRANS');
     followArm = true; swap(); tieToggle(0); SW.t = 0; SW.anim = null; SW.base = SW.tpos; renderSwitcherLabels(); updateTally(); drawTbar(); }
   function doAuto(){
     if (!canSw()) return roleDeny();
     if (!UI.sw) return doCut();
-    if (SW.pvw != null && !inputs.has(SW.pvw)) return toast('PREVIEW 來源已移除');
+    if (!SW.pvw) return toast('PREVIEW 沒有畫面');
     if (SW.anim) return;
     if (SW.type === 'cut') return doCut();
     let dur = SW.dur;
@@ -2243,7 +2203,7 @@ function Host(sess){
   (() => {
     const bar = $('#tbar'); let drag = false;
     const pos = e => { const r = bar.getBoundingClientRect(); const v = getComputedStyle(bar).cursor !== 'ew-resize'; return v ? (e.clientY - r.top - 10) / (r.height - 20) : (e.clientX - r.left - 10) / (r.width - 20); };
-    bar.addEventListener('pointerdown', e => { if (!canSw()) return roleDeny(); if (SW.pvw != null && !inputs.has(SW.pvw)) return toast('PREVIEW 來源已移除'); if (SW.type === 'stinger' || SW.type === 'cut') return toast('這個轉場只能用 AUTO'); drag = true; SW.anim = null; bar.setPointerCapture(e.pointerId); setTpos(pos(e)); });
+    bar.addEventListener('pointerdown', e => { if (!canSw()) return roleDeny(); if (!SW.pvw) return toast('PREVIEW 沒有畫面'); if (SW.type === 'stinger' || SW.type === 'cut') return toast('這個轉場只能用 AUTO'); drag = true; SW.anim = null; bar.setPointerCapture(e.pointerId); setTpos(pos(e)); });
     bar.addEventListener('pointermove', e => drag && setTpos(pos(e)));
     bar.addEventListener('pointerup', () => drag = false);
     new ResizeObserver(drawTbar).observe(bar);
@@ -2279,7 +2239,6 @@ function Host(sess){
     const n = id => { const x = inputs.get(id); return x ? `${numOf(x)}. ${x.name}` : '—'; };
     $('#pvwn').textContent = n(SW.pvw); $('#pgmn').textContent = n(SW.pgm);
     order.forEach(id => updateTile(inputs.get(id)));
-    try { renderHwBus(); } catch {}
   }
   function srcEl(inp){
     if (!inp) return null;
@@ -2411,8 +2370,7 @@ function Host(sess){
   }
   let lastTally = '', followArm = false;   // 只有導播自己切換時，字幕條才會跟著顯示
   function updateTally(){
-    try { opBroadcast(); } catch {}
-    try { renderHwBus(); } catch {}   // 遠端控盤的燈號跟著更新
+    try { opBroadcast(); } catch {}   // 遠端控盤的燈號跟著更新
     const live = new Set();
     if (SW.ftb < .99) {
       if (SW.pgm) live.add(SW.pgm);
@@ -3113,12 +3071,7 @@ function Host(sess){
   function toggleRec(){ if (REC.size) stopRec(); else { const ks = ['pgm', 'clean', 'aux1', 'aux2', 'aux3', 'aux4', ...order].filter(k => store('wc_rec_' + k) === '1' && recStreamOf(k)); startRec(ks.length ? ks : ['pgm'], +(store('wc_reckb') || 8000)); } }
   function renderSet(){
     const w = WIN.set; if (!w?.open) return;
-    w.body.innerHTML = `<div class="wsec"><h4>控盤鍵列（PROGRAM／PREVIEW 實體鍵外觀）</h4>
-        <div class="row" style="flex-wrap:wrap"><label class="note" style="margin:0"><input type="checkbox" id="shw" ${HW.on ? 'checked' : ''}> 在切換台下方顯示控盤鍵列</label>
-          ${[['light', '白色鍵帽'], ['dark', '深色鍵帽']].map(([k, n]) => `<button class="btn sm ${HW.skin === k ? 'on' : ''}" data-hws="${k}">${n}</button>`).join('')}
-          ${[['m', '標準'], ['l', '大鍵']].map(([k, n]) => `<button class="btn sm ${HW.size === k ? 'on' : ''}" data-hwz="${k}">${n}</button>`).join('')}</div>
-        <div class="note">PROGRAM 列按下＝直接切上節目（紅燈），PREVIEW 列＝選下一個（綠燈），BLK＝黑畫面。右邊是轉場鍵、CUT、AUTO、FTB。也可以用平板當控盤（系統 → 操作員）。</div></div>
-      <div class="wsec"><h4>轉場</h4>
+    w.body.innerHTML = `<div class="wsec"><h4>轉場</h4>
         <div class="row" style="flex-wrap:wrap">${TRANS.map(([k, n]) => `<button class="btn sm ${SW.type === k ? 'on' : ''}" data-tt="${k}">${n}</button>`).join('')}</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">DIP 過場色</span><input type="color" id="sdc" value="${SW.dipColor}"><span class="note" style="margin:0">劃變邊框</span><input type="range" min="0" max="20" value="${SW.border}" id="swb" style="width:90px"><input type="color" id="swc" value="${SW.borderColor}"></div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">FTB 時間</span><select class="field sm" id="sfd">${[300, 600, 1000, 1500, 2000, 3000].map(v => `<option value="${v}" ${SW.ftbDur === v ? 'selected' : ''}>${v / 1000}s</option>`).join('')}</select></div></div>
@@ -3132,9 +3085,6 @@ function Host(sess){
       <div class="wsec"><h4>節目輸出</h4><div class="row"><span class="note" style="margin:0;width:90px">PGM 解析度</span><select class="field sm" id="spr">${canvasOpts(SW.res)}</select></div><div class="note">4K／2K 需要效能較好的電腦，畫面變卡時請調低。</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">主音量</span><input type="range" min="0" max="150" value="${Math.round(Number(store('wc_master') || 1) * 100)}" id="smv" style="flex:1"><label class="note" style="margin:0"><input type="checkbox" id="slm" ${limiterOn ? 'checked' : ''}> 限幅器（防爆音）</label></div></div>`;
     const B = w.body;
-    $('#shw', w.body).onchange = e => { HW.on = e.target.checked; saveHW(); renderHwBus(true); };
-    $$('[data-hws]', w.body).forEach(b => b.onclick = () => { HW.skin = b.dataset.hws; saveHW(); renderHwBus(true); renderSet(); });
-    $$('[data-hwz]', w.body).forEach(b => b.onclick = () => { HW.size = b.dataset.hwz; saveHW(); renderHwBus(true); renderSet(); });
     $$('[data-tt]', B).forEach(b => b.onclick = () => { SW.type = b.dataset.tt; store('wc_trans', SW.type); $('#ttype').value = SW.type; renderTdir(); renderSet(); });
     $('#sdc', B).oninput = e => { SW.dipColor = e.target.value; store('wc_dipc', SW.dipColor); };
     $('#swb', B).oninput = e => { SW.border = +e.target.value; store('wc_wb', SW.border); }; $('#swc', B).oninput = e => { SW.borderColor = e.target.value; store('wc_wbc', SW.borderColor); };
@@ -4823,7 +4773,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         case 'scene': recallPreset(+d.i, !!d.auto); break;
         case 'tbar': {   // 遠端 T-Bar：v＝把手位置 0～1
           if (!UI.sw) { o.conn.send({ type: 'deny2', error: '導播台目前是簡易模式，T-Bar 不能用（用 CUT／AUTO）' }); break; }
-          if (SW.pvw != null && !inputs.has(SW.pvw)) { o.conn.send({ type: 'deny2', error: 'PREVIEW 來源已移除' }); break; }
+          if (!SW.pvw) { o.conn.send({ type: 'deny2', error: 'PREVIEW 沒有畫面' }); break; }
           if (SW.type === 'stinger' || SW.type === 'cut') { o.conn.send({ type: 'deny2', error: '這個轉場只能用 AUTO' }); break; }
           SW.anim = null; setTpos(+d.v || 0); break; }
         case 'trans': if (d.k && TRANS.some(t => t[0] === d.k)) { $('#ttype').value = d.k; $('#ttype').dispatchEvent(new Event('change')); }
@@ -5205,39 +5155,88 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     });
   }
 
-  /* ---------- 控盤鍵列：像實體切換台的 PROGRAM／PREVIEW 按鍵 ---------- */
-  const HW = (() => { let o = {}; try { o = JSON.parse(store('wc_hw') || '{}'); } catch {} return { on: o.on !== false, skin: o.skin === 'dark' ? 'dark' : 'light', size: o.size === 'l' ? 'l' : 'm', sig: '' }; })();
-  function saveHW(){ store('wc_hw', JSON.stringify({ on: HW.on, skin: HW.skin, size: HW.size })); }
-  function renderHwBus(force){
-    const box = $('#hwbus'); if (!box) return;
-    box.classList.toggle('hidden', !HW.on); box.className = `hwbus ${HW.skin} sz-${HW.size} ${HW.on ? '' : 'hidden'}`;
-    if (!HW.on) return;
-    const list = order.map(id => inputs.get(id)).filter(Boolean);
-    const sig = list.map(x => x.id + x.name + (x.lost ? 1 : 0)).join(',') + SW.type;
-    if (force || sig !== HW.sig) {
-      HW.sig = sig;
-      const key = (x, a) => `<button class="hwk ${x.lost ? 'lost' : ''}" ${a}="${x.id}" title="${esc(x.name)}"><b>${numOf(x)}</b><small>${esc(x.name)}</small></button>`;
-      box.innerHTML = `<div class="hwbuses">
-          <div class="hwrow"><div class="hwlab pgm">PROGRAM</div><div class="hwkeys"><button class="hwk blk" data-hpg=""><b>BLK</b></button>${list.map(x => key(x, 'data-hpg')).join('')}</div></div>
-          <div class="hwrow"><div class="hwlab pvw">PREVIEW</div><div class="hwkeys"><button class="hwk blk" data-hpv=""><b>BLK</b></button>${list.map(x => key(x, 'data-hpv')).join('')}</div></div>
-        </div>
-        <div class="hwfn"><div class="hwlab fn">TRANSITION</div>
-          <div class="hwfk">${TRANS.filter(t => t[0] !== 'stinger').map(([k, n]) => `<button class="hwk sm" data-htt="${k}"><b>${n.split(' ')[0]}</b></button>`).join('')}</div>
-          <div class="hwfk big"><button class="hwk cutk" data-hc="cut"><b>CUT</b></button><button class="hwk autok" data-hc="auto"><b>AUTO</b></button><button class="hwk ftbk" data-hc="ftb"><b>FTB</b></button></div>
-        </div>`;
-      $$('[data-hpg]', box).forEach(b => b.onclick = () => { const id = b.dataset.hpg || null; if (!canSw()) return roleDeny(); if (id === null) { cutTo(null); return; } cutTo(id); });
-      $$('[data-hpv]', box).forEach(b => b.onclick = () => setPvw(b.dataset.hpv || null));
-      $$('[data-htt]', box).forEach(b => b.onclick = () => { if (!canSw()) return roleDeny(); $('#ttype').value = b.dataset.htt; $('#ttype').dispatchEvent(new Event('change')); renderHwBus(); });
-      $$('[data-hc]', box).forEach(b => b.onclick = () => { const c = b.dataset.hc; if (c === 'cut') doCut(); else if (c === 'auto') doAuto(); else $('#ftb').click(); setTimeout(renderHwBus, 50); });
-    }
-    $$('[data-hpg]', box).forEach(b => b.classList.toggle('red', (b.dataset.hpg || null) === (SW.pgm || null)));
-    $$('[data-hpv]', box).forEach(b => b.classList.toggle('grn', (b.dataset.hpv || null) === (SW.pvw || null)));
-    $$('[data-htt]', box).forEach(b => b.classList.toggle('yel', b.dataset.htt === SW.type));
-    $$('[data-hc="ftb"]', box).forEach(b => b.classList.toggle('red', !!SW.ftbOn));
-    $$('[data-hc="auto"]', box).forEach(b => b.classList.toggle('red', !!SW.anim));
+  /* =============== 控盤介面（仿實體切換台：PROGRAM／PREVIEW 大按鍵） =============== */
+  const HWP = { on: false, el: null, sig: '', f: 0, raf: 0, g1: null, g2: null };
+  const HWTR = [['mix', 'MIX'], ['wipe', 'WIPE'], ['dip', 'DIP'], ['push', 'PUSH']];
+  function hwpOpen(on){
+    HWP.on = on; store('wc_hwp', on ? '1' : null); $('#hwk')?.classList.toggle('on', on);
+    if (on && !HWP.el) hwpBuild();
+    if (!HWP.el) return;
+    HWP.el.classList.toggle('hidden', !on);
+    cancelAnimationFrame(HWP.raf);
+    if (on) { hwpPlace(); HWP.sig = ''; hwpTick(); }
   }
-  setTimeout(() => renderHwBus(true), 0);
-  setInterval(() => { if (!ended && HW.on && UI.sw) renderHwBus(); }, 250);   // AUTO 轉場中的燈號
+  function hwpPlace(){ if (!HWP.el) return; const r = $('.hmain')?.getBoundingClientRect(); HWP.el.style.top = Math.max(0, r ? r.top : 0) + 'px'; }
+  function hwpBuild(){
+    const el = HWP.el = document.createElement('div'); el.className = 'hwp hidden'; el.id = 'hwp';
+    const key = (attr, v, label, cls = '') => `<button class="hk sm ${cls}" ${attr}="${v}"><b>${label}</b></button>`;
+    el.innerHTML = `<div class="hwhd"><b>SWITCHER PANEL</b><span class="note" id="hwst" style="margin:0"></span><span class="grow"></span><button class="btn sm" id="hwx">${ic('x')}一般介面</button></div>
+      <div class="hwmon"><div class="hwm pvw"><div class="hwl">PREVIEW</div><canvas id="hwpv" width="640" height="360"></canvas></div><div class="hwm pgm"><div class="hwl">PROGRAM</div><canvas id="hwpg" width="960" height="540"></canvas></div></div>
+      <div class="hwctl">
+        <div class="hwg"><div class="hwt"><span>TRANSITION</span></div><div class="hwk-row">${HWTR.map(([k, n]) => key('data-ht', k, n)).join('')}${key('data-hc', 'cut', 'CUT')}${key('data-hc', 'auto', 'AUTO')}${key('data-hc', 'ftb', 'FTB')}</div></div>
+        <div class="hwg"><div class="hwt"><span>FUNCTION</span></div><div class="hwk-row">${key('data-hf', 'sw', 'SWITCHER')}${key('data-hf', 'set', 'SETUP')}${key('data-hf', 'src', 'SOURCE')}${key('data-hf', 'scene', 'SCENE')}</div></div>
+        <div class="hwbus pgmb"><div class="hwbh">PROGRAM</div><div class="hwk-row" id="hwpgr"></div></div>
+        <div class="hwbus pvwb"><div class="hwbh">PREVIEW</div><div class="hwk-row" id="hwpvr"></div></div>
+      </div>`;
+    ($('#hroot') || document.body).appendChild(el);
+    HWP.g1 = $('#hwpg', el).getContext('2d'); HWP.g2 = $('#hwpv', el).getContext('2d');
+    $('#hwx', el).onclick = () => hwpOpen(false);
+    $$('[data-ht]', el).forEach(b => b.onclick = () => { const t = $('#ttype'); t.value = b.dataset.ht; t.dispatchEvent(new Event('change')); hwpPaint(); });
+    $$('[data-hc]', el).forEach(b => b.onclick = () => { const k = b.dataset.hc; if (k === 'cut') doCut(); else if (k === 'auto') doAuto(); else $('#ftb').click(); hwpPaint(); });
+    $$('[data-hf]', el).forEach(b => b.onclick = () => { const k = b.dataset.hf; if (k === 'sw') setSwMode(!UI.sw); else openWin(k); hwpPaint(); });
+    new ResizeObserver(() => HWP.on && hwpPlace()).observe($('.hmain'));
+    addEventListener('resize', () => HWP.on && hwpPlace());
+  }
+  function hwpRows(){
+    const k = (id, n, nm) => `<button class="hk ${id ? '' : 'blk'}" data-id="${id}"><b>${n}</b>${nm ? `<small>${esc(nm)}</small>` : ''}</button>`;
+    const keys = k('', 'BLK', '') + order.map(id => { const x = inputs.get(id); return k(id, numOf(x), x.name); }).join('');
+    $('#hwpgr').innerHTML = keys; $('#hwpvr').innerHTML = keys;
+    $$('#hwpgr [data-id]').forEach(b => b.onclick = () => { hwpTake(b.dataset.id || null); hwpPaint(); });
+    $$('#hwpvr [data-id]').forEach(b => b.onclick = () => { hwpPvw(b.dataset.id || null); hwpPaint(); });
+  }
+  // PROGRAM 鍵：切換台開著＝直接切上節目；切換台關著＝這一路 ON AIR（其他下節目）；BLK＝黑畫面
+  function hwpTake(id){
+    if (UI.sw) return cutTo(id);
+    if (!canSw()) return roleDeny();
+    order.forEach(o => { const x = inputs.get(o); if (o !== id && x.manual === 'live') setManual(x, 'off'); });
+    if (id && inputs.get(id)) setManual(inputs.get(id), 'live');
+  }
+  // PREVIEW 鍵：選下一個畫面
+  function hwpPvw(id){
+    if (UI.sw) return setPvw(id);
+    if (!canSw()) return roleDeny();
+    order.forEach(o => { const x = inputs.get(o); if (o !== id && x.manual === 'pvw') setManual(x, 'off'); });
+    const x = inputs.get(id);
+    if (x && x.manual !== 'live') setManual(x, 'pvw'); else { SW.pvw = id; renderSwitcherLabels(); updateTally(); }
+  }
+  function hwpPaint(){
+    if (!HWP.el || !HWP.on) return;
+    const mid = UI.sw && SW.t > 0 && SW.t < 1;   // 轉場中：PREVIEW 那一路也亮紅燈
+    const live = id => UI.sw ? (SW.pgm === id || (mid && SW.pvw === id)) : inputs.get(id)?.tally === 'live';
+    const anyLive = UI.sw ? !!SW.pgm : order.some(o => inputs.get(o).tally === 'live');
+    $$('#hwpgr [data-id]').forEach(b => b.classList.toggle('red', b.dataset.id ? !!live(b.dataset.id) : !anyLive));
+    $$('#hwpvr [data-id]').forEach(b => b.classList.toggle('grn', b.dataset.id ? b.dataset.id === SW.pvw : !SW.pvw));
+    $$('[data-ht]', HWP.el).forEach(b => b.classList.toggle('yel', b.dataset.ht === SW.type));
+    $('[data-hc="auto"]', HWP.el).classList.toggle('red', !!SW.anim);
+    $('[data-hc="ftb"]', HWP.el).classList.toggle('red', !!SW.ftbOn);
+    $('[data-hf="sw"]', HWP.el).classList.toggle('red', UI.sw);
+    $('#hwst').textContent = `PGM：${anyLive ? (inputs.get(SW.pgm)?.name || '—') : '黑畫面'}　PVW：${inputs.get(SW.pvw)?.name || '—'}${UI.sw ? '' : '　（切換台關閉中：PROGRAM 鍵＝ON AIR）'}`;
+  }
+  function hwpTick(){
+    if (!HWP.on) return;
+    HWP.raf = requestAnimationFrame(hwpTick);
+    if (++HWP.f % 2) return;   // 監看畫面 30 fps 就夠
+    const sig = order.map(id => id + '|' + inputs.get(id).name + '|' + numOf(inputs.get(id))).join(',');
+    if (sig !== HWP.sig) { HWP.sig = sig; hwpRows(); hwpPaint(); }
+    if (HWP.f % 6 === 0) hwpPaint();
+    HWP.g1.drawImage(pgmCanvas, 0, 0, 960, 540);
+    const g2 = HWP.g2;
+    if (UI.sw) g2.drawImage($('#pvwc'), 0, 0, 640, 360);
+    else { g2.fillStyle = '#000'; g2.fillRect(0, 0, 640, 360); const x = inputs.get(SW.pvw); if (x) try { drawSource(g2, x, 0, 0, 640, 360); } catch {} }
+  }
+  $('#hwk').onclick = () => hwpOpen(!HWP.on);
+  if (store('wc_hwp') === '1') setTimeout(() => hwpOpen(true), 300);
+
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
@@ -5295,7 +5294,6 @@ function GuestMain(inv, roomKey){
     if (micTrack) micTrack.enabled = pgmMic && !(icMic && icMutesPgm);   // 對講時節目麥自動靜音（可以關掉這個設定）
     if (icTrack) icTrack.enabled = icMic;
   }
-  let previewMirror = store('wc_preview_mirror') === '1';
   let facing = 'user', camOn = true, pgmMic = true, icMic = false, torchOn = false, guides = 0;
   let zoom = { hw: false, min: 1, max: 2, step: .1, value: 1 }, torchCap = false;
   let qMode = store('wc_qmode') || 'auto', tier = '720', rec = null, warn = '', retVol = 1;
@@ -5313,7 +5311,7 @@ function GuestMain(inv, roomKey){
 
   app.innerHTML = `
   <div class="gp" id="gp">
-    <div class="stage" id="stage"><video id="self" autoplay playsinline muted></video><div class="guides" id="gd"></div></div>
+    <div class="stage" id="stage"><video id="self" class="mirror" autoplay playsinline muted></video><div class="guides" id="gd"></div></div>
     <div class="frame" id="frame"></div>
     <div class="gtop">
       <span class="pill" id="gst"><span class="dot"></span>準備中</span>
@@ -5332,7 +5330,6 @@ function GuestMain(inv, roomKey){
     <div class="gccpill hidden" id="gcc">● 字幕辨識中</div>
     <div class="ret hidden" id="rw"><video id="retV" autoplay playsinline muted></video><span>RETURN 回看</span><div class="rb"><button id="rwm" title="縮小">－</button><button id="rwp" title="放大">＋</button></div><div class="rz" id="rwz"></div></div>
     <audio id="retA" autoplay playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
-    <div class="gaudmon" id="gaudmon"><div class="gaudhead">${ic('mic')}<span id="gaudroute">MIC</span><strong id="gauddb">−∞ dBFS</strong></div><div class="gaudtrack"><i id="gaudfill"></i></div><div class="gaudscale"><span>−60</span><span>−36</span><span>−18</span><span>−6</span><span>0</span></div><div id="gaudstatus">等待麥克風</div></div>
     <div class="zoombig" id="zb">1.0×</div>
     <div class="zoomui hidden" id="zui"></div>
     <div class="player hidden" id="pl">
@@ -5453,13 +5450,7 @@ function GuestMain(inv, roomKey){
     if (by) toast(`導播設定畫面方向：${{ auto: '跟隨手機旋轉', portrait: '直式', landscape: '橫式' }[orientMode]}`);
     sendState();
   }
-  let mediaQueue = Promise.resolve();
-  function getMedia(o = {}){
-    const next = mediaQueue.then(() => acquireMedia(o));
-    mediaQueue = next.catch(() => {});
-    return next;
-  }
-  async function acquireMedia(o = {}){
+  async function getMedia(o = {}){
     const [w, h] = tierDims(tier);
     const video = { width: { ideal: w }, height: { ideal: h }, frameRate: { ideal: effFps() } };
     if (orientMode !== 'auto') video.aspectRatio = { ideal: w / h };   // 固定直式／橫式時，請鏡頭直接給這個比例，減少裁切
@@ -5480,26 +5471,17 @@ function GuestMain(inv, roomKey){
     audioTracks();
     const fm = camTrack.getSettings().facingMode; if (fm) facing = fm === 'environment' ? 'environment' : 'user';
     camRaw.srcObject = s; camRaw.play().catch(() => {});
-    meter.dispose?.();
     meter = streamMeter(new MediaStream([meterTrack].filter(Boolean)));
     readZoomCaps(); torchOn = false;
     applyOrient(); syncSenders(); sendState();
   }
   let meter = () => 0;
-  const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%';
-    $('#gaudfill').style.width = (v * 100) + '%';
-    $('#gauddb').textContent = v > 0 ? Math.round(v * 60 - 60) + ' dBFS' : '−∞ dBFS';
-    $('#gaudroute').textContent = !(pgmMic || icMic) ? '靜音' : icMic ? 'TALK' : 'MIC';
-    $('#gaudstatus').textContent = !micTrack ? '等待麥克風' : !(pgmMic || icMic) ? '麥克風已靜音' : v > .95 ? '電平過高 · 請降低收音' : v > .35 ? '收音中' : '低電平 · 等待聲音';
-    $('#gaudmon').classList.toggle('muted', !(pgmMic || icMic));
-    $('#gaudmon').setAttribute('aria-label', $('#gaudstatus').textContent + '，' + $('#gauddb').textContent);
-    $('#gaudmon').title = $('#gaudstatus').textContent;
-    $('#gaudmon').classList.toggle('clipping', v > .95); ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
+  const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%'; ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
     const vt = fx.outputTrack() || camTrack;
     if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
-    selfV.classList.toggle('mirror', previewMirror && facing === 'user' && !fx.base);
+    selfV.classList.toggle('mirror', facing === 'user' && !fx.base);
     setTimeout(fitSelf, 50);
     const pc = call?.peerConnection; if (!pc) return;
     // 第一次：記下每個 sender 是哪一條（之後換鏡頭／麥克風才知道要換哪一條）
@@ -5900,7 +5882,6 @@ function GuestMain(inv, roomKey){
 
   function sheetSettings(){
     openSheet('set', `<h2>設定<button class="btn ghost sm" data-close>${ic('x')}</button></h2>
-      <div class="full"><span class="lbl">本機前鏡頭預覽</span>${segc('dpreviewmirror', [['0', '正向'], ['1', '自拍鏡像']], previewMirror ? '1' : '0')}</div>
       <div class="g2" style="margin-top:10px">
         <div class="full"><span class="lbl">你的名字</span><input class="field" id="nm2" value="${esc(store('wc_name') || '')}" maxlength="30"></div>
         <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
@@ -5922,7 +5903,6 @@ function GuestMain(inv, roomKey){
         <div class="full"><span class="lbl">回看畫面位置</span>${segc('drp', RET_POS, retLayout.pos)}</div>
         <div class="full"><span class="lbl">離開網頁時</span>${segc('dl', [['ask', '每次詢問'], ['pip', '自動子母畫面'], ['close', '關閉畫面']], leaveMode)}</div>
       </div>`, sh => {
-      $$('#dpreviewmirror button', sh).forEach(b => b.addEventListener('click', () => { previewMirror = b.dataset.v === '1'; store('wc_preview_mirror', previewMirror ? '1' : '0'); syncSenders(); }));
       $$('#dor button', sh).forEach(b => b.addEventListener('click', () => setOrient(b.dataset.v)));
       $$('#dfps button', sh).forEach(b => b.addEventListener('click', () => { fpsPref = +b.dataset.v; store('wc_fps', fpsPref); camTrack?.applyConstraints({ frameRate: { ideal: fpsPref } }).catch(() => {}); sendState(); }));
       $$('#drs button', sh).forEach(b => b.addEventListener('click', () => setRetLayout({ size: b.dataset.v })));
@@ -6112,14 +6092,12 @@ function GuestMain(inv, roomKey){
     if (!peer || peer.destroyed) {
       peer = new Peer(PREFIX + roomKey + '-g-' + rnd(8), PEER_OPTS);
       peer.on('open', dial);
-      const ownerPeer = peer;
-      peer.on('disconnected', () => { setTimeout(() => { if (joined && peer === ownerPeer && !ownerPeer.destroyed && ownerPeer.disconnected) ownerPeer.reconnect(); }, 2000); });
+      peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
       peer.on('error', e => { st('bad', peerErrText(e)); if (e.type === 'peer-unavailable' || e.type === 'network') retry(); });
     } else if (peer.open) dial();
   }
   function retry(){ clearTimeout(retryT); if (joined) retryT = setTimeout(connect, 3000); }
   function dial(){
-    if (!joined || !peer || peer.destroyed) return;
     const hid = hostPeerId(roomKey), name = of ? '第二機位' : (store('wc_name') || '來賓');
     try { conn?.close(); } catch {} try { call?.close(); } catch {}
     conn = peer.connect(hid, { metadata: { role: 'guest', name, cid, of: of || undefined }, ...CONN_OPTS });
@@ -6136,7 +6114,6 @@ function GuestMain(inv, roomKey){
   }
   function redial(){ if (!conn?.open) return; try { call?.close(); } catch {} setTimeout(makeCall, 300); }
   function makeCall(){
-    if (!joined || !peer || peer.destroyed || !conn?.open) return;
     const hid = hostPeerId(roomKey), name = of ? '第二機位' : (store('wc_name') || '來賓');
     {
       ensureMix();
@@ -6149,7 +6126,6 @@ function GuestMain(inv, roomKey){
       syncSenders();
       call.on('stream', s => {
         retA.srcObject = new MediaStream(s.getAudioTracks()); ensureRetPlaying();
-        retMeter.dispose?.();
         retMeter = streamMeter(new MediaStream(s.getAudioTracks()));
         retV.srcObject = new MediaStream(s.getVideoTracks()); retV.play().catch(() => {});
         if (saver) s.getVideoTracks().forEach(t => t.enabled = false);
@@ -6189,7 +6165,7 @@ function GuestMain(inv, roomKey){
   function leave(msg){
     try { conn?.open && conn.send({ type: 'bye' }); } catch {}
     stopCC();
-    joined = false; window.__gJoined = false; clearTimeout(retryT); clearInterval(statT);
+    joined = false; clearTimeout(retryT); clearInterval(statT);
     try { conn?.close(); } catch {} try { call?.close(); } catch {} try { peer?.destroy(); } catch {}
     peer = null; call = null; conn = null; wake?.release?.().catch(() => {});
     stopShare(); if (filePlaying) stopVideo();
@@ -6203,7 +6179,7 @@ function GuestMain(inv, roomKey){
     if (!of) store('wc_name', nm);
     audioCtx();
     retA.srcObject = new MediaStream(); retA.play().catch(() => {});   // 先用使用者的點擊解鎖播放
-    if (!camTrack || camTrack.readyState !== 'live' || !micTrack || micTrack.readyState !== 'live') { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
+    if (!camTrack) { try { await getMedia(); } catch (e) { st('bad', '無法開啟相機／麥克風'); return toast(e.message); } }
     joined = true; window.__gJoined = true; window.__WC_BUSY = true;
     $('#sheet').classList.add('hidden'); sheetName = ''; $('#gbar').classList.remove('hidden');
     layoutStage(); renderZoomUI(); keepAwake(); connect(); fitSelf();
@@ -6214,7 +6190,6 @@ function GuestMain(inv, roomKey){
     if (!joined) return;
     sendState();
     setTimeout(() => {
-      if (!joined) return;
       const pc = call?.peerConnection, s2 = pc?.iceConnectionState;
       if (conn?.open && pc && !['connected', 'completed', 'checking', 'new'].includes(s2)) { st('wait', '網路切換中，重新連線…'); redial(); }
       else if (!conn?.open) connect();
@@ -6442,7 +6417,7 @@ function Operator(){
   const views = [['mv', 'MULTIVIEW'], ['pgm', 'PGM 節目'], ['pvw', 'PREVIEW'], ['clean', 'CLEAN'], ['aux1', 'AUX 1'], ['aux2', 'AUX 2'], ['aux3', 'AUX 3'], ['aux4', 'AUX 4']];
   app.innerHTML = `<div class="op ${PANEL ? 'panel' : ''}">
     <header>${brand()}<span class="pill oprole r-${R}">${RN[R]}</span><b id="opl" class="grow"></b><span class="pill" id="ops"><span class="dot wait"></span>連線中</span>
-      <input class="field sm" id="opn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px">${PANEL ? '<button class="btn sm" id="opmd" title="選這台裝置負責的功能">模組</button><button class="btn sm" id="opsk" title="按鍵外觀：白色鍵帽／深色">外觀</button><button class="btn sm" id="opfs" title="全螢幕">全螢幕</button><button class="btn sm" id="opvt" title="顯示／隱藏監看畫面（隱藏比較省電）">監看</button>' : ''}</header>
+      <input class="field sm" id="opn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px">${PANEL ? '<button class="btn sm" id="opmd" title="選這台裝置負責的功能">模組</button><button class="btn sm" id="opfs" title="全螢幕">全螢幕</button><button class="btn sm" id="opvt" title="顯示／隱藏監看畫面（隱藏比較省電）">監看</button>' : ''}</header>
     <div class="opmain"><section class="opv"><div class="row" style="padding:6px 0"><select class="field sm" id="opw">${views.map(([k, n]) => `<option value="${k}" ${k === (R === 'aud' ? 'pgm' : 'mv') ? 'selected' : ''}>${n}</option>`).join('')}</select>
         <label class="note" style="margin:0"><input type="checkbox" id="opa" ${R === 'aud' ? 'checked' : ''}> 聽聲音</label><span class="grow"></span><span class="note" style="margin:0" id="opsrc"></span></div>
         <div class="opvbox"><video id="opvid" autoplay playsinline muted></video><div class="opnov" id="opnov">等待畫面…</div></div>
@@ -6601,8 +6576,6 @@ function Operator(){
     $('#opvt').onclick = () => { const on = document.body.classList.toggle('cpnov'); store('wc_cpnov', on ? '1' : null); send(on ? { type: 'watch', what: '' } : { type: 'watch', what: $('#opw').value }); };
     if (store('wc_cpnov') === '1') document.body.classList.add('cpnov');
     $('#opmd').onclick = () => { modBar = !modBar; $('#cpmb')?.classList.toggle('hidden', !modBar); };
-    const opRoot = $('.op'); opRoot.classList.toggle('keycap', store('wc_cpskin') !== 'dark');
-    $('#opsk').onclick = () => { const on = !opRoot.classList.contains('keycap'); opRoot.classList.toggle('keycap', on); store('wc_cpskin', on ? 'light' : 'dark'); };
     setInterval(() => { if (S && $('#cpclk', C)) patchPanel(); }, 1000);
     // 平板接鍵盤：1～9＝PREVIEW、Shift＋1～9＝PROGRAM、空白＝CUT、Enter＝AUTO
     addEventListener('keydown', e => { if (!S || R !== 'dir' || !mods.includes('sw') || e.target.closest('input,select,textarea')) return; const n = +e.key;
