@@ -772,11 +772,11 @@ body.mob .hwbus{padding:6px;gap:8px}body.mob .hwk{min-width:56px;height:54px}bod
 .gaudhead{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;letter-spacing:.04em}.gaudhead strong{font-family:var(--mono);color:#6ee7b7}
 .gaudtrack{height:12px;border-radius:3px;background:#05090e;overflow:hidden}.gaudtrack i{display:block;height:100%;width:0;background:linear-gradient(90deg,#20cf95 0 70%,#ffd258 70% 90%,#ff4e58 90%);background-size: min(272px,calc(100vw - 60px)) 100%;transition:width .09s}
 .gaudscale{display:flex;justify-content:space-between;color:#8b9bad;font:9px var(--mono);margin:5px 0}.gaudmon.clipping{border-color:#ff4e58}.gaudmon.clipping strong{color:#ff6570}
-.gtop{flex-wrap:wrap;gap:6px}.gtop #gmirror{cursor:pointer;font-size:11px}
+
 .hwrow:has(.hwlab.pgm){border:2px solid #a82c36}.hwrow:has(.hwlab.pvw){border:2px solid #279f50}
 .hwlab.pgm,.hwlab.pvw{padding:8px;color:#b6eaff;font-size:15px}
 .hwk{border-radius:6px}.hwbus.sz-l .hwkeys{gap:16px;padding:16px}.hwbus.sz-l .hwk{min-width:84px;height:80px}
-@media(max-width:600px){.gaudmon{left:12px;bottom:calc(165px + var(--sab,0px));width:220px;padding:9px 12px}.gp .gbar{gap:4px;padding-left:8px;padding-right:8px}.gp .cbtn{min-width:0;flex:1}.gp .cbtn .c{width:42px;height:42px}.gp .cbtn>span:last-child{font-size:10px}.gp .gtally{font-size:14px;padding:8px 12px}}
+@media(max-width:600px){.gaudmon{left:12px;bottom:calc(165px + var(--sab,0px));width:220px;padding:9px 12px}}
 @media(max-height:500px){.gaudmon{bottom:92px;width:220px;padding:7px 10px}.gaudscale{display:none}}
 
 
@@ -5318,7 +5318,6 @@ function GuestMain(inv, roomKey){
     <div class="gtop">
       <span class="pill" id="gst"><span class="dot"></span>準備中</span>
       <button class="pill" id="grot" style="cursor:pointer" title="畫面方向：預設固定直式，按一下改成跟著手機旋轉"></button>
-      <button class="pill" id="gmirror" title="只改變本機前鏡頭預覽，不改變導播收到的畫面">正向預覽</button>
       <span class="pill hidden" id="gq"><span class="bars" id="bars"><i></i><i></i><i></i></span><span class="mono" id="gqt"></span></span>
       <span class="gtally hidden" id="tally">STBY</span>
     </div>
@@ -5359,7 +5358,6 @@ function GuestMain(inv, roomKey){
   </div>`;
   const selfV = $('#self'), retA = $('#retA'), retV = $('#retV'), camRaw = $('#camRaw'), fileV = $('#fileV'), shareV = $('#shareV');
   const fx = new GuestFX(camRaw);
-  $('#gmirror').onclick = () => { previewMirror = !previewMirror; store('wc_preview_mirror', previewMirror ? '1' : '0'); syncSenders(); toast(previewMirror ? '自拍鏡像：只影響自己預覽' : '正向預覽：與送出畫面一致'); };
   const onCamSize = () => { syncSenders(); fitSelf(); };
   camRaw.addEventListener('loadedmetadata', onCamSize); camRaw.addEventListener('resize', onCamSize);
   // 自己的畫面：方向跟螢幕一樣就滿版顯示（cover），不一樣（導播強制橫／直）才留黑邊
@@ -5502,8 +5500,6 @@ function GuestMain(inv, roomKey){
     const vt = fx.outputTrack() || camTrack;
     if (selfV.srcObject?.getVideoTracks()[0] !== vt) { selfV.srcObject = new MediaStream([vt]); selfV.play().catch(() => {}); }
     selfV.classList.toggle('mirror', previewMirror && facing === 'user' && !fx.base);
-    $('#gmirror').textContent = previewMirror ? '自拍鏡像' : '正向預覽';
-    $('#gmirror').setAttribute('aria-pressed', String(previewMirror));
     setTimeout(fitSelf, 50);
     const pc = call?.peerConnection; if (!pc) return;
     // 第一次：記下每個 sender 是哪一條（之後換鏡頭／麥克風才知道要換哪一條）
@@ -5904,6 +5900,7 @@ function GuestMain(inv, roomKey){
 
   function sheetSettings(){
     openSheet('set', `<h2>設定<button class="btn ghost sm" data-close>${ic('x')}</button></h2>
+      <div class="full"><span class="lbl">本機前鏡頭預覽</span>${segc('dpreviewmirror', [['0', '正向'], ['1', '自拍鏡像']], previewMirror ? '1' : '0')}</div>
       <div class="g2" style="margin-top:10px">
         <div class="full"><span class="lbl">你的名字</span><input class="field" id="nm2" value="${esc(store('wc_name') || '')}" maxlength="30"></div>
         <div class="full"><span class="lbl">鏡頭（電腦可選擷取卡／外接相機）</span><select class="field" id="dcam"></select></div>
@@ -5925,6 +5922,7 @@ function GuestMain(inv, roomKey){
         <div class="full"><span class="lbl">回看畫面位置</span>${segc('drp', RET_POS, retLayout.pos)}</div>
         <div class="full"><span class="lbl">離開網頁時</span>${segc('dl', [['ask', '每次詢問'], ['pip', '自動子母畫面'], ['close', '關閉畫面']], leaveMode)}</div>
       </div>`, sh => {
+      $$('#dpreviewmirror button', sh).forEach(b => b.addEventListener('click', () => { previewMirror = b.dataset.v === '1'; store('wc_preview_mirror', previewMirror ? '1' : '0'); syncSenders(); }));
       $$('#dor button', sh).forEach(b => b.addEventListener('click', () => setOrient(b.dataset.v)));
       $$('#dfps button', sh).forEach(b => b.addEventListener('click', () => { fpsPref = +b.dataset.v; store('wc_fps', fpsPref); camTrack?.applyConstraints({ frameRate: { ideal: fpsPref } }).catch(() => {}); sendState(); }));
       $$('#drs button', sh).forEach(b => b.addEventListener('click', () => setRetLayout({ size: b.dataset.v })));
