@@ -779,6 +779,19 @@ body.mob .hwbus{padding:6px;gap:8px}body.mob .hwk{min-width:56px;height:54px}bod
 @media(max-width:600px){.gaudmon{left:12px;bottom:calc(165px + var(--sab,0px));width:220px;padding:9px 12px}.gp .gbar{gap:4px;padding-left:8px;padding-right:8px}.gp .cbtn{min-width:0;flex:1}.gp .cbtn .c{width:42px;height:42px}.gp .cbtn>span:last-child{font-size:10px}.gp .gtally{font-size:14px;padding:8px 12px}}
 @media(max-height:500px){.gaudmon{bottom:92px;width:220px;padding:7px 10px}.gaudscale{display:none}}
 
+
+/* Selected style ④: compact microphone activity strip */
+.gaudmon{display:flex;align-items:center;gap:10px;width:min(280px,calc(100% - 32px));padding:10px 12px;border-radius:12px;background:#141c27d9;box-shadow:0 4px 16px #0003}
+.gaudhead{display:flex;align-items:center;gap:7px;flex:none;margin:0;font-size:11px;letter-spacing:.04em;white-space:nowrap}
+.gaudhead svg{width:16px;height:16px;flex:none;color:#d9e5f3}
+.gaudtrack{flex:1;min-width:0;height:4px;border-radius:4px;background:#ffffff26}
+.gaudtrack i{background:#4ade80;transition:width .1s ease-out;border-radius:4px}
+.gaudmon.clipping .gaudtrack i{background:#ff5964}
+.gaudmon.muted{opacity:.65}.gaudmon.muted .gaudhead{color:#94a3b8}
+#gauddb,.gaudscale,#gaudstatus{display:none}
+@media(max-width:600px){.gaudmon{width:min(260px,calc(100% - 24px));padding:10px 12px}}
+@media(max-height:500px){.gaudmon{width:220px;padding:8px 10px}}
+
 </style>
 </head>
 <body>
@@ -5287,7 +5300,7 @@ function GuestMain(inv, roomKey){
     <div class="gccpill hidden" id="gcc">● 字幕辨識中</div>
     <div class="ret hidden" id="rw"><video id="retV" autoplay playsinline muted></video><span>RETURN 回看</span><div class="rb"><button id="rwm" title="縮小">－</button><button id="rwp" title="放大">＋</button></div><div class="rz" id="rwz"></div></div>
     <audio id="retA" autoplay playsinline style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></audio>
-    <div class="gaudmon" id="gaudmon"><div class="gaudhead"><span id="gaudroute">MIC · 收音預覽</span><strong id="gauddb">−∞ dBFS</strong></div><div class="gaudtrack"><i id="gaudfill"></i></div><div class="gaudscale"><span>−60</span><span>−36</span><span>−18</span><span>−6</span><span>0</span></div><div id="gaudstatus">等待麥克風</div></div>
+    <div class="gaudmon" id="gaudmon"><div class="gaudhead">${ic('mic')}<span id="gaudroute">MIC</span><strong id="gauddb">−∞ dBFS</strong></div><div class="gaudtrack"><i id="gaudfill"></i></div><div class="gaudscale"><span>−60</span><span>−36</span><span>−18</span><span>−6</span><span>0</span></div><div id="gaudstatus">等待麥克風</div></div>
     <div class="zoombig" id="zb">1.0×</div>
     <div class="zoomui hidden" id="zui"></div>
     <div class="player hidden" id="pl">
@@ -5438,8 +5451,11 @@ function GuestMain(inv, roomKey){
   const micLoop = setInterval(function loop(){ const ml = $('#mlv'); if (!ml) return clearInterval(micLoop); if (document.hidden) return; const v = (pgmMic || icMic) ? meter() : 0; const l = $('#lvl'); if (l) l.style.width = v * 100 + '%';
     $('#gaudfill').style.width = (v * 100) + '%';
     $('#gauddb').textContent = v > 0 ? Math.round(v * 60 - 60) + ' dBFS' : '−∞ dBFS';
-    $('#gaudroute').textContent = icMic ? 'INTERCOM · 對講' : 'PROGRAM · 節目麥';
+    $('#gaudroute').textContent = !(pgmMic || icMic) ? '靜音' : icMic ? 'TALK' : 'MIC';
     $('#gaudstatus').textContent = !micTrack ? '等待麥克風' : !(pgmMic || icMic) ? '麥克風已靜音' : v > .95 ? '電平過高 · 請降低收音' : v > .35 ? '收音中' : '低電平 · 等待聲音';
+    $('#gaudmon').classList.toggle('muted', !(pgmMic || icMic));
+    $('#gaudmon').setAttribute('aria-label', $('#gaudstatus').textContent + '，' + $('#gauddb').textContent);
+    $('#gaudmon').title = $('#gaudstatus').textContent;
     $('#gaudmon').classList.toggle('clipping', v > .95); ml.style.opacity = pgmMic && v > .35 ? Math.min(1, (v - .35) * 3) : 0; }, 120);
   function syncSenders(){
     if (!camTrack) return;
