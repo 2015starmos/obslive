@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2222-metal">
+<meta name="webcall-version" content="2026.1112.2500">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
@@ -806,6 +806,35 @@ body.opp{overflow:hidden}
 
 
 .media16-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.media16-cell{border:1px solid #405363;background:#14212d;border-radius:7px;padding:7px;min-width:0;touch-action:pan-y}.media16-cell.live{border-color:#e65468}.media16-cell.cue{border-color:#50c58d}.media16-cell.dropok{outline:2px solid #81d6ff}.media16-cell>div{display:flex;gap:5px;margin-top:6px}.picker-dialog{z-index:300000!important}.media16-select{touch-action:none;position:relative;background:#0b141e;color:#c9d9e6;border:0;width:100%;height:64px;border-radius:4px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:8px;overflow:hidden;cursor:pointer}.media16-select img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;pointer-events:none}.media16-select>span,.media16-select>b,.media16-select>small{position:relative;text-shadow:0 1px 3px #000}.media16-select b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.media16-select span,.media16-select small{font-size:10px;color:#819bad}.media16-cell .btn{padding:4px;font-size:10px;flex:1}.cloud-job{border-bottom:1px solid #344454;padding:9px 0;display:grid;gap:5px}.cloud-job small{color:#f0b982}#pvws{touch-action:pan-y}.media16-grid .btn{min-height:28px}@media(max-width:600px){.media16-grid{gap:5px}.media16-cell{padding:4px}.media16-select{height:72px;padding:4px}.media16-select b{font-size:10px}.media16-cell>div{gap:3px}.media16-cell .btn{font-size:9px}.win[data-g=mediag] .wb{padding:6px}}
+
+
+/* v24: switch-off wins over every workstation/custom-layout override. */
+.host.studio.simple .hmain{display:grid!important;grid-template-columns:minmax(0,1fr) clamp(210px,24vw,300px)!important;grid-template-rows:minmax(0,1fr)!important;padding:0!important;gap:0!important}
+.host.studio.simple .hmain>.switcher,.host.studio.simple .hmain>.studioBus,.host.studio.simple .hmain>.studioDesk,.host.studio.simple .layout-drag-grip,.host.studio.simple .layout-resize-grip{display:none!important}
+.host.studio.simple .hmain>.studioSources{position:relative!important;inset:auto!important;width:auto!important;height:100%!important;display:flex!important;grid-column:1!important;grid-row:1!important;min-width:0;min-height:0}
+.host.studio.simple .hmain>.dock{display:block!important;grid-column:2!important;grid-row:1!important;width:100%!important;min-width:0;min-height:0;overflow:auto}
+.host.studio.simple #sourceViewToggle,.host.studio.simple #studioView{display:none!important}
+/* Reference layout retains current crystal PROGRAM/PREVIEW key rows. */
+.host.studio.layout-reference:not(.simple):not(.keyboard-only) .hmain{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,60fr) minmax(150px,40fr)!important;padding:8px;gap:8px}
+.host.studio.layout-reference:not(.simple):not(.keyboard-only) .hmain>.switcher{display:grid!important;grid-column:1!important;grid-row:1!important;grid-template-columns:minmax(0,1fr) clamp(95px,11vw,165px) minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;padding:0;gap:10px}
+.host.studio.layout-reference:not(.simple):not(.keyboard-only) .switcher>.tcol{display:flex!important;grid-column:2;grid-row:1;min-height:0;padding:0;gap:5px}
+.host.studio.layout-reference .switcher>.tcol .tbar{height:auto;min-height:40px;flex:1;max-height:none}.host.studio.layout-reference .switcher>.tcol .tbtn{height:30px;min-height:26px;flex:none}.host.studio.layout-reference .switcher>.mon.pvw{grid-column:1;grid-row:1}.host.studio.layout-reference .switcher>.mon.pgm{grid-column:3;grid-row:1}
+.host.studio.layout-reference:not(.simple):not(.keyboard-only) .hmain>.studioBus{display:grid!important;grid-column:1!important;grid-row:2!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important}
+.host.studio.layout-reference:not(.simple):not(.keyboard-only) .hmain>.dock{display:none!important}
+.host.studio.layout-reference.sources-open:not(.simple):not(.keyboard-only) .hmain{grid-template-rows:minmax(0,50fr) minmax(0,25fr) minmax(140px,25fr)!important}
+.host.studio.layout-reference.sources-open:not(.simple):not(.keyboard-only) .hmain>.studioSources{display:flex!important;grid-column:1!important;grid-row:2!important}.host.studio.layout-reference.sources-open:not(.simple):not(.keyboard-only) .hmain>.studioBus{grid-row:3!important}
+@media(max-width:700px){.host.studio.simple .hmain{grid-template-columns:minmax(0,1fr) minmax(130px,32%)!important}.host.studio.simple .dock .dsec{padding:8px}.host.studio.layout-reference:not(.simple):not(.keyboard-only) .hmain{padding:4px;gap:4px}.host.studio.layout-reference:not(.simple):not(.keyboard-only) .hmain>.switcher{gap:4px;grid-template-columns:minmax(0,1fr) 80px minmax(0,1fr)!important}}
+
+
+/* v25: switching opens one console, without a second keyboard mode control. */
+#keyboardToggle,.keyboard-mode-title{display:none!important}
+.host.studio.has-console:not(.simple):not(.layout-free):not(.layout-reference) .hmain{grid-template-rows:minmax(0,60fr) minmax(160px,40fr)!important}
+.host.studio.has-console:not(.simple):not(.layout-free):not(.layout-reference) .hmain>.studioBus{display:grid!important;grid-column:1/-1!important;grid-row:2!important}
+.host.studio:not(.has-console):not(.simple):not(.layout-free):not(.layout-reference) .hmain>.studioBus{display:none!important}
+.host.studio:not(.pro) .proonly{display:none!important}
+.host.studio .studioSources .tile .ctl select[data-a=slot]{display:block!important;min-width:76px!important;max-width:100px!important;flex:0 0 76px}
+#routeSlots{white-space:nowrap;min-height:25px;font-size:11px}
+
 </style>
 </head>
 <body>
@@ -1677,7 +1706,8 @@ function Host(sess){
   const CTL = { sel: null };
   if (store('wc_crystal_rows_v1') !== '1') { store('wc_swmode', 'on'); store('wc_crystal_rows_v1', '1'); }
   if (store('wc_studio_v13') !== '1') { store('wc_swmode','on'); store('wc_studio_v13','1'); }
-  const UI = { sw: store('wc_swmode') !== 'off', pro: store('wc_pro') === '1' };
+  const savedSwitch=store('wc_swmode');
+  const UI={sw:savedSwitch==='on',pro:store('wc_pro')==='1'};if(savedSwitch==null)UI.sw=UI.pro;if(UI.sw)UI.pro=true;
   // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
   const GROUPS = {
     ic:   { key: '對講／IFB', title: 'INTERCOM 對講台／IFB 返送／倒數', w: 780, h: 620, tabs: ['ic', 'ifb', 'timer'] },
@@ -1687,13 +1717,13 @@ function Host(sess){
     ctl:  { key: '遠端控制', tabs: ['ctl'] },
     mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','replay','cloud','recovery','workflow','pocket'] },
     swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src', 'vset', 'gfx', 'still', 'scene', 'lay', 'rec', 'set'] },
-    outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['out', 'aux', 'strm'] },
+    outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['routing', 'out', 'aux', 'strm'] },
     sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc', 'ops', 'keys'] },
   };
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
   const PROTAB = new Set(['mtx', 'lay', 'aux', 'strm', 'noc']);   // 專業版才顯示的分頁
-  const TABN = { recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const TABN = { routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1875,7 +1905,7 @@ function Host(sess){
       <button class="btn primary" id="inv">${ic('user')}邀請來賓</button>
       <button class="btn danger" id="endb">結束</button>
     </div>
-    <div class="keybar" id="keys"><button type="button" id="layoutPrefsButton">版面偏好</button><span class="keyboard-mode-title">PROGRAM / PREVIEW · 導播鍵盤</span><button type="button" id="keyboardToggle" role="switch" aria-checked="false" aria-pressed="false">開啟導播鍵盤</button><button type="button" id="sourceViewToggle" aria-pressed="false">來源監看</button><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option></select>
+    <div class="keybar" id="keys"><button type="button" id="layoutPrefsButton">版面偏好</button><button type="button" class="btn sm" id="routeSlots">來賓／路數指派</button><button type="button" id="sourceViewToggle" aria-pressed="false">來源監看</button><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option></select>
       ${Object.entries(GROUPS).map(([k, d]) => `<div class="key" data-win="${k}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
       <span class="kgap"></span>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
@@ -2325,12 +2355,17 @@ function Host(sess){
   function selectInput(id){ CTL.sel = id; order.forEach(x => updateTile(inputs.get(x))); if (WIN.ctl?.open) renderCtl(); }
   const target = () => inputs.get(UI.sw ? SW.pvw : (CTL.sel || SW.pvw));
   function setSwMode(on){
-    UI.sw = on; store('wc_swmode', on ? 'on' : 'off');
+    UI.sw = !!on;on=UI.sw;store('wc_swmode',on?'on':'off');
+    if(on&&!UI.pro){UI.pro=true;store('wc_pro','1');$('#hroot').classList.add('pro');$('#modet').textContent='專業版';}
+    if(!on&&keyboardMode)setKeyboardMode(false);
+    monitorExpansion?.close();
     $('#hroot').classList.toggle('simple', !on); $('#swk').classList.toggle('on', on);
     SW.t = 0; SW.anim = null; SW.base = SW.tpos = 0; SW.pip.on = false; SW.ftbOn = false; $('#ftb').classList.remove('on'); $('#ftbtag').classList.add('hidden');
     if (on) { if (!inputs.get(SW.pgm)) SW.pgm = order.find(id => inputs.get(id).tally === 'live') || order[0] || null; if (!inputs.get(SW.pvw) || SW.pvw === SW.pgm) SW.pvw = order.find(id => id !== SW.pgm) || null; }
     else order.forEach(id => { const x = inputs.get(id); x.manual = x.tally; });
     renderPipBar(); renderSwitcherLabels(); updateTally(); renderDock(); setTimeout(() => { layoutGrid(); drawTbar(); }, 30);
+    layoutManager?.apply();
+    $('#swk').setAttribute('role','switch');$('#swk').setAttribute('aria-checked',String(on));
     toast(on ? '切換台已開啟（PREVIEW／PROGRAM／T-Bar）' : '切換台已關閉（每一路用 ON AIR／PVW／STBY）');
   }
   // 右側固定面板（切換台關閉時）：輸出給 OBS＋回傳
@@ -3448,7 +3483,7 @@ function Host(sess){
   async function scanPocket(){if(!navigator.mediaDevices?.getUserMedia)throw Error('請使用 HTTPS 開啟並確認瀏覽器支援相機');const temp=await navigator.mediaDevices.getUserMedia({video:true,audio:false});temp.getTracks().forEach(t=>t.stop());POCKET_DEVICES=await navigator.mediaDevices.enumerateDevices();renderPocket();}
   function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${/pocket|osmo|dji/i.test(d.label)?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播</h4><div class="note">Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?{deviceId:{exact:aud}}:false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;setPvw(x.id);renderAll();toast('DJI Pocket 已加入 PREVIEW；可切換、ISO 錄影與送出');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');}
 
-  const WDEF = {
+  const WDEF = { routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
     recovery:{title:'錄影恢復／待續上傳',w:760,h:640,render:renderRecovery},
     pocket:{title:'DJI Pocket USB／網路訊號',w:720,h:640,render:renderPocket},
     workflow:{title:'錄影目的地／推流拉流同步',w:760,h:680,render:renderWorkflow},
@@ -4134,11 +4169,20 @@ function Host(sess){
   const toggleWin = id => { id = WALIAS[id] || id; WIN[id]?.open ? closeWin(id) : openWin(id); };
 
   /* =============== 輸出（OBS） =============== */
+  function renderRouting(){
+    const w=WIN.routing;if(!w?.open)return;
+    w.body.innerHTML=`<div class="wsec"><h4>來賓／來源指派</h4><div class="note">切換鍵位決定 PROGRAM／PREVIEW 按鍵順序；OUT 是給 OBS 的獨立輸出編號，兩者分開設定。指定已使用的 OUT，原來源會改為未指派。</div>${order.map((id,index)=>{const g=inputs.get(id);return `<div class="wsec"><b>${esc(g.name)}</b> <small>${g.kind==='guest'?'來賓':'來源'}${g.lost?' · 已離線':''}</small><div class="row"><label class="grow">切換鍵位<select class="field full" data-route-order="${esc(id)}" aria-label="${esc(g.name)} 切換鍵位">${order.map((other,i)=>`<option value="${i}" ${i===index?'selected':''}>${i+1} · ${esc(inputs.get(other)?.name||'')}</option>`).join('')}</select></label><label class="grow">獨立輸出<select class="field full" data-route-slot="${esc(id)}" aria-label="${esc(g.name)} 獨立輸出"><option value="0">未指派</option>${Array.from({length:LINES},(_,i)=>`<option value="${i+1}" ${g.slot===i+1?'selected':''}>OUT ${i+1}</option>`).join('')}</select></label><button class="btn sm" data-route-pvw="${esc(id)}">送 PREVIEW</button></div></div>`;}).join('')||'<div class="note">尚無來賓或來源連線。</div>'}</div>`;
+    $$('[data-route-slot]',w.body).forEach(select=>select.onchange=()=>{if(!canSw()){roleDeny();return renderRouting();}const g=inputs.get(select.dataset.routeSlot);if(g)setSlot(g,Number(select.value));renderRouting();});
+    $$('[data-route-order]',w.body).forEach(select=>select.onchange=()=>{if(!canSw()){roleDeny();return renderRouting();}moveSourcePosition(select.dataset.routeOrder,Number(select.value));});
+    $$('[data-route-pvw]',w.body).forEach(button=>button.onclick=()=>{if(!canSw())return roleDeny();setPvw(button.dataset.routePvw);});
+  }
+  function moveSourcePosition(id,index){const previous=order.indexOf(id);if(previous<0||!Number.isInteger(index)||index<0||index>=order.length)return;order.splice(previous,1);order.splice(index,0,id);renderAll();renderRouting();}
   function setSlot(inp, ns){
+    if(!inp||!Number.isInteger(ns)||ns<0||ns>LINES)return;
     const old = inp.slot;
     if (ns) inputs.forEach(o => { if (o !== inp && o.slot === ns) { o.slot = 0; updateTile(o); } });
     inp.slot = ns; if (old) refreshSlot(old); if (ns) refreshSlot(ns);
-    updateTile(inp); if (WIN.out?.open) renderOut(); renderDock();
+    updateTile(inp); if (WIN.out?.open) renderOut(); renderDock();if(WIN.routing?.open)renderRouting();
   }
   function feedOutput(o){
     try { o.call?.close(); } catch {}
@@ -4465,10 +4509,13 @@ function Host(sess){
   /* =============== 代碼有效性 =============== */
   // 每 10 秒回報一次：代碼是否仍有效 + 連線品質（給派發平台的 NOC 監控面板）
   let beatFail = false;
+  function mcrProductionSummary(){
+    const jobs=CLOUD.jobs;return {version:24,recording:REC.size,finalizing:FINALIZING.size,cloudPending:jobs.filter(j=>j.status!=='已儲存'&&j.status!=='失敗').length,cloudFailed:jobs.filter(j=>j.status==='失敗').length,streamConfigured:WORKFLOW.streams.length,streamActive:WORKFLOW.streams.filter(p=>p.direction==='push'?STREAMS.some(s=>s.workflowProfile===p.id&&s.on):order.some(id=>{const g=inputs.get(id);return g?.workflowProfile===p.id&&!g.lost;})).length};
+  }
   async function beat(){
     if (ended) return;
     const r1 = v => v == null ? null : Math.round(v * 10) / 10;
-    const tele = { ops: { version:20, recording:REC.size>0, recordings:[...REC.values()].map(r=>({key:r.key,label:r.label,bytes:r.size})), returnSource:RET.src }, k: roomKey, label: info.label || '', lines: LINES, invite: invite.slice(0, 2) + '…', outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', mons: mons.size,
+    const tele = { ops: { version:24,mcr:mcrProductionSummary(), recording:REC.size>0, recordings:[...REC.values()].map(r=>({key:r.key,label:r.label,bytes:r.size})), returnSource:RET.src }, k: roomKey, label: info.label || '', lines: LINES, invite: invite.slice(0, 2) + '…', outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', mons: mons.size,
       totalKbps: Math.round(liveGuests().reduce((a, g) => a + (g.net?.kbps || 0), 0)),
       guests: liveGuests().map(g => ({ id: g.id.slice(-10), name: g.name, kbps: r1(g.net?.kbps), rtt: r1(g.net?.rtt), loss: r1(g.net?.loss), jitter: r1(g.net?.jitter), fps: r1(g.net?.fps), res: g.net?.res,
         codec: g.net?.codec || '', path: g.net?.path ? pathText(g.net.path) : '', conn: g.state.conn || null,
@@ -5702,34 +5749,38 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     const KEY='wc_layout_preferences_v16';
     const seed={pvw:{x:0,y:0,w:49,h:53},pgm:{x:51,y:0,w:49,h:53},inputs:{x:0,y:55,w:100,h:45},keyboard:{x:0,y:56,w:78,h:44},transition:{x:80,y:56,w:20,h:44}};
     const classic={pvw:{x:0,y:0,w:43,h:58},pgm:{x:57,y:0,w:43,h:58},transition:{x:44,y:0,w:12,h:58},inputs:{x:0,y:60,w:100,h:40},keyboard:{x:0,y:60,w:100,h:40}};
-    const labels={pvw:'PREVIEW 預覽',pgm:'PROGRAM 播出',inputs:'來源監看',keyboard:'導播鍵盤',transition:'轉場 / T-Bar'};
-    const defaults=mode=>({visible:{pvw:true,pgm:true,inputs:mode==='classic',keyboard:mode==='custom',transition:mode!=='studio'},rects:structuredClone(mode==='classic'?classic:seed)});
+    const labels={pvw:'PREVIEW 預覽',pgm:'PROGRAM 播出',inputs:'來源監看',keyboard:'PROGRAM / PREVIEW 控盤',transition:'轉場 / T-Bar'};
+    const defaults=mode=>({visible:{pvw:true,pgm:true,inputs:mode==='classic',keyboard:true,transition:true},rects:structuredClone(mode==='classic'?classic:seed)});
     let saved={};try{saved=JSON.parse(store(KEY)||'{}')||{};}catch{}
-    const prefs={mode:['studio','classic','custom'].includes(saved.mode)?saved.mode:'studio',skin:saved.skin==='dark'?'dark':'hardware',snap:saved.snap!==false,grid:saved.grid!==false,snapStrength:[4,8,10,14,20].includes(saved.snapStrength)?saved.snapStrength:10,edit:false,profiles:{}};
-    ['studio','classic','custom'].forEach(mode=>{
+    const prefs={schema:25,mode:['studio','reference','classic','custom'].includes(saved.mode)?saved.mode:'studio',skin:saved.skin==='dark'?'dark':'hardware',snap:saved.snap!==false,grid:saved.grid!==false,snapStrength:[4,8,10,14,20].includes(saved.snapStrength)?saved.snapStrength:10,edit:false,profiles:{}};
+    ['studio','reference','classic','custom'].forEach(mode=>{
       const d=defaults(mode),p=saved.profiles?.[mode];
       Object.keys(labels).forEach(id=>{if(typeof p?.visible?.[id]==='boolean')d.visible[id]=p.visible[id];if(p?.rects?.[id])d.rects[id]=fitPanelRect(p.rects[id],1000,700);});prefs.profiles[mode]=d;
     });
+    if(Number(saved.schema||0)<25){prefs.profiles.studio.visible.keyboard=true;prefs.profiles.studio.visible.transition=true;}
     const root=$('#hroot'),area=$('.hmain',root),nodes={pvw:$('#pvws').closest('.mon'),pgm:$('#pgms').closest('.mon'),inputs:$('.studioSources',root),keyboard:$('#crystalConsole'),transition:$('.studioBus>.tcol',root)};
     const controls={};let dialog=null,paintFrame=0;
     const profile=()=>prefs.profiles[prefs.mode];
     const save=()=>{store(KEY,JSON.stringify({...prefs,edit:false}));};
-    function refresh(){layoutGrid();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');}
+    function refresh(){layoutGrid();drawTbar();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');}
     function apply(){
-      const free=prefs.mode!=='studio'&&!keyboardMode;
+      const free=UI.sw&&['classic','custom'].includes(prefs.mode)&&!keyboardMode;
+      root.classList.toggle('layout-reference',prefs.mode==='reference');root.classList.toggle('has-console',UI.sw&&profile().visible.keyboard);
+      const switcher=$('.hmain>.switcher',root),bus=$('.studioBus',root);
+      if(UI.sw&&prefs.mode==='reference'&&!keyboardMode){if(nodes.transition.parentElement!==switcher)switcher.insertBefore(nodes.transition,nodes.pgm);}else if(nodes.transition.parentElement!==bus)bus.appendChild(nodes.transition);
       root.classList.toggle('hardware-console',prefs.skin==='hardware');
       root.classList.toggle('layout-grid',free&&prefs.edit&&prefs.snap&&prefs.grid);
       root.classList.toggle('layout-free',free);root.classList.toggle('layout-classic',prefs.mode==='classic');root.classList.toggle('layout-edit',free&&prefs.edit);
       const p=profile(),W=area.clientWidth||1000,H=area.clientHeight||700;
       Object.entries(nodes).forEach(([id,node])=>{
         node.dataset.layoutPanel=id;
-        const visible=keyboardMode?['pvw','pgm','keyboard','transition'].includes(id):p.visible[id];
+        const visible=!UI.sw?id==='inputs':keyboardMode?['pvw','pgm','keyboard','transition'].includes(id):p.visible[id];
         node.dataset.layoutHidden=String(!visible);
         if(free){const r=fitPanelRect(p.rects[id],W,H);p.rects[id]=r;Object.assign(node.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%',height:r.h+'%'});
           const c=controls[id];Object.assign(c.grip.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%'});Object.assign(c.resize.style,{left:(r.x+r.w)+'%',top:(r.y+r.h)+'%'});c.grip.hidden=c.resize.hidden=!visible;
         }else ['left','top','width','height'].forEach(k=>node.style.removeProperty(k));
       });
-      if(!keyboardMode){showSourceMonitor=p.visible.inputs;root.classList.toggle('sources-open',showSourceMonitor);$('#sourceViewToggle').setAttribute('aria-pressed',String(showSourceMonitor));if(prefs.mode==='studio'){const chosen=$('#studioView').value;root.dataset.studioview=showSourceMonitor&&innerWidth<1000?'inputs':chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;}}
+      if(!keyboardMode){showSourceMonitor=!UI.sw||p.visible.inputs;root.classList.toggle('sources-open',showSourceMonitor);$('#sourceViewToggle').setAttribute('aria-pressed',String(showSourceMonitor));if(prefs.mode==='studio'){const chosen=$('#studioView').value;root.dataset.studioview=showSourceMonitor&&innerWidth<1000?'inputs':chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;}}
       if(paintFrame)cancelAnimationFrame(paintFrame);paintFrame=requestAnimationFrame(()=>{paintFrame=0;refresh();});
     }
     function change(mutator){monitorExpansion.close();showSnapGuides([]);mutator();save();apply();if(dialog)renderDialog();}
@@ -5751,19 +5802,19 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       lines.forEach(line=>{const g=snapGuides[line.axis],limit=line.axis==='x'?area.clientWidth:area.clientHeight;if(!limit)return;g.el.hidden=false;g.el.style[line.axis==='x'?'left':'top']=(line.at/limit*100)+'%';g.label.textContent=line.label;});
     }
     function setMode(mode){
-      if(!['studio','classic','custom'].includes(mode))return;
+      if(!['studio','reference','classic','custom'].includes(mode))return;
       monitorExpansion.close();showSnapGuides([]);if(keyboardMode)setKeyboardMode(false);prefs.mode=mode;prefs.edit=mode==='custom';$('#studioView').value='all';
       if(!UI.sw)setSwMode(true);save();setStudioView();apply();if(dialog)renderDialog();
     }
     function renderDialog(){
       if(!dialog)return;const p=profile();
-      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label>控盤材質 <select id="lpSkin"><option value="hardware">實體導播台</option><option value="dark">深色平面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${prefs.mode==='studio'?'disabled':''}> 顯示拖曳／縮放把手</label><label><input type="checkbox" id="lpSnap" ${prefs.snap?'checked':''}> 磁吸對齊</label><label><input type="checkbox" id="lpGrid" ${prefs.grid?'checked':''}> 8px 格線</label><label>吸附距離 <select id="lpSnapStrength">${[4,8,10,14,20].map(n=>`<option value="${n}">${n}px</option>`).join('')}</select></label><span>按住 Alt 暫時略過磁吸。設定自動儲存。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${(id==='keyboard'&&prefs.mode==='studio'?keyboardMode:p.visible[id])?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${prefs.mode==='studio'?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>靠近邊界、中心線或其他面板時自動吸附；縮放時可吸成同寬或同高。按住 Alt 暫時略過磁吸。舊版排列與各區塊拖曳縮放仍保留。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
+      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="reference">參考版切換台（雙監看＋中央推桿）</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label>控盤材質 <select id="lpSkin"><option value="hardware">實體導播台</option><option value="dark">深色平面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${['studio','reference'].includes(prefs.mode)?'disabled':''}> 顯示拖曳／縮放把手</label><label><input type="checkbox" id="lpSnap" ${prefs.snap?'checked':''}> 磁吸對齊</label><label><input type="checkbox" id="lpGrid" ${prefs.grid?'checked':''}> 8px 格線</label><label>吸附距離 <select id="lpSnapStrength">${[4,8,10,14,20].map(n=>`<option value="${n}">${n}px</option>`).join('')}</select></label><span>按住 Alt 暫時略過磁吸。設定自動儲存。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${p.visible[id]?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${['studio','reference'].includes(prefs.mode)?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>靠近邊界、中心線或其他面板時自動吸附；縮放時可吸成同寬或同高。按住 Alt 暫時略過磁吸。舊版排列與各區塊拖曳縮放仍保留。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
       $('#lpMode',dialog).value=prefs.mode;$('#lpMode',dialog).onchange=e=>setMode(e.target.value);
       $('#lpSkin',dialog).value=prefs.skin;$('#lpSkin',dialog).onchange=e=>change(()=>prefs.skin=e.target.value==='dark'?'dark':'hardware');
       $('#lpSnap',dialog).onchange=e=>change(()=>prefs.snap=e.target.checked);$('#lpGrid',dialog).onchange=e=>change(()=>prefs.grid=e.target.checked);$('#lpSnapStrength',dialog).value=String(prefs.snapStrength);$('#lpSnapStrength',dialog).onchange=e=>change(()=>prefs.snapStrength=Number(e.target.value));
       $('#lpEdit',dialog).onchange=e=>change(()=>prefs.edit=e.target.checked);
       $$('[data-lpclose]',dialog).forEach(b=>b.onclick=closeDialog);
-      $$('[data-lp-visible]',dialog).forEach(b=>b.onchange=()=>{const id=b.dataset.lpVisible;if(id==='keyboard'&&prefs.mode==='studio'){setKeyboardMode(b.checked);renderDialog();return;}change(()=>p.visible[id]=b.checked);});
+      $$('[data-lp-visible]',dialog).forEach(b=>b.onchange=()=>{const id=b.dataset.lpVisible;change(()=>p.visible[id]=b.checked);});
       $$('[data-lp-field]',dialog).forEach(i=>i.onchange=()=>change(()=>p.rects[i.dataset.lpId][i.dataset.lpField]=Number(i.value)));
       $('#lpReset',dialog).onclick=()=>change(()=>prefs.profiles[prefs.mode]=defaults(prefs.mode));
       $('#lpReveal',dialog).onclick=()=>{if(prefs.mode==='studio')setMode('custom');change(()=>Object.keys(nodes).forEach(id=>profile().visible[id]=true));};
@@ -5782,16 +5833,9 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     requestAnimationFrame(()=>{layoutGrid();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');});
     layoutManager?.apply();
   };
-  function setKeyboardMode(on){
-    keyboardMode=!!on;
-    if(keyboardMode)monitorExpansion.close();
-    if(keyboardMode&&!UI.sw)setSwMode(true);
-    const root=$('#hroot'),button=$('#keyboardToggle');
-    root.classList.toggle('keyboard-only',keyboardMode);
-    button.textContent=keyboardMode?'關閉鍵盤 · 返回導播介面':'開啟導播鍵盤';
-    button.setAttribute('aria-pressed',String(keyboardMode));
-    button.setAttribute('aria-checked',String(keyboardMode));
-    $$('.win.floating-feature').forEach(w=>w.classList.toggle('keyboard-temporarily-hidden',keyboardMode));
+  function setKeyboardMode(){
+    keyboardMode=false;$('#hroot').classList.remove('keyboard-only');
+    $$('.win.floating-feature').forEach(w=>w.classList.remove('keyboard-temporarily-hidden'));
     setStudioView();
   }
   $('#sourceViewToggle').onclick=()=>{
@@ -5802,11 +5846,11 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     if(showSourceMonitor)$('#studioView').value='all';
     setStudioView();
   };
-  $('#keyboardToggle').onclick=()=>setKeyboardMode(!keyboardMode);
+  $('#routeSlots').onclick=()=>openWin('routing',true);
   $('#studioView').onchange=setStudioView;
   addEventListener('resize',setStudioView);setStudioView();
   $$('[data-studiopanel]').forEach(b=>b.onclick=()=>openWin(b.dataset.studiopanel,true));
-  layoutManager=createLayoutPreferences();layoutManager.apply();setStudioView();
+  layoutManager=createLayoutPreferences();layoutManager.apply();setStudioView();$('#swk').setAttribute('role','switch');$('#swk').setAttribute('aria-checked',String(UI.sw));
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
