@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1111.2218-snap">
+<meta name="webcall-version" content="2026.1111.2222-metal">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2218-snap';
+  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2222-metal';
   window.WC_BUILTIN = true;
   try { localStorage.removeItem('wc_pkg'); } catch(e) {}
 })();
@@ -793,6 +793,16 @@ body.opp{overflow:hidden}
 .layout-free.layout-edit:not(.keyboard-only) .layout-snap-line:not([hidden]){display:block}
 .layout-snap-line.snap-x{top:0;bottom:0;width:1px;border-left:1px dashed #64d4ff}.layout-snap-line.snap-y{left:0;right:0;height:1px;border-top:1px dashed #64d4ff}
 .layout-snap-line span{position:absolute;padding:2px 5px;border-radius:3px;background:#1c6184;color:#e2f8ff;font:600 10px Arial,sans-serif;white-space:nowrap;box-shadow:0 1px 5px #0008}.snap-x span{top:27px;left:4px}.snap-y span{left:8px;top:4px}.layout-snap-line[hidden]{display:none!important}
+
+.host.studio.hardware-console .studioBus>.tcol{grid-template-columns:repeat(3,minmax(0,1fr)) 96px}
+.host.studio.hardware-console #tbar{width:min(88px,calc(100% - 4px));min-width:28px;background:repeating-linear-gradient(to bottom,transparent 0 13px,#b4c4d58c 13px 14px,transparent 14px 26px) 8px var(--tb-pad,20px)/9px calc(100% - 2*var(--tb-pad,20px)) no-repeat,repeating-linear-gradient(to bottom,transparent 0 13px,#b4c4d58c 13px 14px,transparent 14px 26px) calc(100% - 8px) var(--tb-pad,20px)/9px calc(100% - 2*var(--tb-pad,20px)) no-repeat,linear-gradient(90deg,#111923,#344352 24%,#182431 50%,#344352 76%,#111923);border:1px solid #8292a4;box-shadow:inset 0 1px 0 #eef7ff55,inset 0 0 0 3px #0a111b,0 2px 8px #0008;isolation:isolate}
+.host.studio.hardware-console #tbar .slot{top:var(--tb-pad,20px);bottom:var(--tb-pad,20px);width:12px;margin-left:-6px;background:linear-gradient(90deg,#020509,#192c40,#010408);box-shadow:inset 0 0 5px #000,0 0 0 1px #70839877}
+.host.studio.hardware-console #thdl{left:-4px;right:auto;width:calc(100% + 8px);height:clamp(30px,35%,60px);margin-top:0;transform:translateY(-50%);background:none!important;border:0!important;box-shadow:none!important;border-radius:0;z-index:5;pointer-events:none;overflow:visible}
+.host.studio.hardware-console #thdl::before,.host.studio.hardware-console #thdl::after{content:none!important;display:none!important}
+.metal-tbar-shape{display:none;pointer-events:none}.host.studio.hardware-console #thdl>.metal-tbar-shape{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 4px 3px #000b)}
+.tb-metal-label{display:none}.host.studio.hardware-console .tb-metal-label{display:block;position:absolute;bottom:2px;left:0;right:0;text-align:center;font:600 6px Arial,sans-serif;letter-spacing:.08em;color:#8ba8c4;pointer-events:none;z-index:1}
+.host.studio.hardware-console #tfill{width:6px;margin-left:-3px;background:linear-gradient(#9ce8ff,#2b91bd);box-shadow:0 0 5px #68c7ff88}
+@media(max-width:700px){.host.studio.hardware-console.keyboard-only .hmain>.studioBus{grid-template-columns:minmax(0,1fr) 145px!important}.host.studio.hardware-console .studioBus>.tcol{grid-template-columns:minmax(0,1fr) 64px}.host.studio.hardware-console #tbar{width:min(58px,calc(100% - 4px))}.host.studio.hardware-console #thdl{left:-2px;width:calc(100% + 4px)}}
 
 </style>
 </head>
@@ -1844,7 +1854,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v18-SNAP</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v19-METAL</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -1897,7 +1907,7 @@ function Host(sess){
           <button class="tbtn ptr" id="ptr" title="轉場預覽：T-Bar／AUTO 只在 PREVIEW 畫面試跑，不影響播出（Z）">PREV TRANS</button>
           <button class="tbtn cut" id="cut">CUT</button>
           <button class="tbtn auto" id="auto">AUTO</button>
-          <div class="tbar" id="tbar"><div class="slot"></div><div class="fill" id="tfill"></div><div class="hdl" id="thdl"></div></div>
+          <div class="tbar" id="tbar"><div class="slot"></div><div class="fill" id="tfill"></div><div class="hdl" id="thdl"><svg class="metal-tbar-shape" viewBox="0 0 100 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tbChrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fafcff"/><stop offset=".12" stop-color="#a1b0c2"/><stop offset=".29" stop-color="#f0f6fc"/><stop offset=".52" stop-color="#8799ad"/><stop offset=".83" stop-color="#465d77"/><stop offset="1" stop-color="#bdcbd9"/></linearGradient><linearGradient id="tbStem" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#415873"/><stop offset=".34" stop-color="#e5edf7"/><stop offset=".6" stop-color="#a6b9cd"/><stop offset="1" stop-color="#354f6a"/></linearGradient></defs><ellipse cx="50" cy="58" rx="25" ry="4" fill="#000" opacity=".4"/><rect x="42" y="22" width="16" height="32" rx="3" fill="url(#tbStem)" stroke="#0a1421"/><path d="M30 48h40l4 8c-9 5-39 5-48 0z" fill="url(#tbChrome)" stroke="#132235"/><rect x="3" y="4" width="94" height="27" rx="7" fill="url(#tbChrome)" stroke="#112135" stroke-width="1.5"/><path d="M11 7h78" stroke="#fff" stroke-opacity=".85" stroke-width="2"/><rect x="13" y="11" width="74" height="13" rx="3" fill="#142637" stroke="#7890a7"/><path d="M19 14h62M19 18h62M19 22h62" stroke="#92a4b7" stroke-width="1" opacity=".8"/><path d="M8 29h84" stroke="#0a1523" stroke-opacity=".7" stroke-width="2"/></svg></div><span class="tb-metal-label">METAL T-BAR</span></div>
           <button class="tbtn ftb" id="ftb">FTB</button>
         </div>
 </section>
@@ -2374,23 +2384,32 @@ function Host(sess){
   // 設成 TIE 的字幕圖層會跟著下一次 CUT／AUTO 一起切換
   function tieToggle(dur){ [...OVK.map(k => OV[k]), ...STILLS].forEach(L => { if (L.tie && (L.img || !L.slot)) { L.on = !L.on; L.fadeMs = dur || 1; } }); renderDsk(); softRender('still'); }
   function setTpos(p){ SW.tpos = clamp(p, 0, 1); SW.t = Math.abs(SW.tpos - SW.base); if (SW.t >= .999) complete(); drawTbar(); }
+  function tbarGeometry(bar){
+    const vertical=getComputedStyle(bar).cursor!=='ew-resize';
+    const size=vertical?bar.clientHeight:bar.clientWidth;
+    const hardware=!!$('#hroot')?.classList?.contains?.('hardware-console');
+    const requested=hardware?Math.min(36,Math.max(15,size*.22)):10;
+    const pad=Math.max(0,Math.min(requested,(size-1)/2));
+    return {vertical,pad,span:Math.max(1,size-2*pad)};
+  }
+
   function drawTbar(){
     const bar = $('#tbar'); if (!bar) return;
-    const _b = bar, vertical = getComputedStyle(bar).cursor !== 'ew-resize';
+    const {vertical,pad,span}=tbarGeometry(bar);bar.style.setProperty('--tb-pad',pad+'px');
     const p = SW.tpos, h = $('#thdl'), f = $('#tfill');
     bar.setAttribute('role','slider');bar.setAttribute('aria-label','轉場 T-Bar');bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax','100');bar.setAttribute('aria-valuenow',String(Math.round(p*100)));bar.setAttribute('aria-orientation',vertical?'vertical':'horizontal');
     if (vertical) {
-      const top = 10 + (bar.clientHeight - 20) * p;
-      h.style.top = top + 'px'; h.style.left = ''; f.style.top = Math.min(top, 10 + (bar.clientHeight - 20) * SW.base) + 'px'; f.style.height = Math.abs(top - (10 + (bar.clientHeight - 20) * SW.base)) + 'px'; f.style.left = ''; f.style.width = '';
+      const top = pad + span * p;
+      h.style.top = top + 'px'; h.style.left = ''; f.style.top = Math.min(top, pad + span * SW.base) + 'px'; f.style.height = Math.abs(top - (pad + span * SW.base)) + 'px'; f.style.left = ''; f.style.width = '';
     } else {
-      const left = 10 + (bar.clientWidth - 20) * p;
-      h.style.left = left + 'px'; h.style.top = ''; const b0 = 10 + (bar.clientWidth - 20) * SW.base;
+      const left = pad + span * p;
+      h.style.left = left + 'px'; h.style.top = ''; const b0 = pad + span * SW.base;
       f.style.left = Math.min(left, b0) + 'px'; f.style.width = Math.abs(left - b0) + 'px'; f.style.top = ''; f.style.height = '';
     }
   }
   (() => {
     const bar = $('#tbar'); let drag = false;
-    const pos = e => { const r = bar.getBoundingClientRect(); const v = getComputedStyle(bar).cursor !== 'ew-resize'; return v ? (e.clientY - r.top - 10) / (r.height - 20) : (e.clientX - r.left - 10) / (r.width - 20); };
+    const pos = e => { const r = bar.getBoundingClientRect(),g=tbarGeometry(bar); return g.vertical ? (e.clientY-r.top-g.pad)/g.span : (e.clientX-r.left-g.pad)/g.span; };
     bar.addEventListener('pointerdown', e => { if (!canSw()) return roleDeny(); if (SW.pvw != null && !inputs.has(SW.pvw)) return toast('PREVIEW 來源已移除'); if (SW.type === 'stinger' || SW.type === 'cut') return toast('這個轉場只能用 AUTO'); drag = true; SW.anim = null; bar.setPointerCapture(e.pointerId); setTpos(pos(e)); });
     bar.addEventListener('pointermove', e => drag && setTpos(pos(e)));
     bar.addEventListener('pointerup', () => drag = false);
