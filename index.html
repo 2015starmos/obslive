@@ -835,6 +835,52 @@ body.opp{overflow:hidden}
 .host.studio .studioSources .tile .ctl select[data-a=slot]{display:block!important;min-width:76px!important;max-width:100px!important;flex:0 0 76px}
 #routeSlots{white-space:nowrap;min-height:25px;font-size:11px}
 
+.host.layout-preset>.hmain{position:relative!important;display:block!important;margin:0!important;padding:0!important;overflow:hidden!important;min-height:0!important;background:radial-gradient(ellipse at 50% 0,#18232d,#080e14)}
+.host.layout-preset .hmain>.switcher,.host.layout-preset .hmain>.studioBus{display:contents!important;position:static!important}.host.layout-preset .studioDesk,.host.layout-preset .dock{display:none!important}
+.host.layout-preset .hmain [data-layout-panel]{position:absolute!important;left:calc(var(--x)*100%/12 + 6px)!important;top:calc(var(--y)*100%/12 + 6px)!important;width:calc(var(--w)*100%/12 - 12px)!important;height:calc(var(--h)*100%/12 - 12px)!important;min-width:0!important;min-height:0!important;margin:0!important;grid-area:auto!important;border:1px solid #3a4b5c!important;border-radius:6px!important;background:#101a24;box-shadow:0 8px 18px #0006,inset 0 1px 0 #ffffff0d;overflow:hidden!important}
+.host.layout-preset .hmain [data-layout-panel].preview-hidden{display:none!important}
+.host.layout-preset .hmain>.switcher>.mon{display:flex!important;flex-direction:column!important;gap:0}
+.host.layout-preset .hmain .mon .hd{height:32px;min-height:32px;padding:0 9px;background:linear-gradient(#25333f,#17212b);font-size:11px}
+.host.layout-preset .hmain .mon .screen{position:relative;flex:1;height:auto;max-height:none;min-height:0;aspect-ratio:auto;border:0;box-shadow:inset 0 0 0 1px #000}
+.host.layout-preset .hmain .mon .screen canvas{object-fit:contain}.host.layout-preset .hmain .mon .pipbar{height:28px;min-height:28px}.host.layout-preset .hmain .mon .dskbar{display:none!important}
+.host.layout-preset .hmain [data-layout-panel=transition]{display:flex!important;flex-direction:column!important;gap:6px;padding:8px!important;justify-content:flex-start;align-items:stretch}
+.layout-preset [data-layout-panel=transition] .tbar{flex:1!important;min-height:35px!important;height:auto!important;max-height:none!important;width:65px;margin:3px auto!important}.layout-preset [data-layout-panel=transition] .tsel select{height:29px;font-size:10px;width:100%}.layout-preset [data-layout-panel=transition] .tbtn{height:35px!important;min-height:29px!important;flex:none!important;font-size:11px}
+.host.layout-preset .hmain [data-layout-panel=keyboard]{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:24px minmax(0,1fr)!important;padding:8px!important;gap:8px}
+.layout-preset .cc-tools{font-size:10px;height:24px}.layout-preset .cc-buses{display:grid;grid-template-rows:1fr 1fr;gap:10px;min-height:0}.layout-preset .cc-row{min-height:0;display:grid;grid-template-columns:76px minmax(0,1fr);background:linear-gradient(90deg,#172332,#101823);border:1px solid #713545!important;border-radius:4px!important}.layout-preset .cc-row.cc-preview{border-color:#345e40!important}.layout-preset .cc-head{font-size:12px;letter-spacing:.05em}.layout-preset .cc-keys{padding:10px 12px;gap:14px;align-items:center!important;overflow:hidden!important}
+.host.layout-preset .crystal-console .cc-key{height:clamp(40px,7dvh,72px)!important;min-height:35px!important;min-width:58px!important;width:58px!important}.layout-preset .cc-key b{font-size:23px}.layout-preset .cc-key small{font-size:8px}.layout-preset .cc-functions{display:none!important}
+.layout-preset [data-layout-panel=keyboard].vertical .cc-row{grid-template-columns:1fr;grid-template-rows:28px 1fr}.layout-preset [data-layout-panel=keyboard].vertical .cc-keys{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));justify-items:center;align-content:start;gap:15px}.layout-preset [data-layout-panel=keyboard].vertical .cc-head{padding:4px}.layout-preset .studioSources{display:flex!important;flex-direction:column}.layout-preset .studioSources .multiview{display:grid!important;flex:1;min-height:0;gap:7px;padding:7px}.layout-preset .studioSectionHead{height:28px;min-height:28px;background:linear-gradient(#263847,#16212c);font-size:10px;padding:3px 8px}
+.layout-preset .studioSources .tile{border-radius:4px;min-height:0;min-width:0}.layout-preset .tile .lower{padding:3px 6px!important}.layout-preset .tile .nm{font-size:10px!important}.layout-preset .tile .ctl{height:26px!important;gap:3px}.layout-preset .tile .ctl .opt,.layout-preset .tile .ctl .opt2{display:none!important}.layout-preset .tile .ctl [data-a=slot]{min-width:65px!important;width:65px!important;flex:0 0 65px!important;font-size:9px!important}.layout-preset .tile .ctl .btn{font-size:9px}
+.host.layout-preset .hmain>.win{display:flex!important;flex-direction:column!important;resize:none!important;z-index:2!important}.layout-preset .hmain>.win>header{height:29px;min-height:29px;background:linear-gradient(#2a3b49,#15212b);padding:3px 8px;font-size:10px}.layout-preset .hmain>.win>header button,.layout-preset .feature-resize-edge{display:none!important}.layout-preset .hmain>.win .wtabs{height:26px;min-height:26px;padding:2px}.layout-preset .hmain>.win .wtab{font-size:9px;padding:2px 8px}.layout-preset .hmain>.win .wb{padding:6px;min-height:0;overflow:auto;font-size:10px}.layout-preset .hmain>.win [data-w=mix]{display:flex;flex-direction:column;overflow:hidden!important}.layout-preset .mixer{flex:1;height:auto;min-height:0;gap:6px;overflow:hidden}.layout-preset .mixer .strip{width:68px;min-height:0;padding:5px;border-radius:4px}.layout-preset .mixer .strip .nm{font-size:9px}.layout-preset .mixer .fwrap{height:clamp(36px,15dvh,150px);min-height:25px}.layout-preset .mixer input[type=range]{height:100%;min-height:0}.layout-preset .mixer .mb{font-size:8px;height:20px}.layout-preset .hmain>.win [data-w=mix]>.note{display:none}.layout-preset .hmain>.win [data-w=mix]>.row{flex:none;font-size:8px}.layout-preset .hmain>.win [data-w=mix]>.row .btn{font-size:8px;padding:2px;height:22px}.layout-preset .hmain>.win [data-w=mix]>.row .note{display:none}
+.layout-preset .media16-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}.layout-preset .media16-slot{min-height:60px!important}.layout-preset .media16-slot img,.layout-preset .media16-slot video{max-height:70px!important}.layout-preset .hmain [data-layout-panel=media] .wsec{padding:7px}.layout-preset .layout-drag-grip,.layout-preset .layout-resize-grip,.layout-preset .layout-snap-guide{display:none!important}
+.layout-preset .topbar .sess span{font-size:9px}.layout-preset .topbar{padding:6px 12px}.layout-preset .keybar{padding:4px 9px;gap:5px}.layout-preset .keybar .key{font-size:9px;min-width:48px}.layout-preset .topbar .brand{font-size:13px}.layout-preset .topbar .clock{font-size:16px}.layout-preset .floating-feature.keyboard-temporarily-hidden{display:flex!important}
+
+#hroot.layout-preset .crystal-console .cc-key{height:var(--key-height,58px)!important;min-height:0!important}
+#hroot.layout-preset .cc-keys{padding:4px 9px;gap:10px}
+#hroot.layout-preset .hmain [data-layout-panel=transition].compact{display:grid!important;grid-template-columns:1fr 1fr 48px!important;grid-template-rows:24px 24px 28px 28px!important;gap:5px!important}
+#hroot.layout-preset .compact .tsel{grid-column:1 / span 2}
+#hroot.layout-preset .compact .tsel select{height:23px}
+#hroot.layout-preset .compact .tbtn{height:28px!important;min-height:0!important;font-size:9px}
+#hroot.layout-preset .compact .tbar{grid-column:3;grid-row:1 / span 4;width:42px!important;height:100%!important;margin:0!important}
+#hroot.layout-preset .compact .tbtn:last-child{grid-column:1 / span 2}
+#hroot.layout-preset .compact .tsel:has(#ttype){grid-row:1}#hroot.layout-preset .compact .tsel:has(#tdur){grid-row:2}#hroot.layout-preset .compact .tsel:has(#tdir):not(:has(select:empty)){grid-row:3}#hroot.layout-preset .compact #ptr{grid-column:1;grid-row:4}#hroot.layout-preset .compact #cut{grid-column:2;grid-row:4}#hroot.layout-preset .compact #auto{grid-column:1;grid-row:5}#hroot.layout-preset .compact #ftb{grid-column:2;grid-row:5}#hroot.layout-preset .hmain [data-layout-panel=transition].compact{grid-template-rows:23px 23px 23px 27px 27px!important}#hroot.layout-preset .compact .tbar{grid-row:1 / span 5}
+
+#hroot.host.layout-preset .hmain [data-layout-panel=inputs]:not(.preview-hidden){display:flex!important;visibility:visible!important}
+#hroot.host.layout-preset .hmain .studioBus{display:contents!important}
+#hroot.host.layout-preset .topbar,#hroot.host.layout-preset .keybar{overflow:hidden!important;min-height:0!important;flex-wrap:nowrap!important}
+#hroot.host.layout-preset .topbar .sess{max-width:160px;overflow:hidden;white-space:nowrap} 
+
+#hroot.host.layout-preset .hmain [data-layout-panel][data-layout-hidden=true]{display:none!important}
+#hroot.host.layout-preset .hmain [data-layout-panel].monitor-expanded{position:fixed!important;inset:0!important;left:0!important;top:0!important;width:100vw!important;height:var(--wc-vh,100dvh)!important;z-index:10000!important}
+#hroot.host.layout-preset .hmain>.mon{display:flex!important;flex-direction:column}
+#hroot.host.layout-preset [data-layout-panel=aux] video{width:100%;height:100%;object-fit:contain}
+#hroot.host.layout-preset .hmain .layout-preset-docked.hidden{display:none!important}
+#hroot.host.layout-preset .hmain>.win>header button{display:block!important}
+#hroot.host.layout-preset.layout-edit .layout-drag-grip:not([hidden]){display:flex!important}#hroot.host.layout-preset.layout-edit .layout-resize-grip:not([hidden]){display:block!important}#hroot.host.layout-preset .layout-drag-grip[hidden],#hroot.host.layout-preset .layout-resize-grip[hidden]{display:none!important}
+#hroot.host.layout-preset:not(.layout-edit) .layout-drag-grip,#hroot.host.layout-preset:not(.layout-edit) .layout-resize-grip{display:none!important}
+
+
+#hroot.layout-preset .hmain [data-layout-panel=transition].compact.compact-narrow{grid-template-columns:1fr 1fr!important;grid-template-rows:23px 23px 23px 27px 27px minmax(35px,1fr)!important}
+#hroot.layout-preset .compact.compact-narrow .tbar{grid-column:1 / span 2!important;grid-row:6!important;width:42px!important;justify-self:center}
 </style>
 </head>
 <body>
@@ -859,7 +905,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
-const BUILD = 'v20-operations-20261112';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
+const BUILD = 'v28-layouts-20261112';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -1887,7 +1933,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v22-STABLE</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v28-LAYOUTS</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -3558,6 +3604,7 @@ function Host(sess){
     const G = ensureGroup(gid), w = WIN[id];
     if (w.open && !force) { focusWin(G); return; }
     GROUPS[gid].tabs.forEach(t => { WIN[t].open = t === id; WIN[t].body.classList.toggle('hidden', t !== id); });
+    if(G.el.classList.contains('layout-preset-docked')){layoutManager?.capture(G.el.dataset.layoutPanel,true);G.el.dataset.layoutHidden='false';}
     G.open = true; G.cur = id; G.el.dataset.w = id; G.el.classList.remove('hidden'); focusWin(G); updTabs();
     keyEl(id)?.classList.add('on');
     if(G.el.classList.contains('keyboard-temporarily-hidden'))G.el.classList.remove('keyboard-temporarily-hidden');
@@ -3566,6 +3613,7 @@ function Host(sess){
     dockStudioGroup(G,id);
   }
   function dockStudioGroup(G,id){
+    if(G.el.classList.contains('layout-preset-docked'))return;
     if(G.el.parentElement!==document.body)document.body.appendChild(G.el);
     G.el.classList.add('floating-feature');
     G.el.classList.toggle('keyboard-temporarily-hidden',keyboardMode);
@@ -3596,8 +3644,8 @@ function Host(sess){
   }
   addEventListener('pointerup', () => setTimeout(() => Object.values(WIN).forEach(w => { w.busy = false; if (w.pending != null && w.open) { const p = w.pending; w.pending = null; softRender(w.id, p === '*' ? undefined : p); } }), 50), true);
   addEventListener('focusout', () => setTimeout(() => Object.values(WIN).forEach(w => { if (w.pending != null && w.open && !w.busy) { const p = w.pending; w.pending = null; softRender(w.id, p === '*' ? undefined : p); } }), 50), true);
-  function saveWin(w){ if (!w.open) return; store('wc_win_' + w.id, JSON.stringify({ x: w.el.offsetLeft, y: w.el.offsetTop, w: w.el.offsetWidth, h: w.el.offsetHeight })); }
-  function closeGroup(gid){ const G = GW[gid]; if (!G) return; G.open = false; G.el.classList.add('hidden'); GROUPS[gid].tabs.forEach(t => { if (WIN[t]) WIN[t].open = false; }); $(`.key[data-win="${gid}"]`)?.classList.remove('on'); }
+  function saveWin(w){ if (!w.open||w.el.classList.contains('layout-preset-docked')) return; store('wc_win_' + w.id, JSON.stringify({ x: w.el.offsetLeft, y: w.el.offsetTop, w: w.el.offsetWidth, h: w.el.offsetHeight })); }
+  function closeGroup(gid){ const G = GW[gid];if(G?.el.classList.contains('layout-preset-docked'))layoutManager?.capture(G.el.dataset.layoutPanel,false); if (!G) return; G.open = false; G.el.classList.add('hidden'); GROUPS[gid].tabs.forEach(t => { if (WIN[t]) WIN[t].open = false; }); $(`.key[data-win="${gid}"]`)?.classList.remove('on'); }
   function closeWin(id){ id = WALIAS[id] || id; if (GOF[id]) closeGroup(GOF[id]); }
   function focusWin(w){ $$('.win').forEach(x => x.classList.remove('focus')); w.el.classList.add('focus'); w.el.style.zIndex = ++zTop; }
   $$('.key[data-win]').forEach(k => k.onclick = () => { const gid = k.dataset.win, G = GW[gid]; if (G?.open) closeGroup(gid); else openWin(G?.cur && tabVisible(G.cur) ? G.cur : GROUPS[gid].tabs.find(tabVisible)); });
@@ -5707,9 +5755,10 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     const box = $('#crystalConsole'); if (!box) return;
     const list = order.map(id => inputs.get(id)).filter(Boolean);
     const width = box.clientWidth || (typeof innerWidth === 'number' ? innerWidth : 1280);
+    const arranged=$('#hroot').classList.contains('layout-preset'),vertical=arranged&&box.classList.contains('vertical');
     const available = width - (width > 1000 && !keyboardMode ? 270 : 80);
     const keyPitch = keyboardMode ? Math.min(110,Math.max(68,(typeof innerWidth==='number'?innerWidth:1280)*.065+14)) : (width < 600 ? 80 : 92);
-    const perPage = Math.max(1, Math.floor(available / keyPitch) - 1);
+    const perPage = arranged?(vertical?Math.max(1,2*Math.floor(Math.max(60,(box.clientHeight-66)/2)/82)-1):Math.max(1,Math.floor((width-100)/78)-1)):Math.max(1, Math.floor(available / keyPitch) - 1);
     const pages = Math.max(1, Math.ceil(list.length / perPage));
     crystalPage = Math.max(0, Math.min(crystalPage, pages - 1));
     const visible = list.slice(crystalPage * perPage, (crystalPage + 1) * perPage);
@@ -5747,24 +5796,50 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
 
   function createLayoutPreferences(){
     const KEY='wc_layout_preferences_v16';
+    const extraLayouts=[{"id": 1, "name": "經典雙監看", "description": "上方雙監看與中央推桿，下方控盤與來源。", "rects": {"pvw": [0, 0, 5, 5], "pgm": [7, 0, 5, 5], "transition": [5, 0, 2, 5], "keyboard": [0, 5, 9, 4], "audio": [9, 5, 3, 7], "sources": [0, 9, 9, 3]}}, {"id": 2, "name": "播出主畫面", "description": "PROGRAM 佔左側，右邊看預覽及來源。", "rects": {"pgm": [0, 0, 8, 8], "pvw": [8, 0, 4, 4], "sources": [8, 4, 4, 4], "keyboard": [0, 8, 10, 4], "transition": [10, 8, 2, 4]}}, {"id": 3, "name": "全功能工作站", "description": "來源、雙監看、混音與素材同時可見。", "rects": {"sources": [0, 0, 4, 7], "pvw": [4, 0, 4, 5], "pgm": [8, 0, 4, 5], "keyboard": [4, 5, 7, 4], "transition": [11, 5, 1, 4], "audio": [0, 7, 4, 5], "media": [4, 9, 8, 3]}}, {"id": 4, "name": "側邊直列控盤", "description": "雙監看上下排列，控盤移到中間直列。", "rects": {"pvw": [0, 0, 4, 6], "pgm": [0, 6, 4, 6], "keyboard": [4, 0, 5, 12], "transition": [9, 0, 1, 12], "sources": [10, 0, 2, 8], "audio": [10, 8, 2, 4]}}, {"id": 5, "name": "實體導播桌", "description": "雙監看＋中央金屬推桿，兩排控盤置底。", "rects": {"pvw": [0, 0, 5, 7], "pgm": [7, 0, 5, 7], "transition": [5, 0, 2, 7], "keyboard": [0, 7, 12, 5]}}, {"id": 6, "name": "播出上置", "description": "上方大播出，下方預覽；控盤固定右側。", "rects": {"pgm": [0, 0, 9, 7], "pvw": [0, 7, 5, 5], "sources": [5, 7, 4, 5], "transition": [9, 0, 1, 12], "keyboard": [10, 0, 2, 12]}}, {"id": 7, "name": "中央播出", "description": "PROGRAM 置中，預覽、混音及鍵盤環繞。", "rects": {"pgm": [3, 0, 6, 8], "pvw": [0, 0, 3, 5], "audio": [0, 5, 3, 7], "keyboard": [9, 0, 3, 8], "transition": [9, 8, 3, 4], "sources": [3, 8, 6, 4]}}, {"id": 8, "name": "混音優先", "description": "下方完整混音區，上方保留雙監看。", "rects": {"pvw": [0, 0, 5, 5], "pgm": [5, 0, 5, 5], "transition": [10, 0, 2, 5], "keyboard": [0, 5, 9, 3], "sources": [9, 5, 3, 7], "audio": [0, 8, 9, 4]}}, {"id": 9, "name": "素材製播", "description": "左側素材庫，右側大播出，控盤橫跨底部。", "rects": {"media": [0, 0, 4, 9], "pvw": [4, 0, 3, 4], "pgm": [7, 0, 5, 7], "transition": [4, 4, 1, 5], "audio": [5, 4, 2, 3], "sources": [5, 7, 7, 2], "keyboard": [0, 9, 12, 3]}}, {"id": 10, "name": "播出集中", "description": "PROGRAM 最大化，預覽與來源靠右。", "rects": {"pgm": [0, 0, 8, 9], "pvw": [8, 0, 4, 4], "sources": [8, 4, 4, 5], "keyboard": [0, 9, 10, 3], "transition": [10, 9, 2, 3]}}, {"id": 11, "name": "雙畫面專注", "description": "兩個同尺寸大監看，只保留控盤與轉場。", "rects": {"pvw": [0, 0, 6, 8], "pgm": [6, 0, 6, 8], "keyboard": [0, 8, 10, 4], "transition": [10, 8, 2, 4]}}, {"id": 12, "name": "多來源監看", "description": "來源區最大化，右側上下看播出和預覽。", "rects": {"sources": [0, 0, 8, 8], "pgm": [8, 0, 4, 4], "pvw": [8, 4, 4, 4], "keyboard": [0, 8, 10, 4], "transition": [10, 8, 2, 4]}}, {"id": 13, "name": "直式節目", "description": "中央兩個直式監看，適合手機直式節目。", "rects": {"pvw": [3, 0, 3, 8], "pgm": [6, 0, 3, 8], "audio": [0, 0, 3, 8], "sources": [9, 0, 3, 8], "keyboard": [0, 8, 10, 4], "transition": [10, 8, 2, 4]}}, {"id": 14, "name": "平板橫向", "description": "大監看、來源橫帶及寬控盤，觸控區較大。", "rects": {"pvw": [0, 0, 5, 6], "pgm": [7, 0, 5, 6], "transition": [5, 0, 2, 6], "sources": [0, 6, 12, 2], "keyboard": [0, 8, 12, 4]}}, {"id": 15, "name": "左手操作", "description": "推桿放最左，播出大畫面位於右側。", "rects": {"transition": [0, 0, 2, 8], "keyboard": [0, 8, 7, 4], "pvw": [2, 0, 4, 5], "pgm": [6, 0, 6, 8], "sources": [2, 5, 4, 3], "audio": [7, 8, 5, 4]}}, {"id": 16, "name": "右手操作", "description": "推桿放最右，播出大畫面位於左側。", "rects": {"transition": [10, 0, 2, 8], "pgm": [0, 0, 6, 8], "pvw": [6, 0, 4, 5], "sources": [6, 5, 4, 3], "keyboard": [5, 8, 7, 4], "audio": [0, 8, 5, 4]}}, {"id": 17, "name": "三路監看", "description": "PREVIEW、PROGRAM、AUX 並排監看。", "rects": {"pvw": [0, 0, 4, 6], "pgm": [4, 0, 4, 6], "aux": [8, 0, 4, 6], "sources": [0, 6, 5, 3], "audio": [5, 6, 5, 3], "transition": [10, 6, 2, 6], "keyboard": [0, 9, 10, 3]}}, {"id": 18, "name": "編輯與播出", "description": "播出與素材並列，預覽與來源置於中段。", "rects": {"pgm": [0, 0, 8, 6], "media": [8, 0, 4, 7], "pvw": [0, 6, 4, 3], "sources": [4, 6, 4, 3], "audio": [8, 7, 2, 2], "transition": [10, 7, 2, 5], "keyboard": [0, 9, 10, 3]}}, {"id": 19, "name": "模組矩陣", "description": "來源、雙監看三欄，下方集中素材、音訊與控盤。", "rects": {"sources": [0, 0, 4, 6], "pvw": [4, 0, 4, 6], "pgm": [8, 0, 4, 6], "media": [0, 6, 4, 3], "audio": [0, 9, 4, 3], "keyboard": [4, 6, 6, 6], "transition": [10, 6, 2, 6]}}, {"id": 20, "name": "筆電工作區", "description": "右側播出優先，左側預覽與來源，控盤在下方。", "rects": {"pvw": [0, 0, 4, 5], "pgm": [4, 0, 8, 8], "sources": [0, 5, 4, 7], "keyboard": [4, 8, 6, 4], "transition": [10, 8, 2, 4]}}];
+    const presetId=n=>'arrangement-'+String(n).padStart(2,'0');
+    const presetMap=Object.fromEntries(extraLayouts.map(l=>[presetId(l.id),l]));
+    const isPreset=mode=>Object.hasOwn(presetMap,mode);
+    const modes=['studio','reference','classic','custom',...Object.keys(presetMap)];
+
     const seed={pvw:{x:0,y:0,w:49,h:53},pgm:{x:51,y:0,w:49,h:53},inputs:{x:0,y:55,w:100,h:45},keyboard:{x:0,y:56,w:78,h:44},transition:{x:80,y:56,w:20,h:44}};
     const classic={pvw:{x:0,y:0,w:43,h:58},pgm:{x:57,y:0,w:43,h:58},transition:{x:44,y:0,w:12,h:58},inputs:{x:0,y:60,w:100,h:40},keyboard:{x:0,y:60,w:100,h:40}};
-    const labels={pvw:'PREVIEW 預覽',pgm:'PROGRAM 播出',inputs:'來源監看',keyboard:'PROGRAM / PREVIEW 控盤',transition:'轉場 / T-Bar'};
-    const defaults=mode=>({visible:{pvw:true,pgm:true,inputs:mode==='classic',keyboard:true,transition:true},rects:structuredClone(mode==='classic'?classic:seed)});
+    const labels={pvw:'PREVIEW 預覽',pgm:'PROGRAM 播出',inputs:'來源監看',keyboard:'PROGRAM / PREVIEW 控盤',transition:'轉場 / T-Bar',audio:'數位混音台',media:'素材庫 / 回放',aux:'AUX 1 監看'};
+    const defaults=mode=>{
+      const base={...structuredClone(mode==='classic'?classic:seed),audio:{x:0,y:60,w:40,h:40},media:{x:40,y:60,w:60,h:40},aux:{x:66,y:0,w:34,h:50}};
+      const visible={pvw:true,pgm:true,inputs:mode==='classic',keyboard:true,transition:true,audio:false,media:false,aux:false};
+      if(isPreset(mode)){Object.keys(visible).forEach(id=>visible[id]=false);Object.entries(presetMap[mode].rects).forEach(([key,r])=>{const id=key==='sources'?'inputs':key;visible[id]=true;base[id]={x:r[0]/12*100,y:r[1]/12*100,w:r[2]/12*100,h:r[3]/12*100};});}
+      return {visible,rects:base};
+    };
     let saved={};try{saved=JSON.parse(store(KEY)||'{}')||{};}catch{}
-    const prefs={schema:25,mode:['studio','reference','classic','custom'].includes(saved.mode)?saved.mode:'studio',skin:saved.skin==='dark'?'dark':'hardware',snap:saved.snap!==false,grid:saved.grid!==false,snapStrength:[4,8,10,14,20].includes(saved.snapStrength)?saved.snapStrength:10,edit:false,profiles:{}};
-    ['studio','reference','classic','custom'].forEach(mode=>{
+    const prefs={...saved,schema:28,mode:modes.includes(saved.mode)?saved.mode:'studio',skin:saved.skin==='dark'?'dark':'hardware',snap:saved.snap!==false,grid:saved.grid!==false,snapStrength:[4,8,10,14,20].includes(saved.snapStrength)?saved.snapStrength:10,edit:false,profiles:{...(saved.profiles||{})}};
+    modes.forEach(mode=>{
       const d=defaults(mode),p=saved.profiles?.[mode];
       Object.keys(labels).forEach(id=>{if(typeof p?.visible?.[id]==='boolean')d.visible[id]=p.visible[id];if(p?.rects?.[id])d.rects[id]=fitPanelRect(p.rects[id],1000,700);});prefs.profiles[mode]=d;
     });
     if(Number(saved.schema||0)<25){prefs.profiles.studio.visible.keyboard=true;prefs.profiles.studio.visible.transition=true;}
     const root=$('#hroot'),area=$('.hmain',root),nodes={pvw:$('#pvws').closest('.mon'),pgm:$('#pgms').closest('.mon'),inputs:$('.studioSources',root),keyboard:$('#crystalConsole'),transition:$('.studioBus>.tcol',root)};
+    const auxPanel=document.createElement('section');auxPanel.className='mon';auxPanel.innerHTML='<div class="hd"><span class="lab" style="background:#277a92">AUX 1</span><span class="src">獨立回傳監看</span></div><div class="screen"><video muted autoplay playsinline></video></div>';area.appendChild(auxPanel);auxPanel.querySelector('video').srcObject=AUX[0].stream;nodes.aux=auxPanel;
+    const docked=new Map();let activeWindowMode=null;
+    function restoreDock(id){const record=docked.get(id);if(!record)return;const node=nodes[id];document.body.appendChild(node);node.style.cssText=record.style;delete node.dataset.layoutPanel;delete node.dataset.layoutHidden;node.classList.remove('layout-preset-docked');if(!record.wasOpen)closeWin(record.tab);else if(record.oldTab&&record.oldTab!==record.tab)openWin(record.oldTab,true);delete nodes[id];docked.delete(id);}
+    function prepareWindows(){
+      const mode=UI.sw?prefs.mode:'off';if(mode===activeWindowMode)return;activeWindowMode=mode;
+      [...docked.keys()].forEach(restoreDock);
+      if(!UI.sw||!isPreset(mode))return;
+      for(const [id,tab] of [['audio','mix'],['media','media16']]){
+        if(!profile().visible[id])continue;
+        const gid=GOF[tab],G=ensureGroup(gid),wasOpen=G.open,oldTab=G.cur,style=G.el.style.cssText;
+        openWin(tab,true);if(!WIN[tab]?.open)continue;
+        docked.set(id,{tab,style,wasOpen,oldTab});nodes[id]=G.el;nodes[id].classList.add('layout-preset-docked');area.appendChild(nodes[id]);
+      }
+    }
     const controls={};let dialog=null,paintFrame=0;
     const profile=()=>prefs.profiles[prefs.mode];
     const save=()=>{store(KEY,JSON.stringify({...prefs,edit:false}));};
     function refresh(){layoutGrid();drawTbar();renderCrystalConsole();if(WIN.mix?.open)softRender('mix');}
     function apply(){
-      const free=UI.sw&&['classic','custom'].includes(prefs.mode)&&!keyboardMode;
+      const free=UI.sw&&(['classic','custom'].includes(prefs.mode)||isPreset(prefs.mode))&&!keyboardMode;
+      prepareWindows();ensureControls();Object.entries(controls).forEach(([id,c])=>{if(!nodes[id])c.grip.hidden=c.resize.hidden=true;});root.classList.toggle('layout-preset',UI.sw&&isPreset(prefs.mode));
       root.classList.toggle('layout-reference',prefs.mode==='reference');root.classList.toggle('has-console',UI.sw&&profile().visible.keyboard);
       const switcher=$('.hmain>.switcher',root),bus=$('.studioBus',root);
       if(UI.sw&&prefs.mode==='reference'&&!keyboardMode){if(nodes.transition.parentElement!==switcher)switcher.insertBefore(nodes.transition,nodes.pgm);}else if(nodes.transition.parentElement!==bus)bus.appendChild(nodes.transition);
@@ -5776,15 +5851,16 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         node.dataset.layoutPanel=id;
         const visible=!UI.sw?id==='inputs':keyboardMode?['pvw','pgm','keyboard','transition'].includes(id):p.visible[id];
         node.dataset.layoutHidden=String(!visible);
-        if(free){const r=fitPanelRect(p.rects[id],W,H);p.rects[id]=r;Object.assign(node.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%',height:r.h+'%'});
-          const c=controls[id];Object.assign(c.grip.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%'});Object.assign(c.resize.style,{left:(r.x+r.w)+'%',top:(r.y+r.h)+'%'});c.grip.hidden=c.resize.hidden=!visible;
+        if(free){const r=fitPanelRect(p.rects[id],W,H);Object.assign(node.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%',height:r.h+'%'});if(isPreset(prefs.mode)){const q=p.rects[id];['x','y','w','h'].forEach(k=>node.style.setProperty('--'+k,q[k]*12/100));node.classList.toggle('vertical',id==='keyboard'&&q.w<=42);node.classList.toggle('compact',id==='transition'&&q.h<=34);node.classList.toggle('compact-narrow',id==='transition'&&q.w<12);node.style.setProperty('--key-height',q.h<=25?'42px':q.h<=34?'54px':'68px');}
+          const c=controls[id];if(c){Object.assign(c.grip.style,{left:r.x+'%',top:r.y+'%',width:r.w+'%'});Object.assign(c.resize.style,{left:(r.x+r.w)+'%',top:(r.y+r.h)+'%'});c.grip.hidden=c.resize.hidden=!visible;}
         }else ['left','top','width','height'].forEach(k=>node.style.removeProperty(k));
       });
       if(!keyboardMode){showSourceMonitor=!UI.sw||p.visible.inputs;root.classList.toggle('sources-open',showSourceMonitor);$('#sourceViewToggle').setAttribute('aria-pressed',String(showSourceMonitor));if(prefs.mode==='studio'){const chosen=$('#studioView').value;root.dataset.studioview=showSourceMonitor&&innerWidth<1000?'inputs':chosen==='auto'?((innerWidth<1000||innerHeight<650)?'monitor':'all'):chosen;}}
       if(paintFrame)cancelAnimationFrame(paintFrame);paintFrame=requestAnimationFrame(()=>{paintFrame=0;refresh();});
     }
-    function change(mutator){monitorExpansion.close();showSnapGuides([]);mutator();save();apply();if(dialog)renderDialog();}
-    Object.entries(nodes).forEach(([id,node])=>{
+    function change(mutator){monitorExpansion.close();showSnapGuides([]);mutator();activeWindowMode=null;save();apply();if(dialog)renderDialog();}
+    function ensureControls(){Object.entries(nodes).forEach(([id,node])=>{
+      if(controls[id])return;
       const grip=document.createElement('div');grip.className='layout-drag-grip';grip.innerHTML=`<span>⠿ ${labels[id]}</span><button type="button" aria-label="隱藏${labels[id]}">×</button>`;
       const resize=document.createElement('button');resize.type='button';resize.className='layout-resize-grip';resize.title='拖曳調整 '+labels[id]+' 大小';resize.setAttribute('aria-label',resize.title);resize.textContent='◢';area.append(grip,resize);controls[id]={grip,resize};
       $('button',grip).onclick=()=>change(()=>profile().visible[id]=false);
@@ -5794,7 +5870,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         handle.addEventListener('pointermove',e=>{if(!drag)return;const W=area.clientWidth,H=area.clientHeight;if(!W||!H)return;const dx=(e.clientX-drag.x)/W*100,dy=(e.clientY-drag.y)/H*100;const raw={...drag.r,...(resizing?{w:drag.r.w+dx,h:drag.r.h+dy}:{x:drag.r.x+dx,y:drag.r.y+dy})};const peers=Object.entries(profile().rects).filter(([key])=>key!==id&&profile().visible[key]).map(([,r])=>r);const snapped=snapPanelRect(raw,W,H,peers,resizing?'resize':'move',{enabled:prefs.snap&&!e.altKey,threshold:prefs.snapStrength,grid:prefs.grid});profile().rects[id]=snapped.rect;showSnapGuides(snapped.guides);apply();});
         const finish=()=>{if(!drag)return;drag=null;showSnapGuides([]);save();refresh();};handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',finish);
       };bind(grip,false);bind(resize,true);
-    });
+    });}ensureControls();
     const snapGuides={};
     ['x','y'].forEach(axis=>{const el=document.createElement('div');el.className='layout-snap-line snap-'+axis;el.hidden=true;el.setAttribute('aria-hidden','true');const label=document.createElement('span');el.appendChild(label);area.append(el);snapGuides[axis]={el,label};});
     function showSnapGuides(lines){
@@ -5802,20 +5878,20 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       lines.forEach(line=>{const g=snapGuides[line.axis],limit=line.axis==='x'?area.clientWidth:area.clientHeight;if(!limit)return;g.el.hidden=false;g.el.style[line.axis==='x'?'left':'top']=(line.at/limit*100)+'%';g.label.textContent=line.label;});
     }
     function setMode(mode){
-      if(!['studio','reference','classic','custom'].includes(mode))return;
+      if(!modes.includes(mode))return;
       monitorExpansion.close();showSnapGuides([]);if(keyboardMode)setKeyboardMode(false);prefs.mode=mode;prefs.edit=mode==='custom';$('#studioView').value='all';
       if(!UI.sw)setSwMode(true);save();setStudioView();apply();if(dialog)renderDialog();
     }
     function renderDialog(){
       if(!dialog)return;const p=profile();
-      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><option value="studio">目前工作站</option><option value="reference">參考版切換台（雙監看＋中央推桿）</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></select></label><label>控盤材質 <select id="lpSkin"><option value="hardware">實體導播台</option><option value="dark">深色平面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${['studio','reference'].includes(prefs.mode)?'disabled':''}> 顯示拖曳／縮放把手</label><label><input type="checkbox" id="lpSnap" ${prefs.snap?'checked':''}> 磁吸對齊</label><label><input type="checkbox" id="lpGrid" ${prefs.grid?'checked':''}> 8px 格線</label><label>吸附距離 <select id="lpSnapStrength">${[4,8,10,14,20].map(n=>`<option value="${n}">${n}px</option>`).join('')}</select></label><span>按住 Alt 暫時略過磁吸。設定自動儲存。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${Object.keys(nodes).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${p.visible[id]?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${['studio','reference'].includes(prefs.mode)?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>靠近邊界、中心線或其他面板時自動吸附；縮放時可吸成同寬或同高。按住 Alt 暫時略過磁吸。舊版排列與各區塊拖曳縮放仍保留。上方對講、混音台及其他功能均維持獨立浮動視窗，可拖曳四邊調整大小。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
+      dialog.innerHTML=`<section role="dialog" aria-modal="true" aria-label="版面偏好設定"><header><b>版面偏好設定</b><button type="button" data-lpclose>關閉 ×</button></header><div class="lp-options"><label>介面樣式 <select id="lpMode"><optgroup label="原有版面（保留）"><option value="studio">目前工作站</option><option value="reference">參考版切換台（雙監看＋中央推桿）</option><option value="classic">舊版切換台排列</option><option value="custom">自訂版面</option></optgroup><optgroup label="新增 20 種排列">${extraLayouts.map(l=>`<option value="${presetId(l.id)}">${String(l.id).padStart(2,'0')} · ${l.name}</option>`).join('')}</optgroup></select></label><span class="note" id="lpCount">原有 4 種＋新增 20 種＝24 種排列；舊配置保留</span><label>控盤材質 <select id="lpSkin"><option value="hardware">實體導播台</option><option value="dark">深色平面</option></select></label><label><input type="checkbox" id="lpEdit" ${prefs.edit?'checked':''} ${['studio','reference'].includes(prefs.mode)?'disabled':''}> 顯示拖曳／縮放把手</label><label><input type="checkbox" id="lpSnap" ${prefs.snap?'checked':''}> 磁吸對齊</label><label><input type="checkbox" id="lpGrid" ${prefs.grid?'checked':''}> 8px 格線</label><label>吸附距離 <select id="lpSnapStrength">${[4,8,10,14,20].map(n=>`<option value="${n}">${n}px</option>`).join('')}</select></label><span>按住 Alt 暫時略過磁吸。設定自動儲存。</span></div><div class="lp-table"><table><thead><tr><th>顯示</th><th>區塊</th><th>左 %</th><th>上 %</th><th>寬 %</th><th>高 %</th></tr></thead><tbody>${(isPreset(prefs.mode)?Object.keys(labels):Object.keys(seed)).map(id=>`<tr><td><input type="checkbox" data-lp-visible="${id}" ${p.visible[id]?'checked':''}></td><th>${labels[id]}</th>${['x','y','w','h'].map(k=>`<td><input type="number" data-lp-id="${id}" data-lp-field="${k}" min="0" max="100" step="1" value="${Math.round(p.rects[id][k])}" ${['studio','reference'].includes(prefs.mode)?'disabled':''}></td>`).join('')}</tr>`).join('')}</tbody></table></div><p>靠近邊界、中心線或其他面板時自動吸附；縮放時可吸成同寬或同高。按住 Alt 暫時略過磁吸。舊版排列與各區塊拖曳縮放仍保留。原有版面與自訂配置全部保留；新增排列各自記住位置與顯示設定。對講維持獨立浮動視窗。新增排列中的混音、素材區可用上方按鈕切換或關閉。</p><footer><button type="button" id="lpReset">重設目前樣式</button><button type="button" id="lpReveal">顯示全部區塊</button><button type="button" data-lpclose>完成</button></footer></section>`;
       $('#lpMode',dialog).value=prefs.mode;$('#lpMode',dialog).onchange=e=>setMode(e.target.value);
       $('#lpSkin',dialog).value=prefs.skin;$('#lpSkin',dialog).onchange=e=>change(()=>prefs.skin=e.target.value==='dark'?'dark':'hardware');
       $('#lpSnap',dialog).onchange=e=>change(()=>prefs.snap=e.target.checked);$('#lpGrid',dialog).onchange=e=>change(()=>prefs.grid=e.target.checked);$('#lpSnapStrength',dialog).value=String(prefs.snapStrength);$('#lpSnapStrength',dialog).onchange=e=>change(()=>prefs.snapStrength=Number(e.target.value));
       $('#lpEdit',dialog).onchange=e=>change(()=>prefs.edit=e.target.checked);
       $$('[data-lpclose]',dialog).forEach(b=>b.onclick=closeDialog);
       $$('[data-lp-visible]',dialog).forEach(b=>b.onchange=()=>{const id=b.dataset.lpVisible;change(()=>p.visible[id]=b.checked);});
-      $$('[data-lp-field]',dialog).forEach(i=>i.onchange=()=>change(()=>p.rects[i.dataset.lpId][i.dataset.lpField]=Number(i.value)));
+      $$('[data-lp-field]',dialog).forEach(i=>{i.oninput=()=>{if(!Number.isFinite(i.valueAsNumber))return;p.rects[i.dataset.lpId][i.dataset.lpField]=i.valueAsNumber;save();apply();};i.onchange=()=>{p.rects[i.dataset.lpId]=fitPanelRect(p.rects[i.dataset.lpId],area.clientWidth||1000,area.clientHeight||700);save();apply();};});
       $('#lpReset',dialog).onclick=()=>change(()=>prefs.profiles[prefs.mode]=defaults(prefs.mode));
       $('#lpReveal',dialog).onclick=()=>{if(prefs.mode==='studio')setMode('custom');change(()=>Object.keys(nodes).forEach(id=>profile().visible[id]=true));};
     }
