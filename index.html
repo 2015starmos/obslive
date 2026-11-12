@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1112.2500">
+<meta name="webcall-version" content="2026.1112.2700">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
@@ -7033,7 +7033,6 @@ function HostSetup(tok, me, msg){
       <div id="ic2" style="margin-top:10px" class="${mode === 'custom' ? '' : 'hidden'}"><input class="field mono full" id="cv" maxlength="20" placeholder="例：NEWS0805（4～20 碼，英數字）" value="${esc(store('wc_invcustom') || '')}" style="letter-spacing:.08em;text-transform:uppercase"></div>
       ${custom ? '' : '<div class="note" style="margin-top:6px">你的帳號等級只能使用隨機產生的邀請代碼。</div>'}
     </div>
-    <details class="card"><summary>關聯已登錄設備（選填）</summary><div class="note">貼上設備管理中的設備 ID。僅能選用指派給此帳號且啟用的設備；不填則沿用原本啟動方式。</div><input class="field mono" id="opsDeviceId" maxlength="40" placeholder="D…" value="${esc(store('wc_ops_device') || '')}"></details>
     <button class="btn primary" id="hgo" style="width:100%;height:44px;font-size:15px">啟動導播台</button>
     <div class="err" id="herr">${esc(msg || '')}</div>
   </div></div>`;
@@ -7052,10 +7051,8 @@ function HostSetup(tok, me, msg){
     $('#hgo').disabled = true; $('#hgo').textContent = '驗證中…';
     try {
       const key = await inviteKey(inv);
-      const deviceId = $('#opsDeviceId').value.trim();
-      const r = await apiCall({ action: 'activate', token: tok, code, k: key, deviceId });   // 一起送出邀請代碼的雜湊：來賓馬上就能加入
+      const r = await apiCall({ action: 'activate', token: tok, code, k: key });   // 一起送出邀請代碼的雜湊：來賓馬上就能加入
       if (!r.ok) { if (/SESSION_EXPIRED/.test(r.error || '')) { logoutAll(); return Home('登入已逾時，請重新登入'); } throw new Error(r.error || '代碼無效'); }
-      store('wc_ops_device', deviceId);
       sstore('wc_prefill', null);
       const sess = { token: tok, code, sid: r.sid, invite: inv, key, info: r };
       sstore('wc_host', JSON.stringify(sess)); sstore('wc_me', JSON.stringify(r.me));
