@@ -804,6 +804,8 @@ body.opp{overflow:hidden}
 .host.studio.hardware-console #tfill{width:6px;margin-left:-3px;background:linear-gradient(#9ce8ff,#2b91bd);box-shadow:0 0 5px #68c7ff88}
 @media(max-width:700px){.host.studio.hardware-console.keyboard-only .hmain>.studioBus{grid-template-columns:minmax(0,1fr) 145px!important}.host.studio.hardware-console .studioBus>.tcol{grid-template-columns:minmax(0,1fr) 64px}.host.studio.hardware-console #tbar{width:min(58px,calc(100% - 4px))}.host.studio.hardware-console #thdl{left:-2px;width:calc(100% + 4px)}}
 
+
+.media16-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.media16-cell{border:1px solid #405363;background:#14212d;border-radius:7px;padding:7px;min-width:0;touch-action:pan-y}.media16-cell.live{border-color:#e65468}.media16-cell.cue{border-color:#50c58d}.media16-cell.dropok{outline:2px solid #81d6ff}.media16-cell>div{display:flex;gap:5px;margin-top:6px}.picker-dialog{z-index:300000!important}.media16-select{touch-action:none;position:relative;background:#0b141e;color:#c9d9e6;border:0;width:100%;height:64px;border-radius:4px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:8px;overflow:hidden;cursor:pointer}.media16-select img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;pointer-events:none}.media16-select>span,.media16-select>b,.media16-select>small{position:relative;text-shadow:0 1px 3px #000}.media16-select b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.media16-select span,.media16-select small{font-size:10px;color:#819bad}.media16-cell .btn{padding:4px;font-size:10px;flex:1}.cloud-job{border-bottom:1px solid #344454;padding:9px 0;display:grid;gap:5px}.cloud-job small{color:#f0b982}#pvws{touch-action:pan-y}.media16-grid .btn{min-height:28px}@media(max-width:600px){.media16-grid{gap:5px}.media16-cell{padding:4px}.media16-select{height:72px;padding:4px}.media16-select b{font-size:10px}.media16-cell>div{gap:3px}.media16-cell .btn{font-size:9px}.win[data-g=mediag] .wb{padding:6px}}
 </style>
 </head>
 <body>
@@ -828,7 +830,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
-const BUILD = '11/05-v12-video-format';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
+const BUILD = 'v20-operations-20261112';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -1683,6 +1685,7 @@ function Host(sess){
     mixg: { key: 'Audio Console｜數位混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
     audg: { key: '聲音路由', title: 'AUDIO ROUTING 聲音路由／回傳', w: 820, h: 780, tabs: ['aud', 'ret'] },
     ctl:  { key: '遠端控制', tabs: ['ctl'] },
+    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','replay','cloud','recovery','workflow','pocket'] },
     swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src', 'vset', 'gfx', 'still', 'scene', 'lay', 'rec', 'set'] },
     outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['out', 'aux', 'strm'] },
     sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc', 'ops', 'keys'] },
@@ -1690,7 +1693,7 @@ function Host(sess){
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
   const PROTAB = new Set(['mtx', 'lay', 'aux', 'strm', 'noc']);   // 專業版才顯示的分頁
-  const TABN = { set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const TABN = { recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1854,7 +1857,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v19-METAL</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v22-STABLE</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -2787,6 +2790,7 @@ function Host(sess){
   const anyTalk = () => IC.all || guests().some(g => g.talk);
   function syncTalkTrack(){ IC.stream?.getAudioTracks().forEach(t => t.enabled = anyTalk()); }
   async function setTalk(g, on){
+    if (on && !opsLocalAllowed('localIfb')) return toast('帳號的 IFB／對講權限已關閉');
     if (on && !(await ensureTalkMic())) return;
     g.talk = on; if (on) { g.calling = false; clearTimeout(g.callT); }
     applyGains(g); syncTalkTrack();
@@ -2794,6 +2798,7 @@ function Host(sess){
     updateTile(g); patchIC();
   }
   async function setTalkAll(on){
+    if (on && !opsLocalAllowed('localIfb')) return toast('帳號的 IFB／對講權限已關閉');
     if (on && !(await ensureTalkMic())) return;
     IC.all = on; syncTalkTrack();
     guests().forEach(g => { applyGains(g); g.conn?.open && g.conn.send({ type: 'ic', talk: on || g.talk }); updateTile(g); });
@@ -2832,6 +2837,7 @@ function Host(sess){
     return inputs.get(s)?.stream?.getVideoTracks()[0] || inputs.get(s)?.vtrack || null;
   }
   async function setReturn(src){
+    if (!opsLocalAllowed('localReturn')) return toast('帳號的回傳設定權限已關閉');
     if (RET.screen && src !== 'screen') { RET.screen.getTracks().forEach(t => t.stop()); RET.screen = null; }
     let vt = null, stream = null;
     if (src === 'program' || /^aux\d$/.test(src)) vt = retTrackOf(src);
@@ -2947,9 +2953,7 @@ function Host(sess){
   }
   function paintStill(x){ const g = x.cx, im = x.img; if (!im?.naturalWidth) return; g.fillStyle = '#000'; g.fillRect(0, 0, 1280, 720); const k = Math.min(1280 / im.naturalWidth, 720 / im.naturalHeight); g.drawImage(im, (1280 - im.naturalWidth * k) / 2, (720 - im.naturalHeight * k) / 2, im.naturalWidth * k, im.naturalHeight * k); }
   function addImage(file){
-    const url = URL.createObjectURL(file), im = new Image();
-    im.onload = () => { const inp = newInput('I-' + rnd(6), 'image', file.name.replace(/\.[^.]+$/, '').slice(0, 30) || '圖卡'); inp.img = im; inp.view.fit = 'contain'; virtualCanvas(inp); paintStill(inp); renderAll(); toast('已加入圖卡「' + inp.name + '」'); };
-    im.onerror = () => toast('無法讀取這張圖片'); im.src = url;
+    return new Promise(resolve=>{const url=URL.createObjectURL(file),im=new Image();im.onload=()=>{try{const inp=newInput('I-'+rnd(6),'image',file.name.replace(/\.[^.]+$/,'').slice(0,30)||'圖卡');inp.img=im;inp.view.fit='contain';virtualCanvas(inp);paintStill(inp);renderAll();toast('已加入圖卡「'+inp.name+'」');resolve(inp);}catch(e){toast(e.message);resolve(null);}finally{URL.revokeObjectURL(url);}};im.onerror=()=>{URL.revokeObjectURL(url);toast('無法讀取這張圖片');resolve(null);};im.src=url;});
   }
   function addMedia(file){
     const inp = newInput('M-' + rnd(6), 'media', file.name.replace(/\.[^.]+$/, '').slice(0, 30) || '影片');
@@ -2959,11 +2963,12 @@ function Host(sess){
       $('[data-k="nosig"]', inp.el).classList.add('hidden');
       if (!inp.src) connectAudio(inp, ac.createMediaElementSource(v));
       try { const cs = v.captureStream ? v.captureStream() : v.mozCaptureStream?.(); inp.vtrack = cs?.getVideoTracks()[0]; } catch {}
-      buildIso(inp); renderAll();
+      buildIso(inp); renderAll();if(typeof renderMedia16==='function')renderMedia16();
     };
     const upd = () => { const f = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; $('[data-k="stats"]', inp.el).textContent = `影片 ${f(v.currentTime || 0)} / ${f(v.duration || 0)}${v.loop ? ' · 循環' : ''}`; $('[data-a="play"]', inp.el).innerHTML = ic(v.paused ? 'play' : 'pause'); updateTile(inp); };
     v.ontimeupdate = upd; v.onplay = v.onpause = v.onended = upd;
     toast((inp.audioOnly ? '已加入聲音「' : '已加入影片「') + inp.name + '」（按 ON AIR 會自動播放）');
+    return inp;
   }
   function addLayout(type, quiet){
     if (type === 'custom') { const inp = addLayout('pipL', true); toCustom(inp.layout); inp.name = '自訂佈局'; $('[data-k="name"]', inp.el).textContent = inp.name; if (!quiet) layEditor(inp); return inp; }
@@ -3085,6 +3090,7 @@ function Host(sess){
 
   /* =============== 全部靜音 =============== */
   function setPanic(on){
+    if (!opsLocalAllowed('audio')) return toast('帳號的音控權限已關閉');
     PANIC = on; $('#panic').classList.toggle('on', on); $('#panic').innerHTML = ic('micoff') + (on ? '已全部靜音（點一下恢復）' : '全部靜音');
     masterGain.gain.setTargetAtTime(on ? 0 : Number(store('wc_master') || 1), ac.currentTime, .01);
     inputs.forEach(applyGains); toast(on ? '🔇 所有節目／ISO 聲音已靜音' : '🔊 聲音恢復');
@@ -3105,31 +3111,60 @@ function Host(sess){
 
   /* =============== 錄影 =============== */
   const recMime = () => ['video/mp4;codecs=avc1.42E01F,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(t => window.MediaRecorder?.isTypeSupported?.(t)) || '';
-  function recStreamOf(key){ if (key === 'pgm') return programStream; if (key === 'clean') return cleanStream; if (/^aux\d$/.test(key)) return AUX[+key[3] - 1]?.stream || null; const x = inputs.get(key); return x?.isoStream || null; }
-  async function startRec(keys, kbps){
-    if (!window.MediaRecorder) return toast('這個瀏覽器不支援錄影');
-    const mime = recMime(), ext = mime.includes('mp4') ? 'mp4' : 'webm';
-    const d = new Date(), p = n => String(n).padStart(2, '0'), stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
-    recStart = Date.now();
-    for (const key of keys) {
-      if (REC.has(key)) continue;
-      const st = recStreamOf(key); if (!st) continue;
-      const label = key === 'pgm' ? 'PGM' : key === 'clean' ? 'CLEAN' : /^aux\d$/.test(key) ? key.toUpperCase() : inputs.get(key).name;
-      const fname = `${label}_${stamp}.${ext}`.replace(/[\\/:*?"<>|\s]/g, '_');
-      const r = { key, label, fname, size: 0, chunks: [], writer: null, q: Promise.resolve() };
-      if (recDir) { try { const fh = await recDir.getFileHandle(fname, { create: true }); r.writer = await fh.createWritable(); } catch (e) { r.writer = null; } }
-      try { r.mr = new MediaRecorder(st, { mimeType: mime || undefined, videoBitsPerSecond: kbps * 1000, audioBitsPerSecond: 192000 }); } catch (e) { toast('無法錄影：' + e.message); continue; }
-      r.mr.ondataavailable = e => { if (!e.data.size) return; r.size += e.data.size; if (r.writer) r.q = r.q.then(() => r.writer.write(e.data)).catch(() => {}); else r.chunks.push(e.data); };
-      r.mr.onstop = async () => {
-        if (r.writer) { await r.q; try { await r.writer.close(); } catch {} toast(`已存檔：${r.fname}`); }
-        else { const b = new Blob(r.chunks, { type: mime || 'video/webm' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = r.fname; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 10000); }
-      };
-      r.mr.start(1000); REC.set(key, r);
-    }
-    recPaint(); softRender('rec');
+  function recStreamOf(key){ if(key==='pvw')return pvwStream; if (key === 'pgm') return programStream; if (key === 'clean') return cleanStream; if (/^aux\d$/.test(key)) return AUX[+key[3] - 1]?.stream || null; const x = inputs.get(key); return x?.isoStream || null; }
+  /* v22 durable journal: commit chunks before claiming recording completion. */
+  const FINALIZING=new Map();let journalPromise=null,endTask=null,sessionEnding=false;
+  const journalName='WebCallRecordings-'+String(info.me?.account||info.me?.name||roomKey);
+  function journalDB(){if(!journalPromise)journalPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(journalName,1);r.onupgradeneeded=()=>{r.result.createObjectStore('records',{keyPath:'id'});r.result.createObjectStore('chunks',{keyPath:['rid','seq']});};r.onsuccess=()=>resolve(r.result);r.onerror=()=>{journalPromise=null;reject(r.error);};});return journalPromise;}
+  async function journalTx(stores,mode,run){const db=await journalDB();return new Promise((resolve,reject)=>{const t=db.transaction(stores,mode);let result;try{result=run(t);}catch(e){t.abort();reject(e);return;}t.oncomplete=()=>resolve(typeof result==='function'?result():result?.result);t.onerror=t.onabort=()=>reject(t.error||Error('錄影快取寫入失敗'));});}
+  function journalPut(meta){return journalTx(['records'],'readwrite',t=>t.objectStore('records').put(meta));}
+  function journalGet(id){return journalTx(['records'],'readonly',t=>t.objectStore('records').get(id));}
+  function journalList(){return journalTx(['records'],'readonly',t=>t.objectStore('records').getAll());}
+  async function journalChunk(meta,seq,blob){return journalTx(['records','chunks'],'readwrite',t=>{t.objectStore('records').put(meta);t.objectStore('chunks').put({rid:meta.id,seq,blob});});}
+  async function journalBlob(id){const rows=await journalTx(['chunks'],'readonly',t=>t.objectStore('chunks').getAll(IDBKeyRange.bound([id,0],[id,Number.MAX_SAFE_INTEGER])));const meta=await journalGet(id);if(!rows?.length)throw Error('尚無可恢復的資料區塊');rows.sort((a,b)=>a.seq-b.seq);return new Blob(rows.map(x=>x.blob),{type:meta?.mime||'video/webm'});}
+  async function journalDelete(id){if([...REC.values(),...FINALIZING.values()].some(r=>r.id===id))throw Error('錄影仍在執行或收尾，不能清除');const job=CLOUD.jobs.find(j=>j.recordId===id);if(job&&job.status!=='已儲存')throw Error('雲端工作尚未完成，請先保留快取');return journalTx(['records','chunks'],'readwrite',t=>{t.objectStore('records').delete(id);const c=t.objectStore('chunks').openCursor(IDBKeyRange.bound([id,0],[id,Number.MAX_SAFE_INTEGER]));c.onsuccess=()=>{const cur=c.result;if(cur){cur.delete();cur.continue();}};});}
+  async function loadRecovery(){const rows=await journalList();return rows.filter(m=>![...REC.values(),...FINALIZING.values()].some(r=>r.id===m.id)).sort((a,b)=>b.started-a.started);}
+  async function renderRecovery(){const w=WIN.recovery;if(!w?.open)return;w.body.innerHTML='<div class="wsec"><h4>錄影恢復／待續上傳</h4><div class="note">讀取本機快取…</div></div>';try{const rows=await loadRecovery();if(!w.open)return;w.body.innerHTML=`<div class="wsec"><h4>錄影恢復／待續上傳</h4><div class="note">每一秒的錄影片段會先寫入這個瀏覽器的快取。異常中斷可恢復到最後一次成功寫入的位置；中斷影片仍須檢查播放完整性。確認本機／雲端檔案正常後才清除快取。清除網站資料仍會移除這些備份。</div><button class="btn" id="recoveryRefresh">重新整理</button>${rows.map(m=>`<section class="cloud-job"><b>${esc(m.fname)}</b><span>${esc(m.state)} · ${(m.size/1048576).toFixed(1)} MiB · ${new Date(m.started).toLocaleString()}</span>${m.error?`<small>${esc(m.error)}</small>`:''}<div class="row"><button class="btn sm" data-recover-download="${m.id}">恢復／下載</button>${m.cloud&&m.cloudState!=='已儲存'?`<button class="btn sm" data-recover-cloud="${m.id}">恢復雲端上傳</button>`:''}<button class="btn sm" data-recover-delete="${m.id}">清除備份快取</button></div></section>`).join('')||'<div class="note">沒有已中斷或待恢復的錄影。</div>'}</div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#recoveryRefresh',b).onclick=renderRecovery;$$('[data-recover-download]',b).forEach(e=>e.onclick=act(async()=>{const m=rows.find(m=>m.id===e.dataset.recoverDownload);saveBlob(await journalBlob(m.id),m.fname);toast('已送出恢復下載，請確認檔案可播放');}));$$('[data-recover-cloud]',b).forEach(e=>e.onclick=act(async()=>{const m=rows.find(m=>m.id===e.dataset.recoverCloud);if(!m.folder)throw Error('這筆錄影沒有目標資料夾，請先下載後自行上傳');await enqueueCloud(null,m.fname,{folder:m.folder,recordId:m.id});toast('已恢復待上傳工作，請查看 Google 雲端儲存');}));$$('[data-recover-delete]',b).forEach(e=>e.onclick=act(async()=>{if(await uiConfirm('清除錄影快取','請先確認已下載或雲端檔案可播放。這會刪除此瀏覽器內的錄影備份。','確認清除')){await journalDelete(e.dataset.recoverDelete);renderRecovery();}}));}catch(e){if(w.open)w.body.textContent='無法讀取錄影快取：'+e.message;}}
+  async function startRec(keys,kbps){
+    if(sessionEnding||ended)return toast('導播正在結束，不能開始新錄影');if(!opsLocalAllowed('localRecord'))return toast('帳號的錄影權限已關閉');if(!window.MediaRecorder)return toast('瀏覽器不支援錄影');if(workflowMode()==='cloud'){try{cloudToken();if(!CLOUD.folder)throw Error('請先指定 Google Drive 資料夾');}catch(e){return toast(e.message);}}
+    const mime=recMime(),d=new Date(),stamp=d.toISOString().replace(/[:.]/g,'-');recStart=Date.now();
+    for(const key of [...new Set(keys)]){if(REC.has(key)||[...FINALIZING.values()].some(r=>r.key===key))continue;const stream=recStreamOf(key);if(!stream)continue;const r={id:rnd(20),key,label:recLabel(key),fname:'',size:0,seq:0,q:Promise.resolve(),writer:null,handle:null,local:workflowMode()!=='cloud',cloud:workflowMode()!=='local',folder:CLOUD.folder,localSaved:false,buffered:0,started:Date.now(),errors:[],parts:[]};
+      r.fname=`${r.label}_${stamp}_${key}_${r.id.slice(0,5)}.${mime.includes('mp4')?'mp4':'webm'}`.replace(/[\\/:*?"<>|\s]/g,'_');r.done=new Promise(resolve=>r.resolve=resolve);
+      try{await journalPut({id:r.id,key,fname:r.fname,mime,started:r.started,size:0,state:'錄影中',local:r.local,cloud:r.cloud,folder:r.folder});if(recDir&&r.local){const fh=await recDir.getFileHandle(r.fname,{create:true});r.handle=fh;r.writer=await fh.createWritable();}r.mr=new MediaRecorder(stream,{mimeType:mime||undefined,videoBitsPerSecond:kbps*1000,audioBitsPerSecond:192000});}catch(e){if(r.writer)try{await r.writer.close();}catch{}r.resolve({ok:false,error:e.message});toast('無法建立安全錄影：'+e.message);continue;}
+      r.mime=r.mr.mimeType||mime||'video/webm';r.meta={id:r.id,key,fname:r.fname,mime:r.mime,started:r.started,size:0,state:'錄影中',local:r.local,cloud:r.cloud,folder:r.folder};
+      r.mr.ondataavailable=e=>{if(!e.data?.size)return;const blob=e.data,seq=r.seq++;r.size+=blob.size;const committedSize=r.size;r.buffered+=blob.size;r.q=r.q.then(async()=>{try{if(r.journalFailed)r.parts.push(blob);else await journalChunk({...r.meta,size:committedSize},seq,blob);}catch(err){r.journalFailed=true;r.parts.push(blob);r.errors.push('快取：'+err.message);if(r.mr.state!=='inactive')stopRecFor(key);}if(r.writer)try{await r.writer.write(blob);}catch(err){r.errors.push('硬碟：'+err.message);r.writerFailed=true;if(r.mr.state!=='inactive')stopRecFor(key);}}).finally(()=>{r.buffered-=blob.size;});if(r.buffered>64*1048576&&r.mr.state!=='inactive'){r.errors.push('存檔速度不足，已停止這一路以完成存檔');stopRecFor(key);}};
+      r.mr.onerror=e=>{r.errors.push('錄影器：'+(e.error?.message||'發生錯誤'));if(r.mr.state!=='inactive')stopRecFor(key);};
+      r.mr.onstop=()=>finalizeRecording(r);try{r.mr.start(1000);REC.set(key,r);}catch(e){r.errors.push(e.message);await finalizeRecording(r);}
+    }recPaint();softRender('rec');
   }
-  function stopRecFor(key){ const r = REC.get(key); if (!r) return; REC.delete(key); try { r.mr.stop(); } catch {} recPaint(); }
-  function stopRec(){ [...REC.keys()].forEach(stopRecFor); softRender('rec'); }
+  async function finalizeRecording(r){if(r.finalizing)return r.done;r.finalizing=true;REC.delete(r.key);FINALIZING.set(r.id,r);let blob=null,cloudQueued=false,result;
+    const recoverBlob=async()=>{let saved=null;try{saved=await journalBlob(r.id);}catch(e){if(!r.parts.length)throw e;}return new Blob([...(saved?[saved]:[]),...r.parts],{type:r.mime});};
+    try{await r.q;if(r.writer){try{await r.writer.close();if(!r.writerFailed)r.localSaved=true;}catch(e){r.errors.push('關閉檔案：'+e.message);}}
+      if((r.local&&!r.localSaved)||(r.parts.length&&!r.localSaved)){blob=await recoverBlob();saveBlob(blob,r.fname);r.downloadRequested=true;}
+      try{await journalPut({...r.meta,size:r.size,state:r.errors.length?'存檔需檢查':'已完成',error:r.errors.join('；'),localSaved:r.localSaved,downloadRequested:!!r.downloadRequested,cloudState:r.cloud?'待上傳':''});}catch(e){r.errors.push('保存恢復狀態：'+e.message);}
+      if(r.cloud&&!r.journalFailed){try{await enqueueCloud(null,r.fname,{folder:r.folder,recordId:r.id});cloudQueued=true;}catch(e){r.errors.push('雲端排程：'+e.message);}}
+      if(r.journalFailed&&!r.localSaved&&!r.downloadRequested){blob=blob||await recoverBlob();saveBlob(blob,r.fname);r.downloadRequested=true;}
+      result={ok:!r.errors.length,localSaved:r.localSaved,downloadRequested:!!r.downloadRequested,cloudQueued,error:r.errors.join('；')};
+    }catch(e){r.errors.push(e.message);try{if(r.parts.length&&!r.localSaved&&!r.downloadRequested){blob=blob||await recoverBlob();saveBlob(blob,r.fname);r.downloadRequested=true;}}catch{}try{await journalPut({...r.meta,size:r.size,state:'待恢復',error:r.errors.join('；')});}catch{}result={ok:false,error:r.errors.join('；')};
+    }finally{r.resolve(result||{ok:false,error:'未完成存檔'});FINALIZING.delete(r.id);recPaint();softRender('rec');softRender('recovery');}
+    if(r.errors.length)toast('錄影需檢查，請保留分頁／恢復快取：'+r.errors.join('；'));else toast('錄影存檔已收尾：'+r.fname);return result;
+  }
+  function stopRecFor(key){const r=REC.get(key);if(!r)return [...FINALIZING.values()].find(x=>x.key===key)?.done||Promise.resolve({ok:true});if(r.stopping)return r.done;r.stopping=true;FINALIZING.set(r.id,r);if(r.mr.state!=='inactive')try{r.mr.stop();}catch(e){r.errors.push(e.message);finalizeRecording(r);}else finalizeRecording(r);recPaint();return r.done;}
+  async function stopRec(){const jobs=[...new Set([...REC.values(),...FINALIZING.values()])];const promises=jobs.map(r=>REC.has(r.key)?stopRecFor(r.key):r.done);softRender('rec');return Promise.all(promises);}
+  async function restoreCloudJobs(){try{for(const m of await journalList()){if(!m.cloud||m.cloudState==='已儲存'||!m.size||m.state==='錄影中')continue;if(CLOUD.jobs.some(j=>j.recordId===m.id))continue;CLOUD.jobs.push({id:m.id,recordId:m.id,name:m.fname,folder:m.folder,blob:null,status:'待上傳',progress:m.progress||0,url:m.uploadUrl||'',offset:m.offset||0,fileId:''});}softRender('cloud');}catch(e){toast('無法讀取待續上傳：'+e.message);}}
+  async function persistCloudJob(j){if(!j.recordId)return;const m=await journalGet(j.recordId);if(m)await journalPut({...m,cloud:true,folder:j.folder,cloudState:j.status,progress:j.progress,uploadUrl:j.url||'',offset:j.offset||0,fileId:j.fileId||'',error:j.error||'',state:j.status==='已儲存'?'已完成':m.state});}
+  async function enqueueCloud(blob,name,destination){if(!destination&&!CLOUD.enabled)return;const id=destination?.recordId||rnd(20);let j=CLOUD.jobs.find(x=>x.id===id);if(j){if(j.status==='已儲存')return;if(j.status!=='上傳中'){j.status='待上傳';j.error='';}cloudPump();return;}
+    if(!destination?.recordId){const meta={id,fname:name,mime:blob.type,started:Date.now(),size:blob.size,state:'已完成',cloud:true,folder:destination?.folder??CLOUD.folder,cloudState:'待上傳'};await journalChunk(meta,0,blob);}
+    j={id,recordId:id,name,folder:destination?.folder??CLOUD.folder,blob:null,status:'待上傳',progress:0,url:'',offset:0,fileId:''};CLOUD.jobs.push(j);await persistCloudJob(j);cloudPump();softRender('cloud');
+  }
+  async function cloudPump(){if(CLOUD.busy)return;CLOUD.busy=true;try{for(;;){const j=CLOUD.jobs.find(x=>x.status==='待上傳');if(!j)break;j.status='上傳中';j.error='';try{const upload=async()=>{const saved=await journalGet(j.recordId);if(saved?.cloudState==='已儲存'&&saved.fileId){j.fileId=saved.fileId;return;}cloudToken();await persistCloudJob(j);if(!j.blob)j.blob=await journalBlob(j.recordId);await uploadDriveJob(j);j.status='已儲存';j.progress=100;await persistCloudJob(j);};if(typeof navigator!=='undefined'&&navigator.locks?.request)await navigator.locks.request('wc-upload:'+journalName+':'+j.id,upload);else await upload();j.status='已儲存';j.progress=100;j.blob=null;}catch(e){j.status='失敗';j.error=e.message;j.blob=null;}try{await persistCloudJob(j);}catch(e){j.error=(j.error?j.error+'；':'')+'保存上傳進度失敗：'+e.message;}softRender('cloud');}}finally{CLOUD.busy=false;}}
+  async function endSession(reason){if(endTask)return endTask;if(ended)return;sessionEnding=true;endTask=(async()=>{
+    const overlay=document.createElement('div');overlay.className='modal';overlay.innerHTML='<div class="m"><h2>正在完成錄影存檔</h2><p>請保持此分頁開啟，等待錄影器、硬碟與恢復快取寫入完成。</p><p id="endProgress" role="status">收尾中…</p></div>';document.body.appendChild(overlay);
+    try{await stopReplay();const results=await stopRec();const bad=results.filter(r=>!r.ok);ended=true;STREAMS.forEach(S=>whipStop(S));try{pgmTicker.stop();}catch{}guests().forEach(g=>{try{g.conn?.send({type:'kick',end:true});}catch{}});try{peer?.destroy();}catch{}for(const inp of inputs.values()){clearInterval(inp.statT);clearTimeout(inp.whepT);inp.whepStop=true;try{inp.whep?.close();inp.video?.pause();if(inp.kind==='local')inp.stream?.getTracks().forEach(t=>t.stop());}catch{}}sstore('wc_host',null);apiCall({action:'end',token:sess.token,sid:sess.sid}).catch(()=>{});const pending=CLOUD.jobs.filter(j=>j.status!=='已儲存').length;
+      app.innerHTML=`<div class="home"><div class="box">${brand()}<h1>導播已結束</h1><p>${esc(reason||'')}</p><p>${bad.length?`${bad.length} 路錄影需要檢查，請先恢復／下載。`:'錄影存檔收尾已完成。'}</p><p>${pending?`${pending} 筆雲端上傳尚未完成；工作已保存在此瀏覽器，可保持分頁上傳或下次重新登入續傳。`:'沒有待續的雲端上傳。'}</p><button class="btn" id="endedRecovery">錄影恢復／下載</button><button class="btn" id="endedCloud">雲端上傳狀態</button><button class="btn primary" id="endedHome">回首頁</button></div></div>`;$$('.win').forEach(w=>w.classList.add('hidden'));$('#endedRecovery').onclick=()=>openWin('recovery');$('#endedCloud').onclick=()=>openWin('cloud');$('#endedHome').onclick=()=>location.href=location.pathname;wcIdle();
+    }catch(e){sessionEnding=false;endTask=null;toast('無法完成收尾，請先保留分頁並恢復錄影：'+e.message);}finally{overlay.remove();}
+  })();return endTask;}
+
   function recPaint(){ $('#recind').classList.toggle('hidden', !REC.size); keyEl('rec')?.classList.toggle('kred', !!REC.size); if (REC.size) $('#recT').textContent = fmtDur(Date.now() - recStart); }
   $('#recind').onclick = () => openWin('rec');
 
@@ -3261,16 +3296,16 @@ function Host(sess){
   }
   function renderRec(){
     const w = WIN.rec; if (!w?.open) return;
-    const keys = [['pgm', 'PROGRAM 節目'], ['clean', 'CLEAN 無字幕'], ...AUX.map(a => ['aux' + (a.i + 1), `AUX ${a.i + 1} ${a.name}`]), ...order.filter(id => inputs.get(id).isoStream).map(id => [id, `ISO ${numOf(inputs.get(id))}. ${inputs.get(id).name}`])];
+    const keys = [['pgm', 'PROGRAM 節目'], ['pvw','PREVIEW 預覽'], ['clean', 'CLEAN 無字幕'], ...AUX.map(a => ['aux' + (a.i + 1), `AUX ${a.i + 1} ${a.name}`]), ...order.filter(id => inputs.get(id).isoStream).map(id => [id, `ISO ${numOf(inputs.get(id))}. ${inputs.get(id).name}`])];
     const mime = recMime();
-    w.body.innerHTML = `<div class="wsec"><h4>錄影來源 <span>${mime.includes('mp4') ? 'MP4' : 'WebM'}</span></h4>
+    w.body.innerHTML = `<div class="wsec"><button class="btn" id="rrecover">錄影恢復／快取</button>${FINALIZING.size?`<p class="note">${FINALIZING.size} 路存檔收尾中，請勿關閉分頁。</p>`:""}<h4>錄影來源 <span>${mime.includes('mp4') ? 'MP4' : 'WebM'}</span></h4>
         ${keys.map(([k, n]) => { const r = REC.get(k); return `<label class="row recrow" style="margin:3px 0"><input type="checkbox" data-rk="${k}" ${r || (store('wc_rec_' + k) === '1') ? 'checked' : ''} ${r ? 'disabled' : ''}><span class="grow">${esc(n)}</span>${r ? `<span class="mono" style="color:var(--live)">● ${(r.size / 1048576).toFixed(1)} MB</span><button class="btn sm danger" data-rs="${k}">停止</button>` : ''}</label>`; }).join('')}
         <div class="row" style="margin-top:8px"><span class="note" style="margin:0">畫質</span><select class="field sm" id="rkb">${[[4000, '4 Mbps'], [8000, '8 Mbps（建議）'], [12000, '12 Mbps'], [20000, '20 Mbps']].map(([v, n]) => `<option value="${v}" ${+(store('wc_reckb') || 8000) === v ? 'selected' : ''}>${n}</option>`).join('')}</select></div></div>
       <div class="wsec"><h4>存檔位置</h4>
         <div class="row"><span class="grow note" style="margin:0">${recDir ? '📁 ' + esc(recDir.name) + '（直接寫入硬碟，不佔記憶體）' : window.showDirectoryPicker ? '尚未選擇：錄完會下載檔案（長時間錄影建議先選資料夾）' : '這個瀏覽器不能選資料夾，錄完會下載檔案'}</span>${window.showDirectoryPicker ? '<button class="btn sm" id="rdir">選擇資料夾</button>' : ''}</div></div>
       <div class="row" style="padding:0 2px">${REC.size ? `<button class="btn danger grow" id="rstop">${ic('stop')}全部停止（${fmtDur(Date.now() - recStart)}）</button>` : `<button class="btn primary grow" id="rgo" style="background:var(--live);border-color:var(--live)">${ic('rec')}開始錄影</button>`}</div>
-      <div class="note">錄影在導播這台電腦上進行；ISO 是單一來源的乾淨畫面＋聲音。快捷鍵 Shift＋R 開始／停止。</div>`;
-    const B = w.body;
+      <div class="row"><button class="btn" id="rreplay">即時回放</button><button class="btn" id="rcloud">Google 雲端儲存</button></div><div class="note">錄影在導播這台電腦上進行；ISO 是單一來源的乾淨畫面＋聲音。快捷鍵 Shift＋R 開始／停止。</div>`;
+    const B = w.body;$('#rrecover',B).onclick=()=>openWin('recovery');$('#rreplay',B).onclick=()=>openWin('replay');$('#rcloud',B).onclick=()=>openWin('cloud');
     $$('[data-rk]', B).forEach(c => c.onchange = () => store('wc_rec_' + c.dataset.rk, c.checked ? '1' : '0'));
     $('#rkb', B).onchange = e => store('wc_reckb', e.target.value);
     const rd = $('#rdir', B); if (rd) rd.onclick = async () => { try { recDir = await window.showDirectoryPicker({ mode: 'readwrite' }); renderRec(); } catch {} };
@@ -3278,7 +3313,9 @@ function Host(sess){
     const sp = $('#rstop', B); if (sp) sp.onclick = stopRec;
     $$('[data-rs]', B).forEach(b => b.onclick = e => { e.preventDefault(); stopRecFor(b.dataset.rs); renderRec(); });
   }
-  function toggleRec(){ if (REC.size) stopRec(); else { const ks = ['pgm', 'clean', 'aux1', 'aux2', 'aux3', 'aux4', ...order].filter(k => store('wc_rec_' + k) === '1' && recStreamOf(k)); startRec(ks.length ? ks : ['pgm'], +(store('wc_reckb') || 8000)); } }
+  attachMediaGestures();
+  addEventListener('beforeunload',e=>{if(REC.size||FINALIZING.size||sessionEnding&&!ended||CLOUD.busy){e.preventDefault();e.returnValue='';}});
+  function toggleRec(){ if(FINALIZING.size)return toast('錄影存檔收尾中');if (REC.size) stopRec(); else { const ks = ['pgm', 'pvw', 'clean', 'aux1', 'aux2', 'aux3', 'aux4', ...order].filter(k => store('wc_rec_' + k) === '1' && recStreamOf(k)); startRec(ks.length ? ks : ['pgm'], +(store('wc_reckb') || 8000)); } }
   function renderSet(){
     const w = WIN.set; if (!w?.open) return;
     w.body.innerHTML = `<div class="wsec"><h4>轉場</h4>
@@ -3327,8 +3364,97 @@ function Host(sess){
     });
   }
 
+  /* WebCall v21: media slots, independent replay segments and user-owned Drive uploads. */
+  const MEDIA16 = Array(16).fill(null), MEDIA_FILES = Array(16).fill(null);
+  let mediaRestored=false, mediaBusy=false, mediaDrag=-1;
+  const REPLAY = {on:false,jobs:new Map(),clips:[],bytes:0,duration:10};
+  const CLOUD = {token:'',expires:0,folder:store('wc_drive_folder')||'',folderName:store('wc_drive_folder_name')||'',enabled:store('wc_drive_enabled')==='1',jobs:[],busy:false};
+  function featureDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open('WebCallMedia16-'+String(info.me?.account||info.me?.name||roomKey),1);r.onupgradeneeded=()=>r.result.createObjectStore('slots');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+  async function slotDB(i,file){const db=await featureDB();try{return await new Promise((resolve,reject)=>{const t=db.transaction('slots',file===undefined?'readonly':'readwrite'),o=t.objectStore('slots');const q=file===undefined?o.get(i):file===null?o.delete(i):o.put(file,i);q.onsuccess=()=>{if(file===undefined)resolve(q.result);};t.oncomplete=()=>resolve(q.result);t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});}finally{db.close();}}
+  function slotLocked(i){const id=MEDIA16[i];return id&&(SW.pgm===id||SW.pvw===id||REC.has(id)||REPLAY.jobs.has(id));}
+  async function putSlot(i,file){
+    if(!canSw())return roleDeny();if(mediaBusy)return toast('素材正在載入');
+    if(slotLocked(i))return toast('這格素材正在預覽、播出或錄影，請先切離／停止再更換');
+    if(!/^(image|video|audio)\//.test(file.type)&&! /\.(mp4|mov|webm|m4v|mp3|wav|m4a|aac|ogg|flac|png|jpg|jpeg|webp|gif)$/i.test(file.name))return toast('請選擇圖片、影片或聲音檔');
+    mediaBusy=true;try{
+      const old=MEDIA16[i],im=/^image\//.test(file.type)||/\.(png|jpg|jpeg|webp|gif)$/i.test(file.name);
+      const inp=im?await addImage(file):addMedia(file);if(!inp)throw Error('素材無法載入');
+      MEDIA16[i]=inp.id;MEDIA_FILES[i]=file;if(old&&inputs.has(old))removeInput(old);
+      try{await slotDB(i,file);}catch{toast('素材已載入，但瀏覽器空間不足，重新開啟後需重選檔案');}
+      renderMedia16();return inp;
+    }catch(e){toast(e.message);}finally{mediaBusy=false;}
+  }
+  async function restoreMedia16(){if(mediaRestored)return;mediaRestored=true;for(let i=0;i<16;i++){try{const f=await slotDB(i);if(f)await putSlot(i,f);}catch{break;}}renderMedia16();}
+  async function swapSlots(a,b){if(!canSw())return roleDeny();if(a===b||a<0||b<0)return;if(mediaBusy)return;[MEDIA16[a],MEDIA16[b]]=[MEDIA16[b],MEDIA16[a]];[MEDIA_FILES[a],MEDIA_FILES[b]]=[MEDIA_FILES[b],MEDIA_FILES[a]];try{await slotDB(a,MEDIA_FILES[a]);await slotDB(b,MEDIA_FILES[b]);}catch{toast('位置已交換，但無法記住位置');}renderMedia16();}
+  function pickSlotFile(i){const f=document.createElement('input');f.type='file';f.accept='image/*,video/*,audio/*';f.hidden=true;document.body.appendChild(f);f.onchange=async()=>{try{if(f.files[0])await putSlot(i,f.files[0]);}finally{f.remove();}};f.addEventListener('cancel',()=>f.remove(),{once:true});f.click();}
+  function mediaThumb(x){if(!x)return '';if(x.mediaThumb)return x.mediaThumb;try{const el=x.img||x.video;if(!el||(x.img?!el.naturalWidth:el.readyState<2))return '';const c=Object.assign(document.createElement('canvas'),{width:192,height:108}),g=c.getContext('2d');g.drawImage(el,0,0,192,108);return x.mediaThumb=c.toDataURL('image/jpeg',.65);}catch{return '';}}
+  function renderMedia16(){const w=WIN.media16;if(!w?.open)return;w.body.innerHTML=`<div class="wsec"><h4>16 格素材庫</h4><div class="note">點一下送到 PREVIEW；再用 CUT／AUTO 播出。拖曳可交換位置，拖檔到指定格可更換素材。觸控長按 0.5 秒後移到另一格交換；在預覽畫面左右滑動可換素材。正在預覽／播出的素材不會被更換。</div><div class="media16-grid">${MEDIA16.map((id,i)=>{const x=inputs.get(id);return `<section class="media16-cell ${SW.pgm===id&&id?'live':SW.pvw===id&&id?'cue':''}" data-media-slot="${i}" draggable="${!!x}"><button class="media16-select" data-slot-select="${i}">${mediaThumb(x)?`<img alt="" draggable="false" src="${mediaThumb(x)}">`:""}<span>${String(i+1).padStart(2,'0')}</span><b>${x?esc(x.name):'＋ 加入素材'}</b><small>${x?esc(x.kind==='image'?'圖卡':x.audioOnly?'聲音':'影片'):'圖片／影片／聲音'}</small></button><div><button class="btn sm" data-slot-file="${i}" aria-label="更換素材 ${i+1}">更換</button><button class="btn sm" data-slot-clear="${i}" aria-label="清除素材 ${i+1}" ${!x?'disabled':''}>清除</button></div></section>`;}).join('')}</div></div>`;
+    const b=w.body;
+    $$('[data-slot-select]',b).forEach(el=>el.onclick=()=>{if(Date.now()<(el._suppressUntil||0))return;const i=+el.dataset.slotSelect;inputs.has(MEDIA16[i])?setPvw(MEDIA16[i]):pickSlotFile(i);renderMedia16();});
+    $$('[data-slot-file]',b).forEach(el=>el.onclick=()=>pickSlotFile(+el.dataset.slotFile));
+    $$('[data-slot-clear]',b).forEach(el=>el.onclick=async()=>{const i=+el.dataset.slotClear;if(slotLocked(i))return toast('請先切離這格素材並停止錄影');if(!canSw())return roleDeny();const id=MEDIA16[i];MEDIA16[i]=MEDIA_FILES[i]=null;if(inputs.has(id))removeInput(id);try{await slotDB(i,null);}catch{toast('無法清除瀏覽器保存的素材');}renderMedia16();});
+    $$('[data-media-slot]',b).forEach(el=>{
+      el.ondragstart=e=>{mediaDrag=+el.dataset.mediaSlot;e.dataTransfer.setData('application/x-webcall-slot',String(mediaDrag));e.dataTransfer.effectAllowed='move';};
+      el.ondragover=e=>{e.preventDefault();e.stopPropagation();el.classList.add('dropok');};el.ondragleave=()=>el.classList.remove('dropok');
+      el.ondrop=e=>{e.preventDefault();if(!e.dataTransfer.files.length)e.stopPropagation();el.classList.remove('dropok');document.querySelector('.dropov')?.classList.add('hidden');const i=+el.dataset.mediaSlot,raw=e.dataTransfer.getData('application/x-webcall-slot');if(e.dataTransfer.files.length)putSlot(i,e.dataTransfer.files[0]);else if(/^\d+$/.test(raw))swapSlots(+raw,i);};
+      let hold=null,dragging=false,start=null;
+      el.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'||e.target.closest('[data-slot-file],[data-slot-clear]'))return;start={x:e.clientX,y:e.clientY};el.setPointerCapture(e.pointerId);hold=setTimeout(()=>{dragging=true;el.classList.add('dropok');navigator.vibrate?.(20);},500);});
+      el.addEventListener('pointermove',e=>{if(start&&!dragging&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>12)clearTimeout(hold);if(dragging)e.preventDefault();});
+      el.addEventListener('pointerup',e=>{clearTimeout(hold);if(dragging){const dest=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-media-slot]');const btn=el.querySelector('[data-slot-select]');btn._suppressUntil=Date.now()+800;if(dest)swapSlots(+el.dataset.mediaSlot,+dest.dataset.mediaSlot);}dragging=false;start=null;el.classList.remove('dropok');});el.addEventListener('pointercancel',()=>{clearTimeout(hold);dragging=false;start=null;el.classList.remove('dropok');});
+    });
+  }
+  function attachMediaGestures(){let p=null;const screen=$('#pvws');screen.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-webcall-slot'))e.preventDefault();});screen.addEventListener('drop',e=>{const s=e.dataTransfer.getData('application/x-webcall-slot');if(/^\d+$/.test(s)){e.preventDefault();e.stopPropagation();if(inputs.has(MEDIA16[+s]))setPvw(MEDIA16[+s]);}});screen.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')p={x:e.clientX,y:e.clientY};});screen.addEventListener('pointerup',e=>{if(!p)return;const dx=e.clientX-p.x,dy=e.clientY-p.y;p=null;if(Math.abs(dx)<75||Math.abs(dy)>40)return;const ids=MEDIA16.filter(id=>inputs.has(id));if(!ids.length)return;const i=ids.indexOf(SW.pvw);setPvw(ids[(Math.max(0,i)+(dx<0?1:-1)+ids.length)%ids.length]);renderMedia16();});screen.addEventListener('pointercancel',()=>p=null);}
+
+  function recLabel(key){return key==='pgm'?'PGM':key==='pvw'?'PREVIEW':key==='clean'?'CLEAN':/^aux\d$/.test(key)?key.toUpperCase():inputs.get(key)?.name||key;}
+  function saveBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),30000);}
+  function replaySegment(j){if(!REPLAY.on||j.stop||ended)return;const st=recStreamOf(j.key);if(!st){j.error='來源已離線';return;}let resolveDone;const done=new Promise(resolve=>resolveDone=resolve);j.done=done;let mr;try{const mime=recMime();mr=new MediaRecorder(st,{mimeType:mime||undefined,videoBitsPerSecond:4000000});j.mime=mime;}catch(e){j.error=e.message;resolveDone();return;}j.mr=mr;j.parts=[];j.started=Date.now();mr.ondataavailable=e=>{if(e.data.size)j.parts.push(e.data);};mr.onerror=()=>{j.error='回放緩衝錄影失敗';clearTimeout(j.timer);};mr.onstop=()=>{try{
+      clearTimeout(j.timer);const blob=new Blob(j.parts,{type:mr.mimeType||j.mime||'video/webm'});const duration=(Date.now()-j.started)/1000;if(blob.size){const clip={id:rnd(8),key:j.key,label:recLabel(j.key),blob,duration,at:Date.now()};REPLAY.clips.push(clip);REPLAY.bytes+=blob.size;while(REPLAY.clips.length>32||REPLAY.bytes>128*1048576){const old=REPLAY.clips.shift();REPLAY.bytes-=old.blob.size;}if(j.capture){j.capture=false;previewReplay(clip);}}
+      }catch(e){j.error=e.message;j.stop=true;}finally{resolveDone();}if(REPLAY.on&&!j.stop&&!ended&&!sessionEnding)replaySegment(j);softRender('replay');
+    };try{mr.start(1000);}catch(e){j.error=e.message;j.stop=true;resolveDone();return;}j.timer=setTimeout(()=>{if(mr.state!=='inactive')mr.stop();},REPLAY.duration*1000);
+  }
+  function startReplay(keys,duration){if(sessionEnding||ended)return toast('導播正在結束');if(!opsLocalAllowed('localRecord'))return toast('錄影權限已關閉');if(!window.MediaRecorder)return toast('瀏覽器不支援錄影');REPLAY.duration=duration;REPLAY.on=true;for(const key of keys){if(REPLAY.jobs.has(key)||!recStreamOf(key))continue;const j={key,stop:false};REPLAY.jobs.set(key,j);replaySegment(j);}renderReplay();}
+  function stopReplay(){REPLAY.on=false;const pending=[...REPLAY.jobs.values()].map(j=>j.done).filter(Boolean);for(const j of REPLAY.jobs.values()){j.stop=true;clearTimeout(j.timer);if(j.mr?.state!=='inactive')try{j.mr.stop();}catch{}}REPLAY.jobs.clear();softRender('replay');return Promise.allSettled(pending);}
+  function captureReplay(key){const j=REPLAY.jobs.get(key);if(!j||j.mr?.state==='inactive')return toast('請先開啟這一路的回放緩衝');if(Date.now()-j.started<700)return toast('緩衝不足一秒，請稍候');j.capture=true;j.mr.stop();}
+  function previewReplay(clip){if(!canSw())return roleDeny();const ext=clip.blob.type.includes('mp4')?'mp4':'webm';const inp=addMedia(new File([clip.blob],`回放_${clip.label}_${new Date(clip.at).toISOString().replace(/[:.]/g,'-')}.${ext}`,{type:clip.blob.type}));if(inp){setPvw(inp.id);toast('回放已送 PREVIEW，使用 CUT／AUTO 播出');}}
+  function recordSources(){return [['pgm','PROGRAM'],['pvw','PREVIEW'],['clean','CLEAN'],...AUX.map(a=>['aux'+(a.i+1),'AUX '+(a.i+1)]),...order.filter(id=>inputs.get(id).isoStream).map(id=>[id,'ISO '+inputs.get(id).name])];}
+  function renderReplay(){const w=WIN.replay;if(!w?.open)return;w.body.innerHTML=`<div class="wsec"><h4>即時錄製／回放</h4><div class="note">每段獨立封裝，可在主錄影持續時擷取。立即回放會取出目前這一段（最多所選秒數），送入 PREVIEW，不會直接切到播出。歷史緩衝最多 32 段／128 MB。</div>${recordSources().map(([k,n])=>`<label class="row"><input type="checkbox" data-replay-key="${k}" ${REPLAY.jobs.has(k)||k==='pgm'?'checked':''} ${REPLAY.on?'disabled':''}><span class="grow">${esc(n)}</span>${REPLAY.jobs.has(k)?`<button class="btn sm" data-replay-capture="${k}">擷取目前段</button><small>${esc(REPLAY.jobs.get(k).error||'緩衝中')}</small>`:''}</label>`).join('')}<div class="row"><select class="field" id="replayDuration" ${REPLAY.on?'disabled':''}>${[10,20,30].map(n=>`<option value="${n}" ${n===REPLAY.duration?'selected':''}>每段最長 ${n} 秒</option>`).join('')}</select><button class="btn ${REPLAY.on?'danger':'primary'}" id="replayToggle">${REPLAY.on?'停止緩衝':'開始緩衝'}</button></div></div><div class="wsec"><h4>回放片段 <small>${(REPLAY.bytes/1048576).toFixed(1)} MB</small></h4>${[...REPLAY.clips].reverse().map(c=>`<div class="row"><span class="grow">${esc(c.label)} · ${c.duration.toFixed(1)} 秒 · ${new Date(c.at).toLocaleTimeString()}</span><button class="btn sm" data-clip-preview="${c.id}">送預覽</button><button class="btn sm" data-clip-save="${c.id}">下載</button></div>`).join('')||'<div class="note">尚無片段。開始緩衝後可立即擷取，或等待一段完成。</div>'}</div>`;const b=w.body;$('#replayToggle',b).onclick=()=>{if(REPLAY.on)stopReplay();else{const keys=$$('[data-replay-key]',b).filter(c=>c.checked).map(c=>c.dataset.replayKey);if(!keys.length)return toast('請選擇緩衝來源');startReplay(keys,+$('#replayDuration',b).value);}};$$('[data-replay-capture]',b).forEach(e=>e.onclick=x=>{x.preventDefault();captureReplay(e.dataset.replayCapture);});$$('[data-clip-preview]',b).forEach(e=>e.onclick=()=>previewReplay(REPLAY.clips.find(c=>c.id===e.dataset.clipPreview)));$$('[data-clip-save]',b).forEach(e=>e.onclick=()=>{const c=REPLAY.clips.find(c=>c.id===e.dataset.clipSave);saveBlob(c.blob,'Replay_'+c.label+'_'+c.at+(c.blob.type.includes('mp4')?'.mp4':'.webm'));});}
+
+  async function loadGoogleScript(src){if(src.includes('gsi')&&window.google?.accounts?.oauth2)return;if(src.includes('api.js')&&window.gapi)return;await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(Error('Google 元件載入失敗，請檢查網路'));document.head.appendChild(s);});}
+  function cloudToken(){if(!CLOUD.token||Date.now()>CLOUD.expires)throw Error('請先登入 Google（或重新授權）');return CLOUD.token;}
+  async function googleConnect(){const client=store('wc_drive_client')||'';if(!client.endsWith('.apps.googleusercontent.com'))throw Error('請先設定 Google OAuth Client ID');await loadGoogleScript('https://accounts.google.com/gsi/client');await new Promise((resolve,reject)=>{const c=google.accounts.oauth2.initTokenClient({client_id:client,scope:'https://www.googleapis.com/auth/drive.file',callback:r=>{if(r.error)return reject(Error(r.error));CLOUD.token=r.access_token;CLOUD.expires=Date.now()+(+r.expires_in||3600)*1000-60000;resolve();},error_callback:e=>reject(Error(e.type||'Google 登入取消'))});c.requestAccessToken({prompt:'select_account'});});await restoreCloudJobs();CLOUD.jobs.forEach(j=>{if(j.status!=='已儲存'&&j.status!=='上傳中')j.status='待上傳';});cloudPump();renderCloud();}
+  async function driveRequest(url,options={}){const r=await fetch(url,{...options,headers:{Authorization:'Bearer '+cloudToken(),...(options.headers||{})}});if(r.status===401){CLOUD.token='';throw Error('Google 授權已過期，請重新登入後重試');}return r;}
+  function folderId(value){const s=String(value||'').trim();const m=s.match(/\/folders\/([\w-]+)/);const id=m?m[1]:s;return /^[\w-]{10,}$/.test(id)?id:null;}
+  async function verifyFolder(value){const id=folderId(value);if(!id)throw Error('請輸入 Google Drive 資料夾連結或 ID');const r=await driveRequest('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(id)+'?fields=id,name,mimeType,capabilities(canAddChildren)&supportsAllDrives=true');if(!r.ok)throw Error('無法存取此資料夾；請用「選擇雲端資料夾」授權並確認可寫入');const f=await r.json();if(f.mimeType!=='application/vnd.google-apps.folder'||!f.capabilities?.canAddChildren)throw Error('目標必須是目前帳號可寫入的資料夾');CLOUD.folder=f.id;CLOUD.folderName=f.name;store('wc_drive_folder',f.id);store('wc_drive_folder_name',f.name);renderCloud();return f;}
+  async function pickDriveFolder(){const key=store('wc_drive_apikey')||'',client=store('wc_drive_client')||'',appId=client.split('-')[0];if(!key)throw Error('請設定 Google Picker API Key');cloudToken();await loadGoogleScript('https://apis.google.com/js/api.js');await new Promise((resolve,reject)=>gapi.load('picker',{callback:resolve,onerror:()=>reject(Error('Picker 載入失敗'))}));await new Promise((resolve,reject)=>{const view=new google.picker.DocsView(google.picker.ViewId.FOLDERS).setIncludeFolders(true).setSelectFolderEnabled(true);const picker=new google.picker.PickerBuilder().setDeveloperKey(key).setAppId(appId).setOAuthToken(cloudToken()).addView(view).setOrigin(location.origin).setCallback(async d=>{if(d.action===google.picker.Action.PICKED){try{await verifyFolder(d.docs[0].id);resolve();}catch(e){reject(e);}}else if(d.action===google.picker.Action.CANCEL)resolve();}).build();picker.setVisible(true);});}
+  async function uploadDriveJob(j){if(!j.folder)throw Error('錄影當時尚未指定 Google Drive 資料夾，請設定後重試');cloudToken();if(!j.url){const r=await driveRequest('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,name,size',{method:'POST',headers:{'Content-Type':'application/json','X-Upload-Content-Type':j.blob.type||'application/octet-stream','X-Upload-Content-Length':String(j.blob.size)},body:JSON.stringify({name:j.name,parents:[j.folder]})});if(!r.ok)throw Error('無法建立雲端檔案（'+r.status+'）');j.url=r.headers.get('Location');if(!j.url||new URL(j.url).origin!=='https://www.googleapis.com')throw Error('Google 未回傳有效上傳位置');await persistCloudJob(j);}
+    else {const r=await driveRequest(j.url,{method:'PUT',headers:{'Content-Range':'bytes */'+j.blob.size},body:new Blob([])});if(r.ok){const data=await r.json();if(!data.id)throw Error('Google 尚未確認檔案 ID');j.fileId=data.id;return;}if(r.status===404||r.status===410){j.url='';j.offset=0;return uploadDriveJob(j);}if(r.status!==308)throw Error('查詢續傳進度失敗（'+r.status+'）');j.offset=rangeEnd(r.headers.get('Range'));}
+    while(j.offset<j.blob.size){const end=Math.min(j.offset+4*1024*1024,j.blob.size);const r=await driveRequest(j.url,{method:'PUT',headers:{'Content-Type':j.blob.type||'application/octet-stream','Content-Range':`bytes ${j.offset}-${end-1}/${j.blob.size}`},body:j.blob.slice(j.offset,end)});if(r.ok){const data=await r.json();if(!data.id)throw Error('雲端未確認檔案 ID');j.fileId=data.id;j.offset=j.blob.size;j.progress=100;softRender('cloud');return;}if(r.status!==308)throw Error('上傳失敗（'+r.status+'），保留本機檔案可重試');const offset=rangeEnd(r.headers.get('Range'));if(offset<=j.offset)throw Error('Google 未確認新的上傳進度，請重試');j.offset=offset;j.progress=Math.floor(j.offset/j.blob.size*100);await persistCloudJob(j);softRender('cloud');}throw Error('尚未取得 Google 雲端完成確認');
+  }
+  function rangeEnd(range){const m=/bytes=0-(\d+)/.exec(range||'');return m?+m[1]+1:0;}
+  function renderCloud(){const w=WIN.cloud;if(!w?.open)return;w.body.innerHTML=`<div class="wsec"><h4>使用者 Google Drive</h4><button class="btn" id="driveRecovery">錄影恢復／待續上傳</button><div class="row"><button class="btn" id="driveWorkflow">儲存模式／後台同步</button><button class="btn" id="driveSync">同步此設定至後台</button></div><div class="note">登入自己的 Google 帳號並用選擇器授權目標資料夾。錄完後分段上傳，保留原本本機存檔／下載。上傳工作與錄影區塊保存在此瀏覽器；重開後可登入 Google 續傳。請保留快取直到確認檔案。雲端存放資料夾不會自動公開。</div><label class="row"><input type="checkbox" id="driveEnabled" ${CLOUD.enabled?'checked':''}> 錄完自動備份到指定資料夾</label><div class="row"><button class="btn" id="driveConnect">${CLOUD.token&&Date.now()<CLOUD.expires?'重新登入 Google':'登入 Google'}</button><button class="btn" id="drivePick">選擇雲端資料夾</button></div><p class="note">目前：${esc(CLOUD.folderName||'尚未選擇')} ${CLOUD.folder?' / '+esc(CLOUD.folder):''}</p><div class="row"><input class="field grow" id="driveFolder" placeholder="資料夾連結或 ID（需先授權）" value="${esc(CLOUD.folder)}"><button class="btn" id="driveVerify">驗證並儲存</button></div><details><summary>Google 串接設定（首次使用）</summary><label class="lbl">OAuth Client ID</label><input class="field full" id="driveClient" value="${esc(store('wc_drive_client')||'')}" placeholder="…apps.googleusercontent.com"><label class="lbl">Picker API Key</label><input class="field full" id="driveApi" value="${esc(store('wc_drive_apikey')||'')}"><button class="btn" id="driveConfig">儲存串接設定</button><div class="note">Client ID 與 API Key 是前端公開識別資料；請限制來源網域。存取權杖只保留在記憶體。</div></details></div><div class="wsec"><h4>錄影雲端佇列</h4>${CLOUD.jobs.map(j=>`<div class="cloud-job"><b>${esc(j.name)}</b><span>${esc(j.status)} ${j.progress}%</span>${j.error?`<small>${esc(j.error)}</small>`:''}<div>${j.blob||j.recordId?`<button class="btn sm" data-cloud-download="${j.id}">本機下載</button>`:''}${j.status==='失敗'?`<button class="btn sm" data-cloud-retry="${j.id}">重試上傳</button>`:''}${j.fileId?`<a class="btn sm" href="https://drive.google.com/file/d/${encodeURIComponent(j.fileId)}/view" target="_blank" rel="noopener">開啟檔案</a>`:''}</div></div>`).join('')||'<div class="note">錄影停止後會加入佇列。尚未啟用時維持本機存檔。</div>'}</div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#driveRecovery',b).onclick=()=>openWin('recovery');$('#driveWorkflow',b).onclick=()=>openWin('workflow');$('#driveSync',b).onclick=act(saveWorkflow);$('#driveConnect',b).onclick=act(googleConnect);$('#drivePick',b).onclick=act(pickDriveFolder);$('#driveVerify',b).onclick=act(()=>verifyFolder($('#driveFolder',b).value));$('#driveEnabled',b).onchange=e=>{CLOUD.enabled=e.target.checked;store('wc_drive_enabled',CLOUD.enabled?'1':'0');store('wc_record_mode',CLOUD.enabled?'both':'local');};$('#driveConfig',b).onclick=()=>{store('wc_drive_client',$('#driveClient',b).value.trim());store('wc_drive_apikey',$('#driveApi',b).value.trim());CLOUD.token='';toast('設定已儲存，請登入 Google');};$$('[data-cloud-download]',b).forEach(e=>e.onclick=async()=>{const j=CLOUD.jobs.find(j=>j.id===e.dataset.cloudDownload);if(j)try{saveBlob(j.blob||await journalBlob(j.recordId),j.name);}catch(err){toast(err.message);}});$$('[data-cloud-retry]',b).forEach(e=>e.onclick=()=>{const j=CLOUD.jobs.find(j=>j.id===e.dataset.cloudRetry);if(!j)return;if(!j.folder){j.folder=CLOUD.folder;}j.status='待上傳';j.error='';cloudPump();renderCloud();});}
+
   /* =============== 浮動視窗 =============== */
+  let WORKFLOW={revision:0,streams:[],ready:false},workflowSyncBusy=false,workflowDirty=false;
+  const workflowMode=()=>store('wc_record_mode')||(CLOUD.enabled?'both':'local');
+  function collectWorkflow(){return {mode:workflowMode(),folder:CLOUD.folder,folderName:CLOUD.folderName,client:store('wc_drive_client')||'',apiKey:store('wc_drive_apikey')||'',streams:WORKFLOW.streams};}
+  function applyWorkflow(r){if(!r.config)return;workflowDirty=false;const c=r.config;WORKFLOW.revision=r.revision;WORKFLOW.streams=c.streams||[];WORKFLOW.ready=true;store('wc_record_mode',c.mode);CLOUD.enabled=c.mode!=='local';CLOUD.folder=c.folder||'';CLOUD.folderName=c.folderName||'';store('wc_drive_enabled',CLOUD.enabled?'1':'0');store('wc_drive_folder',CLOUD.folder);store('wc_drive_folder_name',CLOUD.folderName);if(store('wc_drive_client')!==c.client)CLOUD.token='';store('wc_drive_client',c.client||'');store('wc_drive_apikey',c.apiKey||'');softRender('cloud');softRender('workflow');}
+  async function syncWorkflow(manual=false){if(workflowSyncBusy||ended)return;workflowSyncBusy=true;try{const r=await apiCall({action:'workflowGet',token:sess.token});if(!r.ok)throw Error(r.error||'後台讀取失敗');if(!manual&&workflowDirty)return;if(r.revision!==WORKFLOW.revision||!WORKFLOW.ready){applyWorkflow(r);WORKFLOW.ready=true;}if(manual)toast('已讀取後台設定');}catch(e){if(manual)toast(e.message);}finally{workflowSyncBusy=false;}}
+  async function saveWorkflow(){if(!opsLocalAllowed('workflowManage'))throw Error('設定權限已關閉');const r=await apiCall({action:'workflowSave',token:sess.token,revision:WORKFLOW.revision,config:collectWorkflow()});if(!r.ok)throw Error(r.error||'無法儲存後台設定');applyWorkflow(r);toast('已同步後台，修訂 '+r.revision);}
+  async function startProfile(id){if(sessionEnding||ended)throw Error('導播正在結束');if(!opsLocalAllowed('streamControl'))throw Error('串流操作權限已關閉');const p=WORKFLOW.streams.find(x=>x.id===id);if(!p)throw Error('找不到串流設定，請先同步後台');if(p.direction==='pull'){if(order.some(id=>inputs.get(id)?.workflowProfile===p.id))throw Error('此拉流來源已加入');const before=new Set(order);await addWhep(p.url,p.name,p.token);const added=order.filter(id=>!before.has(id));if(!added.length)throw Error('拉流未建立，請檢查 WHEP 端點');inputs.get(added[0]).workflowProfile=p.id;return '已建立拉流來源，請檢查畫面與連線狀態';}let s=STREAMS.find(s=>s.workflowProfile===p.id);if(s?.want||s?.on)throw Error('此目的地已啟動');if(!s){s={id:rnd(6),workflowProfile:p.id,on:false,want:false,st:''};STREAMS.push(s);}Object.assign(s,p,{id:s.id,workflowProfile:p.id});s.want=true;await whipStart(s);saveStreams();return '已送出 WHIP 推流，請確認目的地連線狀態';}
+  function stopProfile(id){if(!opsLocalAllowed('streamControl'))throw Error('串流操作權限已關閉');const p=WORKFLOW.streams.find(p=>p.id===id);if(p?.direction==='pull'){const x=order.map(id=>inputs.get(id)).find(x=>x.workflowProfile===id);if(!x)throw Error('此拉流來源未連線');if(SW.pgm===x.id||REC.has(x.id))throw Error('來源正在播出或錄影，請先切離／停止');removeInput(x.id);}else{const s=STREAMS.find(s=>s.workflowProfile===id);if(!s)throw Error('此目的地未啟動');whipStop(s);}return '已停止串流';}
+  function renderWorkflow(){const w=WIN.workflow;if(!w?.open)return;const c=collectWorkflow();w.body.innerHTML=`<div class="wsec"><h4>錄影目的地／後台同步 <small>修訂 ${WORKFLOW.revision}</small></h4><div class="note">後台與此處共用帳號設定，約每 10 秒同步。變更存檔目的地只影響下一次錄影。本機資料夾授權只屬於此電腦，不會傳到後台。</div><label class="lbl">儲存模式</label><select class="field full" id="wfmode">${[['local','只存本地'],['cloud','只存 Google Drive'],['both','本地＋Google Drive']].map(([k,n])=>`<option value="${k}" ${c.mode===k?'selected':''}>${n}</option>`).join('')}</select><div class="row"><button class="btn" id="wfcloud">Google 帳號／資料夾</button><button class="btn" id="wflocal">本機資料夾／錄影</button></div><div class="note">目前本機：${esc(recDir?.name||'瀏覽器下載')}；雲端：${esc(CLOUD.folderName||CLOUD.folder||'尚未設定')}</div><div class="row"><button class="btn" id="wfload">讀取後台</button><button class="btn primary" id="wfsave">儲存並同步後台</button></div></div><div class="wsec"><h4>推流／拉流設定</h4><div class="note">WHIP 推流／WHEP 拉流可直接選用；RTMP／SRT／RTSP 必須先經串流伺服器轉接。儲存設定不會自動開始推流或中斷既有連線。</div><div id="wfprofiles">${WORKFLOW.streams.map(p=>`<section class="cloud-job" data-wfrow="${esc(p.id)}"><div class="row"><input class="field grow" data-wf="name" value="${esc(p.name)}" placeholder="名稱"><select class="field" data-wf="direction"><option value="push" ${p.direction==='push'?'selected':''}>推流 WHIP</option><option value="pull" ${p.direction==='pull'?'selected':''}>拉流 WHEP</option></select></div><input class="field full" data-wf="url" value="${esc(p.url)}" placeholder="https://…/whip 或 /whep"><div class="row"><input class="field grow" type="password" data-wf="token" value="${esc(p.token)}" placeholder="Bearer token（可留空）"><select class="field" data-wf="src">${['pgm','clean','aux1','aux2','aux3','aux4'].map(k=>`<option ${k===p.src?'selected':''}>${k}</option>`).join('')}</select><input class="field" style="width:90px" type="number" data-wf="kbps" value="${p.kbps}" min="1000" max="20000"></div><div class="row"><button class="btn sm" data-wfstart="${p.id}">開始／加入來源</button><button class="btn sm" data-wfstop="${p.id}">停止</button><button class="btn sm" data-wfremove="${p.id}">移除設定</button></div></section>`).join('')}</div><button class="btn" id="wfadd">新增一組</button></div>`;const b=w.body; b.oninput=()=>{workflowDirty=true;};const read=()=>{workflowDirty=true;WORKFLOW.streams=$$('[data-wfrow]',b).map(el=>Object.fromEntries([['id',el.dataset.wfrow],...$$('[data-wf]',el).map(e=>[e.dataset.wf,e.dataset.wf==='kbps'?+e.value:e.value])]));store('wc_record_mode',$('#wfmode',b).value);CLOUD.enabled=workflowMode()!=='local';store('wc_drive_enabled',CLOUD.enabled?'1':'0');},run=fn=>async()=>{try{read();const msg=await fn();if(typeof msg==='string')toast(msg);}catch(e){toast(e.message);}};$('#wfload',b).onclick=()=>syncWorkflow(true);$('#wfsave',b).onclick=run(saveWorkflow);$('#wfcloud',b).onclick=()=>{read();openWin('cloud');};$('#wflocal',b).onclick=()=>{read();openWin('rec');};$('#wfmode',b).onchange=read;$('#wfadd',b).onclick=()=>{read();if(WORKFLOW.streams.length>=16)return toast('最多 16 組');WORKFLOW.streams.push({id:rnd(10),name:'新串流',direction:'push',url:'',token:'',src:'pgm',kbps:6000});renderWorkflow();};$$('[data-wfstart]',b).forEach(e=>e.onclick=run(()=>startProfile(e.dataset.wfstart)));$$('[data-wfstop]',b).forEach(e=>e.onclick=run(()=>stopProfile(e.dataset.wfstop)));$$('[data-wfremove]',b).forEach(e=>e.onclick=()=>{read();WORKFLOW.streams=WORKFLOW.streams.filter(p=>p.id!==e.dataset.wfremove);renderWorkflow();});}
+
+  let POCKET_DEVICES=[];
+  async function scanPocket(){if(!navigator.mediaDevices?.getUserMedia)throw Error('請使用 HTTPS 開啟並確認瀏覽器支援相機');const temp=await navigator.mediaDevices.getUserMedia({video:true,audio:false});temp.getTracks().forEach(t=>t.stop());POCKET_DEVICES=await navigator.mediaDevices.enumerateDevices();renderPocket();}
+  function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${/pocket|osmo|dji/i.test(d.label)?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播</h4><div class="note">Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?{deviceId:{exact:aud}}:false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;setPvw(x.id);renderAll();toast('DJI Pocket 已加入 PREVIEW；可切換、ISO 錄影與送出');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');}
+
   const WDEF = {
+    recovery:{title:'錄影恢復／待續上傳',w:760,h:640,render:renderRecovery},
+    pocket:{title:'DJI Pocket USB／網路訊號',w:720,h:640,render:renderPocket},
+    workflow:{title:'錄影目的地／推流拉流同步',w:760,h:680,render:renderWorkflow},
+    media16:{title:'MEDIA 16 素材庫',w:820,h:650,render:()=>{renderMedia16();restoreMedia16();}},
+    replay:{title:'REPLAY 即時回放',w:700,h:620,render:renderReplay},
+    cloud:{title:'Google Drive 雲端儲存',w:700,h:620,render:renderCloud},
     ic:   { title: 'INTERCOM 對講台', w: 380, h: 460, render: renderIC },
     msg:  { title: 'MESSAGE 訊息', w: 380, h: 440, render: renderMsgs },
     mix:  { title: 'AUDIO MIXER 混音／監聽', w: 560, h: 330, render: renderMix },
@@ -3392,12 +3518,14 @@ function Host(sess){
   }
   function openWin(id, force){
     id = WALIAS[id] || id;
+    const permission = {ifb:'localIfb',ic:'localIfb',ear:'localIfb',ret:'localReturn',mix:'audio',mtx:'audio',aud:'audio'}[id]; if (permission && !opsLocalAllowed(permission)) return toast('帳號的此功能權限已關閉');
     const gid = GOF[id]; if (!gid || !WDEF[id]) return;
     const G = ensureGroup(gid), w = WIN[id];
     if (w.open && !force) { focusWin(G); return; }
     GROUPS[gid].tabs.forEach(t => { WIN[t].open = t === id; WIN[t].body.classList.toggle('hidden', t !== id); });
     G.open = true; G.cur = id; G.el.dataset.w = id; G.el.classList.remove('hidden'); focusWin(G); updTabs();
     keyEl(id)?.classList.add('on');
+    if(G.el.classList.contains('keyboard-temporarily-hidden'))G.el.classList.remove('keyboard-temporarily-hidden');
     if (id === 'msg') { unread = 0; $('#mbdg').classList.add('hidden'); }
     WDEF[id].render();
     dockStudioGroup(G,id);
@@ -3973,6 +4101,7 @@ function Host(sess){
   addEventListener('keydown', e => {
     const tg = e.target; if (tg.closest && tg.closest('input,select,textarea,[contenteditable]')) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (['KeyM','KeyL','KeyX'].includes(e.code) && !opsLocalAllowed('audio')) { e.preventDefault(); return toast('帳號的音控權限已關閉'); }
     if (e.repeat && (e.code === 'KeyT' || e.code === 'KeyA')) return;
     if (ROLE.local === 'view' && e.code !== 'Escape') return;
     if (ROLE.local === 'aud' && !['KeyM', 'KeyL', 'KeyX', 'Escape', 'KeyK', 'Slash'].includes(e.code)) return;
@@ -4120,6 +4249,7 @@ function Host(sess){
       conn.on('close', () => { if (inputs.get(g.id)?.conn === conn) { if (g.bye) removeInput(g.id); else markLost(g.id); } });
     });
     peer.on('call', call => {
+      if (call.metadata?.role === 'opsTalk') { opsAcceptTalk(call).catch(() => call.close()); return; }
       if (call.metadata?.role !== 'guest') return;
       const g = byPeer(call.peer);
       if (!g) { call.close(); return; }
@@ -4189,13 +4319,99 @@ function Host(sess){
     }, 1000);
   }
 
+  /* Operations v20: authenticated remote controls, reuse the existing media engine. */
+  function opsLocalAllowed(key){return info.me?.ops?.[key] !== false;}
+  function opsRoomState(){
+    return {version:21,workflowRevision:WORKFLOW.revision,streamProfiles:WORKFLOW.streams.map(p=>({id:p.id,name:p.name,direction:p.direction,active:p.direction==='push'?STREAMS.some(s=>s.workflowProfile===p.id&&s.on):order.some(id=>inputs.get(id)?.workflowProfile===p.id)})),cloudJobs:CLOUD.jobs.map(j=>({name:j.name,status:j.status,progress:j.progress})),returnSource:RET.src,groups:Object.fromEntries(Object.entries(IFBG).map(([k,v])=>[k,{name:v.name,src:v.src,mute:v.mute}])),
+      recordings:[...REC.values()].map(r=>({key:r.key,label:r.label,bytes:r.size})),finalizing:[...FINALIZING.values()].map(r=>({key:r.key,label:r.label})),
+      sources:order.map(id=>{const g=inputs.get(id);return {id,name:g.name,kind:g.kind,lost:!!g.lost,recordable:!!recStreamOf(id),ifb:g.ifb?{...g.ifb}:null};}),
+      recordingDestination:({local:'本地',cloud:'Google Drive',both:'本地＋Google Drive'}[workflowMode()])+'；本機：'+(recDir?.name||'瀏覽器下載')+'；雲端：'+(CLOUD.folderName||'未設定'),
+      mixMinus:true};
+  }
+  async function opsVerifyMonitor(m,op){
+    const r=await apiCall({action:'verifyMon',ticket:m.ticket,sid:sess.sid,op});
+    if(!r.ok)throw new Error(r.error||'權限驗證失敗');m.ops=r.ops;m.remote=r.remote;return r;
+  }
+  async function opsHandleCommand(m,d){
+    const id=String(d.id||'').slice(0,60);if(!id)return;
+    m.opsPending=m.opsPending||new Set();m.opsDone=m.opsDone||new Map();
+    if(m.opsDone.has(id)){m.conn.send(m.opsDone.get(id));return;}if(m.opsPending.has(id))return;
+    m.opsPending.add(id);let result;
+    try{
+      if(!mons.has(m)||!m.conn.open)throw new Error('監看連線已關閉');
+      const checks={ifb:'ifb',return:'return',recStart:'recStart',recStop:'recStop',message:'message',streamStart:'streamStart',streamStop:'streamStop'};
+      if(!checks[d.op])throw new Error('不支援的控制指令');
+      const actor=await opsVerifyMonitor(m,checks[d.op]);
+      if(!mons.has(m)||!m.conn.open)throw new Error('監看連線已關閉');
+      const p=d.payload||{};let detail='';
+      if(d.op==='return'){
+        if(!['none','program','aux1','aux2','aux3','aux4'].includes(p.src))throw new Error('不支援的回傳來源');
+        if(!opsLocalAllowed('localReturn'))throw new Error('房間操作者的回傳權限已關閉');
+        await setReturn(p.src);detail='回傳已設定為 '+p.src;
+      }
+      if(d.op==='ifb'){
+        if(!opsLocalAllowed('localIfb'))throw new Error('房間操作者的 IFB 權限已關閉');
+        const g=inputs.get(p.gid);if(!g||g.kind!=='guest'||g.lost)throw new Error('來賓不在線上');
+        if(!['A','B','C','D'].includes(p.group))throw new Error('IFB 組別不正確');
+        for(const k of ['pgm','ic','cue']){const n=Number(p[k]);if(!Number.isFinite(n)||n<0||n>1.5)throw new Error('返送音量需介於 0～150%');}
+        setIfbGroup(g,p.group);for(const k of ['pgm','ic','cue'])g.ifb[k]=Number(p[k]);g.ifb.mute=!!p.mute;
+        rebuildReturn();applyGains(g);tuneReturn(g);softRender('ifb');detail='已更新 '+g.name+' 的 IFB；PGM／AUX 維持 Mix-minus';
+      }
+      if(d.op==='recStart'){
+        if(!opsLocalAllowed('localRecord'))throw new Error('房間操作者的錄影權限已關閉');
+        const keys=[...new Set(Array.isArray(p.keys)?p.keys:[])];if(!keys.length||keys.length>4)throw new Error('遠端每次請選 1～4 路錄影');
+        if(keys.some(k=>typeof k!=='string'||!recStreamOf(k)))throw new Error('來源不支援錄影或已離線');
+        const fresh=keys.filter(k=>!REC.has(k));if(!fresh.length)throw new Error('所選來源已在錄影');
+        await startRec(fresh,clamp(Number(p.kbps)||6000,1000,20000));
+        const started=fresh.filter(k=>REC.has(k));if(started.length!==fresh.length)throw new Error('部分錄影啟動失敗，已啟動：'+started.join(', '));
+        detail='已開始錄影：'+started.join(', ')+'；檔案保存在導播電腦';
+      }
+      if(d.op==='recStop'){
+        const keys=[...new Set(Array.isArray(p.keys)?p.keys:[])];if(!keys.length||keys.some(k=>!REC.has(k)))throw new Error('請選擇正在錄影的來源');
+        const done=await Promise.all(keys.map(stopRecFor));if(done.some(r=>r&&r.ok===false))throw Error('部分存檔需恢復，請到導播端檢查錄影快取');detail='錄影存檔收尾已完成：'+keys.join(', ');
+      }
+      if(d.op==='streamStart')detail=await startProfile(String(p.profile||''));
+      if(d.op==='streamStop')detail=stopProfile(String(p.profile||''));
+      if(d.op==='message'){
+        const text=String(p.text||'').trim().slice(0,300);if(!text)throw new Error('請輸入訊息');
+        if(p.gid!=='all'&&!guests().some(g=>g.id===p.gid&&!g.lost))throw new Error('來賓不在線上');
+        sendMsg(p.gid||'all','【控制中心】'+text);detail='訊息已交給現有訊息傳送流程';
+      }
+      result={type:'opsAck',id,ok:true,detail,state:opsRoomState()};
+      apiCall({action:'opsCommandResult',token:sess.token,sid:sess.sid,by:actor.account,op:d.op,success:true,detail}).catch(()=>{});
+    }catch(e){result={type:'opsAck',id,ok:false,error:e.message||String(e)};}
+    finally{m.opsPending.delete(id);}
+    m.opsDone.set(id,result);if(m.opsDone.size>100)m.opsDone.delete(m.opsDone.keys().next().value);
+    if(m.conn.open)m.conn.send(result);
+  }
+  async function opsAcceptTalk(call){
+    const md=call.metadata||{},m=[...mons].find(x=>x.conn.peer===call.peer&&x.ticket===md.ticket);
+    if(!m){call.close();return;}
+    try{await opsVerifyMonitor(m,'talk');if(!opsLocalAllowed('localIfb'))throw new Error('房間 IFB 已關閉');}catch(e){call.close();return;}
+    const ids=Array.isArray(md.targets)?md.targets.filter(x=>typeof x==='string').slice(0,30):[];
+    const targets=ids.map(id=>inputs.get(id)).filter(g=>g?.kind==='guest'&&!g.lost);if(!targets.length){call.close();return;}
+    if(m.talkCall)m.talkCall.close();m.talkCall=call;
+    const nodes=[];let timer,expiry;
+    const cleanup=()=>{clearInterval(timer);clearTimeout(expiry);nodes.forEach(n=>{try{n.disconnect();}catch{}});if(m.talkCall===call)m.talkCall=null;};
+    call.on('close',cleanup);call.on('error',cleanup);
+    call.answer();call.on('stream',stream=>{
+      if(!mons.has(m)||!m.conn.open){call.close();return;}
+      const src=ac.createMediaStreamSource(stream);nodes.push(src);
+      targets.forEach(g=>{const gain=ac.createGain();gain.gain.value=clamp(g.ifb?.ic??1,0,1.5);src.connect(gain);gain.connect(g.retMix);nodes.push(gain);});
+      ac.resume().catch(()=>{});toast('控制中心「'+m.name+'」正在對指定來賓說話（最長 60 秒）');
+      timer=setInterval(async()=>{try{await opsVerifyMonitor(m,'talk');if(!opsLocalAllowed('localIfb'))throw new Error();}catch{cleanup();call.close();}},15000);
+      expiry=setTimeout(()=>{cleanup();call.close();},60000);
+      if(m.conn.open)m.conn.send({type:'opsTalkReady'});
+    });
+  }
+
   /* =============== NOC 監看（派發平台的監看中心連進來） =============== */
   const mons = new Set();
   const MON_CTL = ['quality', 'fps', 'codec', 'orient', 'retVol', 'guides', 'pgmMic', 'icMic', 'cam', 'zoom', 'retLayout', 'videoAudio', 'icMutesPgm', 'monMedia', 'retMute'];
   async function acceptMon(conn, md){
     let ok = null, err = '監看憑證無效';
     try { const r = await apiCall({ action: 'verifyMon', ticket: md.ticket, sid: sess.sid }); if (r.ok) ok = r; else err = r.error || err; } catch (e) { err = e.message; }
-    const m = { conn, name: ok?.name || '', remote: !!ok?.remote, calls: new Map() };
+    const m = { conn, ticket: md.ticket, ops: ok?.ops || {}, name: ok?.name || '', remote: !!ok?.remote, calls: new Map() };
     const go = () => {
       if (!ok) { conn.send({ type: 'deny', error: err }); setTimeout(() => conn.close(), 400); return; }
       mons.add(m);
@@ -4203,12 +4419,18 @@ function Host(sess){
       sendMonStats(); renderAll(); toast(`🛰 工程端「${m.name}」開始監看`);
     };
     if (conn.open) go(); else conn.on('open', go);
-    conn.on('data', d => onMonData(m, d));
-    conn.on('close', () => { mons.delete(m); m.calls.forEach(c => { try { c.close(); } catch {} }); renderAll(); });
+    conn.on('data', d => { onMonData(m, d).catch(e => { if(conn.open) conn.send({type:'deny',error:e.message || '操作遭拒'}); }); });
+    conn.on('close', () => { try { m.talkCall?.close(); } catch {} mons.delete(m); m.calls.forEach(c => { try { c.close(); } catch {} }); renderAll(); });
   }
   function monFeed(what){ if (what === 'mv') return mvStream; if (what === 'pgm') return programStream; if (what === 'pvw') return pvwStream; if (/^aux\d$/.test(what)) return AUX[+what[3] - 1]?.stream || null; return inputs.get(what)?.isoStream || inputs.get(what)?.stream || null; }
-  function onMonData(m, d){
+  async function onMonData(m, d){
     if (!d || !mons.has(m)) return;
+    if (d.type === 'opsCommand') return opsHandleCommand(m, d);
+    if (d.type === 'watch') await opsVerifyMonitor(m);
+    if (d.type === 'ctl') { const p = d.patch || {}; const required = new Set(Object.keys(p).map(k => ['pgmMic','icMic','videoAudio'].includes(k) ? 'ctlAudio' : k === 'retVol' ? 'ifb' : 'ctlVideo')); for (const op of required) await opsVerifyMonitor(m, op); }
+    if (d.type === 'ret') await opsVerifyMonitor(m, 'return');
+    if (d.type === 'msg') await opsVerifyMonitor(m, 'message');
+    if (!mons.has(m) || !m.conn.open) return;
     if (d.type === 'watch') {
       const what = String(d.what || ''), st = monFeed(what);
       try { m.calls.get(what)?.close(); } catch {}
@@ -4232,7 +4454,7 @@ function Host(sess){
   function sendMonStats(){
     if (!mons.size) return;
     const tot = guests().reduce((a, g) => a + (g.lost ? 0 : (g.net?.kbps || 0)), 0);
-    const payload = { type: 'mstats', t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
+    const payload = { type: 'mstats', ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
       guests: guests().map(g => ({ id: g.id, num: numOf(g), name: g.name, lost: !!g.lost, tally: g.tally, net: g.net || null, hostWarn: g.hostWarn || '',
         state: { quality: g.state.quality, fps: g.state.fps, codec: g.state.codec, codecs: g.state.codecs, orient: g.state.orient, portrait: g.state.portrait, perf: g.state.perf, conn: g.state.conn,
           hidden: g.state.hidden, pgmMic: g.state.pgmMic, icMic: g.state.icMic, cam: g.state.cam, battery: g.state.battery, zoom: g.state.zoom, guides: g.state.guides }, retVol: g.ctl.retVol ?? 1 })) };
@@ -4241,21 +4463,12 @@ function Host(sess){
   setInterval(sendMonStats, 1000);
 
   /* =============== 代碼有效性 =============== */
-  function endSession(reason){
-    if (ended) return; ended = true; try { pgmTicker.stop(); } catch {}
-    guests().forEach(g => { try { g.conn?.send({ type: 'kick', end: true }); } catch {} });
-    apiCall({ action: 'end', token: sess.token, sid: sess.sid }).catch(() => {});
-    setTimeout(() => { try { peer?.destroy(); } catch {} sstore('wc_host', null);
-      app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>導播已結束</h1><p>${esc(reason || '')}</p><button class="btn primary" onclick="location.href=location.pathname">回首頁</button></div></div>`;
-      $$('.win,.splash,.modal').forEach(x => x.remove()); wcIdle();
-    }, 400);
-  }
   // 每 10 秒回報一次：代碼是否仍有效 + 連線品質（給派發平台的 NOC 監控面板）
   let beatFail = false;
   async function beat(){
     if (ended) return;
     const r1 = v => v == null ? null : Math.round(v * 10) / 10;
-    const tele = { k: roomKey, label: info.label || '', lines: LINES, invite: invite.slice(0, 2) + '…', outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', mons: mons.size,
+    const tele = { ops: { version:20, recording:REC.size>0, recordings:[...REC.values()].map(r=>({key:r.key,label:r.label,bytes:r.size})), returnSource:RET.src }, k: roomKey, label: info.label || '', lines: LINES, invite: invite.slice(0, 2) + '…', outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', mons: mons.size,
       totalKbps: Math.round(liveGuests().reduce((a, g) => a + (g.net?.kbps || 0), 0)),
       guests: liveGuests().map(g => ({ id: g.id.slice(-10), name: g.name, kbps: r1(g.net?.kbps), rtt: r1(g.net?.rtt), loss: r1(g.net?.loss), jitter: r1(g.net?.jitter), fps: r1(g.net?.fps), res: g.net?.res,
         codec: g.net?.codec || '', path: g.net?.path ? pathText(g.net.path) : '', conn: g.state.conn || null,
@@ -4263,6 +4476,11 @@ function Host(sess){
         tier: g.state.quality?.tier, mode: g.state.quality?.mode, warn: g.state.quality?.warn || g.hostWarn || '', qlr: g.state.net?.qlr || '', avail: g.state.net?.avail, hidden: !!g.state.hidden, tally: g.tally })) };
     try {
       const r = await apiCall({ action: 'beat', token: sess.token, code: sess.code, sid: sess.sid, tele });
+      if (r.ok && r.ops) {
+        info.me.ops = r.ops;
+        const gate={ifb:'localIfb',ic:'localIfb',ret:'localReturn',mix:'audio',mtx:'audio',aud:'audio'};
+        Object.entries(gate).forEach(([id,key])=>{if(WIN[id]?.open&&!opsLocalAllowed(key))closeWin(id);});
+      }
       if (r.kill) { uiModal(`<h2>導播台已被結束</h2><div style="color:var(--dim)">${esc(r.error)}</div>`); endSession(r.error); return; }
       if (!r.ok && !beatFail) {
         beatFail = true;
@@ -4285,8 +4503,8 @@ function Host(sess){
   // ---------- 權限（這台導播台的角色；遠端操作員另外用連結驗證） ----------
   const ROLE = { local: 'dir', bypass: false };
   const ROLE_NAME = { dir: '導播', aud: '音控', view: '監看員' };
-  function canSw(){ return ROLE.local === 'dir' || ROLE.bypass; }
-  function canAud(){ return ROLE.local !== 'view' || ROLE.bypass; }
+  function canSw(){ return opsLocalAllowed('switcher') && (ROLE.local === 'dir' || ROLE.bypass); }
+  function canAud(){ return opsLocalAllowed('audio') && (ROLE.local !== 'view' || ROLE.bypass); }
   function roleDeny(){ toast(ROLE.local === 'aud' ? '目前是「音控」權限：只能調整聲音，不能切換畫面' : '目前是「監看員」權限：只能看畫面'); }
   $('#modeb').insertAdjacentHTML('afterend', '<span class="pill rolep hidden" id="rolep"></span>');
   function setLocalRole(r){
@@ -4362,11 +4580,11 @@ function Host(sess){
   const anyLoop = bus => { for (const x of inputs.values()) if (x.kind === 'loop' && x.loop.bus === bus) return true; return false; };
   function needAux(a){
     const k = 'aux' + (a.i + 1);
-    return hasOut(k) || REC.has(k) || WIN.aux?.open || anyLoop(k) || STREAMS.some(S => S.on && S.src === k) || guests().some(g => effRet(g) === k) || RET.src === k;
+    return hasOut(k) || REC.has(k) || REPLAY.jobs.has(k) || WIN.aux?.open || anyLoop(k) || STREAMS.some(S => S.on && S.src === k) || guests().some(g => effRet(g) === k) || RET.src === k;
   }
   function busNeeded(bus){
     if (anyLoop(bus)) return true;
-    if (STREAMS.some(S => S.on && S.src === bus)) return true;
+    if (REC.has(bus)||REPLAY.jobs.has(bus)||STREAMS.some(S => S.on && S.src === bus)) return true;
     if (['clean', 'pvw', 'mv'].includes(bus)) return AUX.some(a => a.mode === bus && needAux(a));
     return false;
   }
@@ -4842,6 +5060,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     addEventListener('drop', e => {
       if (!isFiles(e) || ended) return; e.preventDefault(); dc = 0; ov.classList.add('hidden'); $$('[data-stdrop]').forEach(x => x.classList.remove('dropok'));
       if (!canSw()) return roleDeny();
+      if(e.target.closest?.('[data-media-slot]'))return;
       const files = [...e.dataTransfer.files], slot = e.target.closest?.('[data-stdrop]');
       if (slot) { const f = files.find(f2 => /^image\//.test(f2.type)); if (f) setStillFile(+slot.dataset.stdrop, f); else toast('圖庫插槽只能放圖片（PNG 透明背景最好）'); return; }
       let n = 0;
@@ -4852,13 +5071,15 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
 
   // ---------- 串流推流（WHIP）／網路來源（WHEP）／MediaMTX 轉 RTMP・SRT・RTSP ----------
   const STREAMS = (() => { try { return JSON.parse(store('wc_streams') || '[]').map(x => ({ ...x, on: false, want: false, st: '', pc: null })); } catch { return []; } })();
-  const saveStreams = () => store('wc_streams', JSON.stringify(STREAMS.map(({ id, name, url, token, src, kbps }) => ({ id, name, url, token, src, kbps }))));
+  const saveStreams = () => store('wc_streams', JSON.stringify(STREAMS.map(({ id, name, url, src, kbps,workflowProfile }) => ({ id, name, url, src, kbps,workflowProfile }))));
   const MTX = { base: store('wc_mtx_base') || '', key: store('wc_mtx_key') || '', yt: '', fb: '', tw: '' };
   const STREAM_SRCS = () => [['pgm', 'PGM 節目'], ['clean', 'CLEAN 無字幕'], ...AUX.map(a => ['aux' + (a.i + 1), `AUX ${a.i + 1} ${a.name}`])];
   function busStream(src){ if (src === 'pgm') return programStream; if (src === 'clean') return cleanStream; if (/^aux\d$/.test(src)) return AUX[+src[3] - 1]?.stream || null; return inputs.get(src)?.isoStream || null; }
   const waitIce = pc => new Promise(r => { if (pc.iceGatheringState === 'complete') return r(); const t = setTimeout(r, 2500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); r(); } }); });
   const authH = tok => tok ? { Authorization: 'Bearer ' + tok } : {};
+  saveStreams();
   async function whipStart(S){
+    if(!opsLocalAllowed('streamControl'))throw Error('串流操作權限已關閉');
     if (S.on) return; S.on = true; S.st = '連線中…'; S.err = ''; softRender('strm');
     try {
       const st = busStream(S.src); if (!st) throw new Error('這個來源目前沒有畫面');
@@ -4893,6 +5114,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     if (!keepWant) S.st = ''; softRender('strm');
   }
   async function addWhep(url, name, token){
+    if(!opsLocalAllowed('streamControl'))throw Error('串流操作權限已關閉');
     const inp = newInput('L-' + rnd(6), 'local', (name || '網路串流').slice(0, 30)); inp.isNet = true;
     $('[data-k="stats"]', inp.el).textContent = 'WHEP 連線中…';
     const go = async () => {
@@ -5588,6 +5810,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   start(); window.__WC_BUSY = true;
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
+  setTimeout(()=>{syncWorkflow();restoreCloudJobs();},0);const workflowInterval=setInterval(()=>{if(ended)clearInterval(workflowInterval);else syncWorkflow();},10000);
   window.__host = { audLevels: () => ({ pgm: pgmMeter(), mon: monMeter(), ic: icMeterAll() }), applyGains, OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite, AUX, AUXB, STILLS, STREAMS, OPS, OPTOK, opUrl, IFBG, LAYLIB, LV, ROLE, setLocalRole, auxTake, auxPvw, setSolo, captureAudio, applyAudio, ASNAP, addLoop, addWhep, layEditor, applyLayLib, takeLayout, toCustom, setStillFile, toggleStill, sendCue, setIfbGroup, setPgmFps, setAuxFmt, whipStart, whipStop, rebuildReturn, effRet, keyFrame, addVset, vsetEditor, vsSetCam, cam, earOf, saveEar, G3, autoKeyColor, renderLayout, get PGMFPS(){ return PGMFPS; }, get frameNo(){ return frameNo; } };
 }
 /* ===================== 來賓 ===================== */
@@ -6766,6 +6989,7 @@ function HostSetup(tok, me, msg){
       <div id="ic2" style="margin-top:10px" class="${mode === 'custom' ? '' : 'hidden'}"><input class="field mono full" id="cv" maxlength="20" placeholder="例：NEWS0805（4～20 碼，英數字）" value="${esc(store('wc_invcustom') || '')}" style="letter-spacing:.08em;text-transform:uppercase"></div>
       ${custom ? '' : '<div class="note" style="margin-top:6px">你的帳號等級只能使用隨機產生的邀請代碼。</div>'}
     </div>
+    <details class="card"><summary>關聯已登錄設備（選填）</summary><div class="note">貼上設備管理中的設備 ID。僅能選用指派給此帳號且啟用的設備；不填則沿用原本啟動方式。</div><input class="field mono" id="opsDeviceId" maxlength="40" placeholder="D…" value="${esc(store('wc_ops_device') || '')}"></details>
     <button class="btn primary" id="hgo" style="width:100%;height:44px;font-size:15px">啟動導播台</button>
     <div class="err" id="herr">${esc(msg || '')}</div>
   </div></div>`;
@@ -6784,8 +7008,10 @@ function HostSetup(tok, me, msg){
     $('#hgo').disabled = true; $('#hgo').textContent = '驗證中…';
     try {
       const key = await inviteKey(inv);
-      const r = await apiCall({ action: 'activate', token: tok, code, k: key });   // 一起送出邀請代碼的雜湊：來賓馬上就能加入
+      const deviceId = $('#opsDeviceId').value.trim();
+      const r = await apiCall({ action: 'activate', token: tok, code, k: key, deviceId });   // 一起送出邀請代碼的雜湊：來賓馬上就能加入
       if (!r.ok) { if (/SESSION_EXPIRED/.test(r.error || '')) { logoutAll(); return Home('登入已逾時，請重新登入'); } throw new Error(r.error || '代碼無效'); }
+      store('wc_ops_device', deviceId);
       sstore('wc_prefill', null);
       const sess = { token: tok, code, sid: r.sid, invite: inv, key, info: r };
       sstore('wc_host', JSON.stringify(sess)); sstore('wc_me', JSON.stringify(r.me));
