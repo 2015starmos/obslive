@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1113.3120">
+<meta name="webcall-version" content="2026.1113.3140">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
@@ -1947,7 +1947,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v31.2-RC</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v31.4-RC</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -3564,9 +3564,105 @@ function Host(sess){
     return result;
   }
 
+  const POCKET_PICK={video:'',audio:''};
+  let POCKET_AUDIO_TIMER=null;
+  function pocketAudioConstraints(id){return {deviceId:{exact:id},echoCancellation:false,noiseSuppression:false,autoGainControl:false};}
+  function pocketAudioReport(x){
+    const tracks=x?.stream?.getAudioTracks?.()||[];
+    const track=tracks.find(t=>t.readyState==='live')||tracks[0];let settings={};try{settings=track?.getSettings?.()||{};}catch{}
+    const level=ac.state==='running'&&track?.readyState==='live'&&track.enabled&&!track.muted?Math.max(0,Math.min(1,Number(x.meter?.())||0)):0;
+    x.usbProbe??={started:Date.now(),peak:0};x.usbProbe.peak=Math.max(x.usbProbe.peak,level);
+    const elapsed=Date.now()-x.usbProbe.started;
+    const status=ac.state!=='running'?'音訊引擎未運作，請按啟動音訊':!track?'沒有收到音訊軌':track.readyState!=='live'?'音訊軌已結束':!track.enabled?'音訊軌已停用':track.muted?'裝置／瀏覽器暫停送出音訊':x.usbProbe.peak>.01?'已偵測到輸入聲音':elapsed<8000?'測試中，請對相機說話或拍手':'音訊軌存在，但未偵測聲音；請檢查 Windows 輸入音量與裝置選取';
+    return {source:x.name,context:ac.state,audioTracks:tracks.length,device:track?.label||'',readyState:track?.readyState||'none',enabled:track?.enabled??null,muted:track?.muted??null,sampleRate:settings.sampleRate??null,channels:settings.channelCount??null,level,peak:x.usbProbe.peak,observedMs:elapsed,status};
+  }
+  async function reconnectPocketAudio(x,deviceId){
+    if(!canAud())return roleDeny();
+    if(!deviceId)throw Error('先在下方「聲音來源」選擇實際的 USB 音訊裝置');
+    if(ac.state==='closed')throw Error('音訊引擎已關閉，請在安全時機重新開啟導播分頁');
+    await ac.resume();
+    const captured=await navigator.mediaDevices.getUserMedia({video:false,audio:pocketAudioConstraints(deviceId)});
+    const incoming=captured.getAudioTracks();
+    if(!incoming.some(t=>t.readyState==='live')){captured.getTracks().forEach(t=>t.stop());throw Error('瀏覽器沒有交付可用的 USB 音訊軌');}
+    if(!inputs.has(x.id)){captured.getTracks().forEach(t=>t.stop());throw Error('來源已被移除');}
+    const previous=x.stream,oldAudio=previous?.getAudioTracks()||[],video=previous?.getVideoTracks()||[];
+    try{
+      const combined=new MediaStream([...video,...incoming]);setStream(x,combined);x.usbAudioDeviceId=deviceId;x.usbProbe={started:Date.now(),peak:0};
+      oldAudio.filter(t=>!incoming.includes(t)).forEach(t=>t.stop());
+    }catch(e){captured.getTracks().forEach(t=>t.stop());if(previous)setStream(x,previous);throw e;}
+  }
+  function installPocketAudioTools(panel,body,x){
+    clearInterval(POCKET_AUDIO_TIMER);POCKET_AUDIO_TIMER=null;
+    if(!x)return;
+    const area=document.createElement('div');area.className='wsec';
+    area.innerHTML=`<h4>USB 收音診斷</h4><p class="note">此表量測音量推桿之前的輸入；「有音訊軌」不等於「已收到聲音」。重新連接只替換此來源的收音，不重新開啟相機影像。</p><div class="row" style="flex-wrap:wrap;gap:6px"><button class="btn" data-pocket-audio="resume">啟動音訊</button><button class="btn" data-pocket-audio="test">重新測試收音 8 秒</button><button class="btn primary" data-pocket-audio="reconnect">套用下方聲音來源／重接聲音</button><button class="btn" data-pocket-audio="copy">複製診斷</button></div><label class="lbl">原始輸入音量</label><meter min="0" max="1" value="0" style="width:100%" id="pocketRawMeter"></meter><p class="note" id="pocketAudioStatus" style="white-space:pre-wrap"></p>`;
+    panel.appendChild(area);
+    const paint=()=>{
+      if(!inputs.has(x.id))return;
+      const r=pocketAudioReport(x);$('#pocketRawMeter',area).value=r.level;
+      $('#pocketAudioStatus',area).textContent=`${r.status}\n實際音訊裝置：${r.device||'無'}\n音訊引擎：${r.context}／音軌：${r.audioTracks}／狀態：${r.readyState}／enabled：${r.enabled}／muted：${r.muted}\n取樣率：${r.sampleRate??'未提供'} Hz／聲道：${r.channels??'未提供'}／測試峰值：${Math.round(r.peak*100)}%`;
+    };
+    $$('[data-pocket-audio]',area).forEach(button=>button.onclick=async()=>{
+      const action=button.dataset.pocketAudio;button.disabled=true;
+      try{
+        if(action==='copy'){const r=pocketAudioReport(x);delete r.level;await navigator.clipboard.writeText(JSON.stringify(r,null,2));toast('已複製音訊狀態，不含連線金鑰');}
+        else{
+          if(!canAud())return roleDeny();
+          if(action==='reconnect')await reconnectPocketAudio(x,$('#pocketAudio',body)?.value||'');
+          else if(action==='resume'){await ac.resume();x.stream?.getAudioTracks().forEach(t=>{if(t.readyState==='live')t.enabled=true;});}
+          else if(action==='test'){await ac.resume();x.usbProbe={started:Date.now(),peak:0};}
+        }
+        paint();
+      }catch(e){toast((e.name==='NotReadableError'?'音訊裝置無法開啟，可能被其他程式占用：':'')+(e.message||'音訊操作失敗'));}finally{button.disabled=false;}
+    });
+    paint();POCKET_AUDIO_TIMER=setInterval(()=>{if(!WIN.pocket?.open||!area.isConnected){clearInterval(POCKET_AUDIO_TIMER);POCKET_AUDIO_TIMER=null;return;}paint();},250);
+  }
+
+  let POCKET_CONTROL_ID='';
+  function pocketControlSources(){
+    return order.map(id=>inputs.get(id)).filter(x=>x&&x.kind==='local');
+  }
+  function renderPocketControlPanel(body){
+    const panel=$('#pocketControlPanel',body);if(!panel)return;
+    const sources=pocketControlSources();let current=sources.find(x=>x.id===POCKET_CONTROL_ID);
+    if(!current)current=sources.find(x=>x.isPocket||x.ingestChannel||/pocket|osmo/i.test(x.name))||sources[0];
+    POCKET_CONTROL_ID=current?.id||'';
+    const ready=!!current&&!!monFeed(current.id),recording=current&&REC.has(current.id),saving=current&&[...FINALIZING.values()].some(x=>x.key===current.id);
+    panel.innerHTML=`<div class="wsec"><h4>Pocket · WebCall 控制</h4><p class="note">控制已接收的畫面與聲音。以下操作不會改變 Pocket 機內設定，也不會啟動相機 SD 卡錄影。</p><label class="lbl">選擇已加入導播台的來源（USB／擷取卡／網路）</label><div class="row"><select class="field full grow" id="pocketControlSource">${sources.map(x=>`<option value="${esc(x.id)}" ${x.id===POCKET_CONTROL_ID?'selected':''}>${esc(x.name)}${x.isPocket?' · Pocket USB':x.ingestChannel?' · RTMP 回傳':''}</option>`).join('')||'<option value="">先從下方加入來源</option>'}</select><button class="btn" id="pocketControlRefresh">更新</button></div>${current?`<p class="note">${esc(current.name)} · ${ready?'已收到影像軌':'等待影像'} · ${current.tally==='live'?'ON AIR':SW.pvw===current.id?'PREVIEW':'待命'} · ${recording?'WebCall 正在錄影':saving?'錄影正在存檔':'未錄影'}</p><div class="row" style="flex-wrap:wrap;gap:6px"><button class="btn" data-pocket-action="preview" ${!ready?'disabled':''}>送 PREVIEW</button><button class="btn danger" data-pocket-action="program" ${!ready?'disabled':''}>直接切至 PROGRAM</button><button class="btn" data-pocket-action="image">裁切／數位縮放／調色</button><button class="btn" data-pocket-action="audio">音訊效果</button><button class="btn" data-pocket-action="record" ${!ready||saving?'disabled':''}>${recording?'停止此來源錄影':'錄製此來源影像'}</button></div><label class="row" style="margin-top:12px"><span>WebCall 音量</span><input class="grow" type="range" min="0" max="150" value="${Math.round(current.fader*100)}" id="pocketControlVolume" aria-label="Pocket 接收音量"><span id="pocketControlVolumeLabel">${Math.round(current.fader*100)}%</span><button class="btn" data-pocket-action="mute">${current.mute?'解除靜音':'靜音'}</button></label>`:'<p class="note">尚無可控制來源；可從下方加入 USB，或開啟外網回傳頻道。</p>'}<details style="margin-top:12px"><summary>需由 DJI Mimo／相機操作的功能</summary><p class="note">雲台轉向與回中、智慧追蹤、ISO／快門／白平衡、相機內錄影等，目前沒有接入 WebCall 的控制通道。請在 DJI Mimo 或相機上操作；RTMP 與本頁 USB 接收不代表取得這些控制權。</p></details></div>`;
+    $('#pocketControlSource',panel).onchange=e=>{POCKET_CONTROL_ID=e.target.value;renderPocketControlPanel(body);};
+    $('#pocketControlRefresh',panel).onclick=()=>renderPocketControlPanel(body);
+    installPocketAudioTools(panel,body,current);
+    if(!current)return;
+    $('#pocketControlVolume',panel).oninput=e=>{
+      const x=inputs.get(POCKET_CONTROL_ID);if(!x)return;
+      if(!canAud()){e.target.value=Math.round(x.fader*100);return roleDeny();}
+      x.fader=clamp(Number(e.target.value)/100,0,1.5);applyGains(x);$('#pocketControlVolumeLabel',panel).textContent=Math.round(x.fader*100)+'%';softRender('mix');
+    };
+    $$('[data-pocket-action]',panel).forEach(button=>button.onclick=async()=>{
+      const x=inputs.get(POCKET_CONTROL_ID);if(!x)return toast('來源已被移除，請更新清單');
+      const action=button.dataset.pocketAction;
+      try{
+        if(['preview','program','image'].includes(action)&&!canSw())return roleDeny();
+        if(['mute','audio'].includes(action)&&!canAud())return roleDeny();
+        if(action==='preview'){if(UI.sw)setPvw(x.id);else setManual(x,'pvw');}
+        else if(action==='program'){if(UI.sw)cutTo(x.id);else setManual(x,'live');}
+        else if(action==='image')return srcSettings(x);
+        else if(action==='audio')return mixFxPanel(x);
+        else if(action==='mute'){x.mute=!x.mute;applyGains(x);updateTile(x);softRender('mix');}
+        else if(action==='record'){
+          if(!opsLocalAllowed('localRecord'))return toast('帳號的錄影權限已關閉');
+          button.disabled=true;
+          if(REC.has(x.id)){const result=await stopRecFor(x.id);if(result?.ok===false)toast('錄影存檔有錯誤，請到錄影／恢復頁面檢查');}
+          else await startRec([x.id],Number(store('wc_reckb'))||8000);
+        }
+        renderPocketControlPanel(body);
+      }catch(e){toast(e.message||'操作失敗');renderPocketControlPanel(body);}
+    });
+  }
+
   let POCKET_DEVICES=[];
   async function scanPocket(){if(!navigator.mediaDevices?.getUserMedia)throw Error('請使用 HTTPS 開啟並確認瀏覽器支援相機');const temp=await navigator.mediaDevices.getUserMedia({video:true,audio:false});temp.getTracks().forEach(t=>t.stop());POCKET_DEVICES=await navigator.mediaDevices.enumerateDevices();renderPocket();}
-  function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 4／Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 4／Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${/pocket|osmo|dji/i.test(d.label)?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播（含 Pocket 4）</h4><button class="btn primary" id="pocketManaged">開啟後台管理的外網回傳頻道</button><div class="note">Pocket 4／Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?{deviceId:{exact:aud}}:false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;setPvw(x.id);renderAll();toast('DJI Pocket 已加入 PREVIEW；可切換、ISO 錄影與送出');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');$('#pocketManaged',b).onclick=()=>{openWin('ingest');loadIngest().catch(e=>toast(e.message));};}
+  function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const oldVideo=$('#pocketVideo',w.body),oldAudio=$('#pocketAudio',w.body);if(oldVideo)POCKET_PICK.video=oldVideo.value;if(oldAudio)POCKET_PICK.audio=oldAudio.value;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div id="pocketControlPanel"></div><div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 4／Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 4／Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${(POCKET_PICK.video?POCKET_PICK.video===d.deviceId:/pocket|osmo|dji/i.test(d.label))?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}" ${POCKET_PICK.audio===d.deviceId?'selected':''}>${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播（含 Pocket 4）</h4><button class="btn primary" id="pocketManaged">開啟後台管理的外網回傳頻道</button><div class="note">Pocket 4／Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};renderPocketControlPanel(b);$('#pocketAudio',b).onchange=e=>{POCKET_PICK.audio=e.target.value;};$('#pocketVideo',b).onchange=e=>{POCKET_PICK.video=e.target.value;};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;POCKET_PICK.video=video;POCKET_PICK.audio=aud;await ac.resume();if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?pocketAudioConstraints(aud):false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;x.usbAudioDeviceId=aud;x.usbProbe={started:Date.now(),peak:0};setPvw(x.id);renderAll();toast(stream.getAudioTracks().length?'Pocket 已加入；請在收音診斷確認實際裝置與音量':'Pocket 已加入，但未取得音訊軌');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');$('#pocketManaged',b).onclick=()=>{openWin('ingest');loadIngest().catch(e=>toast(e.message));};}
 
   const WDEF = {native:{title:'原生影音引擎',w:640,h:470,render:renderNative},decode:{title:'專業檔案解碼／轉碼',w:760,h:560,render:renderDecode},capture4k:{title:'4K 擷取與製播',w:760,h:560,render:renderCapture4k},ndi:{title:'原生 NDI 收送',w:760,h:580,render:renderNdi},me:{title:'多級 M/E',w:1100,h:720,render:renderMEPanel},cgdesigner:{title:'CG 動態標題設計器',w:1150,h:850,render:renderCgDesigner},color:{title:'色輪調色',w:940,h:620,render:renderColor},scopes:{title:'影像示波器',w:1000,h:540,render:renderScopes},tracking:{title:'實體攝影機追蹤',w:900,h:700,render:renderTracking}, routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
     recovery:{title:'錄影恢復／待續上傳',w:760,h:640,render:renderRecovery},
@@ -4628,7 +4724,7 @@ function Host(sess){
   function sendMonStats(){
     if (!mons.size) return;
     const tot = guests().reduce((a, g) => a + (g.lost ? 0 : (g.net?.kbps || 0)), 0);
-    const payload = { type: 'mstats', hostVersion:'v31.2',monitorProtocol:2,ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
+    const payload = { type: 'mstats', hostVersion:'v31.4',monitorProtocol:2,ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
       sources:monitorSources(),
       guests: guests().map(g => ({ id: g.id, num: numOf(g), name: g.name, lost: !!g.lost, tally: g.tally, net: g.net || null, hostWarn: g.hostWarn || '',
         state: { quality: g.state.quality, fps: g.state.fps, codec: g.state.codec, codecs: g.state.codecs, orient: g.state.orient, portrait: g.state.portrait, perf: g.state.perf, conn: g.state.conn,
