@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1112.2700">
+<meta name="webcall-version" content="2026.1113.3120">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
@@ -1774,9 +1774,10 @@ function Host(sess){
     mixg: { key: 'Audio Console｜數位混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
     audg: { key: '聲音路由', title: 'AUDIO ROUTING 聲音路由／回傳', w: 820, h: 780, tabs: ['aud', 'ret'] },
     ctl:  { key: '遠端控制', tabs: ['ctl'] },
-    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','decode','replay','cloud','recovery','workflow','pocket','ingest'] },
+    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','decode','replay','cloud','recovery','workflow','ingest'] },
     swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src','capture4k','me','vset','tracking','color','scopes','gfx','cgdesigner','still','scene','lay','rec','set'] },
-    outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['routing', 'out', 'aux', 'strm', 'ndi'] },
+    routingg:{key:'來賓／路數指派',title:'來賓／路數指派',w:760,h:680,direct:true,tabs:['routing','pocket']},
+    outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['out', 'aux', 'strm', 'ndi'] },
     sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc','ops','keys','native'] },
   };
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
@@ -1946,7 +1947,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v31-RC</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v31.2-RC</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -1965,7 +1966,7 @@ function Host(sess){
       <button class="btn danger" id="endb">結束</button>
     </div>
     <div class="keybar" id="keys"><button type="button" id="layoutPrefsButton">版面偏好</button><button type="button" class="btn sm" id="routeSlots">來賓／路數指派</button><button type="button" id="sourceViewToggle" aria-pressed="false">來源監看</button><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option></select>
-      ${Object.entries(GROUPS).map(([k, d]) => `<div class="key" data-win="${k}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
+      ${Object.entries(GROUPS).filter(([,d])=>!d.direct).map(([k, d]) => `<div class="key" data-win="${k}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
       <span class="kgap"></span>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
       <div class="key" id="swk" title="開啟／關閉切換台（PREVIEW、PROGRAM、T-Bar）（W）"><span class="led"></span>切換台</div>
@@ -3601,7 +3602,7 @@ function Host(sess){
     ops:  { title: 'OPERATORS 多操作員分工', w: 520, h: 560, render: renderOps },
   };
   const GW = {};   // 合併視窗（一個外框＋多個分頁）
-  function keyEl(id){ return $(`.key[data-win="${GOF[id] || id}"]`); }
+  function keyEl(id){return GOF[id]==='routingg'?$('#routeSlots'):$(`.key[data-win="${GOF[id] || id}"]`);}
   function tabVisible(t){ return UI.pro || !PROTAB.has(t); }
   function makeFrame(fid, d){
     const saved = JSON.parse(store('wc_win_' + fid) || 'null'), n = Object.keys(GW).length;
@@ -4627,7 +4628,7 @@ function Host(sess){
   function sendMonStats(){
     if (!mons.size) return;
     const tot = guests().reduce((a, g) => a + (g.lost ? 0 : (g.net?.kbps || 0)), 0);
-    const payload = { type: 'mstats', ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
+    const payload = { type: 'mstats', hostVersion:'v31.2',monitorProtocol:2,ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
       sources:monitorSources(),
       guests: guests().map(g => ({ id: g.id, num: numOf(g), name: g.name, lost: !!g.lost, tally: g.tally, net: g.net || null, hostWarn: g.hostWarn || '',
         state: { quality: g.state.quality, fps: g.state.fps, codec: g.state.codec, codecs: g.state.codecs, orient: g.state.orient, portrait: g.state.portrait, perf: g.state.perf, conn: g.state.conn,
