@@ -1774,7 +1774,7 @@ function Host(sess){
     mixg: { key: 'Audio Console｜數位混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
     audg: { key: '聲音路由', title: 'AUDIO ROUTING 聲音路由／回傳', w: 820, h: 780, tabs: ['aud', 'ret'] },
     ctl:  { key: '遠端控制', tabs: ['ctl'] },
-    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','decode','replay','cloud','recovery','workflow','pocket'] },
+    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','decode','replay','cloud','recovery','workflow','pocket','ingest'] },
     swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src','capture4k','me','vset','tracking','color','scopes','gfx','cgdesigner','still','scene','lay','rec','set'] },
     outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['routing', 'out', 'aux', 'strm', 'ndi'] },
     sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc','ops','keys','native'] },
@@ -1782,7 +1782,7 @@ function Host(sess){
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
   const PROTAB = new Set(['mtx','lay','aux','strm','noc','me','color','scopes','tracking','cgdesigner','ndi','capture4k']);   // 專業版才顯示的分頁
-  const TABN = {native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const TABN = {ingest:'外網回傳／RTMP',native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1946,7 +1946,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v29-RC</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v31-RC</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -2215,6 +2215,7 @@ function Host(sess){
   }
   function removeInput(id){
     const inp = inputs.get(id); if(inp)productionReleaseInput(inp); if (!inp) return;
+    for(const m of mons){m.wants?.delete(id);closeMonFeed(m,id);}
     inputs.delete(id); order.splice(order.indexOf(id), 1);
     clearInterval(inp.statT); clearTimeout(inp.callT); clearTimeout(inp.lostT); clearTimeout(inp.cdT);
     [inp.src, inp.icSrc, inp.medSrc, inp.pgmGain, inp.afvGain, inp.retSend, inp.retSendPre, inp.toPgm, inp.delay, ...(inp.auxS || []), inp.monGain, inp.icGain, inp.icLis, inp.icIn, inp.medIn, inp.medPgm, inp.medMon, inp.retMon, inp.retGain, inp.talkGain, inp.cueGain, inp.earBus, inp.fxn?.gate].forEach(n => { try { n?.disconnect(); } catch {} });
@@ -2712,9 +2713,9 @@ function Host(sess){
     gateTick();productionTick();
     // 虛擬來源（版面、圖卡）
     inputs.forEach(x => {
-      if (x.kind === 'layout') { const hot = x.tally !== 'off' || SW.pip.src === x.id || (x.slot && hasOut(x.slot)) || REC.has(x.id); if (hot || frameNo % (x.layout.type === 'vset' ? 15 : 3) === 0) renderLayout(x); }
+      if (x.kind === 'layout') { const hot = x.tally !== 'off' || SW.pip.src === x.id || (x.slot && hasOut(x.slot)) || [...mons].some(m=>m.calls.has(x.id)) || REC.has(x.id); if (hot || frameNo % (x.layout.type === 'vset' ? 15 : 3) === 0) renderLayout(x); }
       else if(x.kind==='image'&&frameNo%15===0){ensureProductionCanvas(x);paintStill(x);}
-      if (x.isoGfx && x.isoX && ((x.slot && hasOut(x.slot)) || REC.has(x.id))) { const dims=srcDims(srcEl(x));if(dims[0]&&dims[1]&&(x.isoC.width!==dims[0]||x.isoC.height!==dims[1])){x.isoC.width=dims[0];x.isoC.height=dims[1];}drawSource(x.isoX,x,0,0,x.isoC.width,x.isoC.height);drawLowerThird(x.isoX,x.isoC.width,x.isoC.height, { l1: x.title.l1, l2: x.title.l2, style: OV.lt.style, pos: OV.lt.pos }, 1, 0); }
+      if (x.isoGfx && x.isoX && ((x.slot && hasOut(x.slot)) || [...mons].some(m=>m.calls.has(x.id)) || REC.has(x.id))) { const dims=srcDims(srcEl(x));if(dims[0]&&dims[1]&&(x.isoC.width!==dims[0]||x.isoC.height!==dims[1])){x.isoC.width=dims[0];x.isoC.height=dims[1];}drawSource(x.isoX,x,0,0,x.isoC.width,x.isoC.height);drawLowerThird(x.isoX,x.isoC.width,x.isoC.height, { l1: x.title.l1, l2: x.title.l2, style: OV.lt.style, pos: OV.lt.pos }, 1, 0); }
     });
     renderProgram(dt);
     if (!document.hidden || hasOut('pvw') || hasOut('mv') || busNeeded('pvw') || busNeeded('mv')) renderPreview();
@@ -3543,12 +3544,32 @@ function Host(sess){
   function stopProfile(id){if(!opsLocalAllowed('streamControl'))throw Error('串流操作權限已關閉');const p=WORKFLOW.streams.find(p=>p.id===id);if(p?.direction==='pull'){const x=order.map(id=>inputs.get(id)).find(x=>x.workflowProfile===id);if(!x)throw Error('此拉流來源未連線');if(SW.pgm===x.id||REC.has(x.id))throw Error('來源正在播出或錄影，請先切離／停止');removeInput(x.id);}else{const s=STREAMS.find(s=>s.workflowProfile===id);if(!s)throw Error('此目的地未啟動');whipStop(s);}return '已停止串流';}
   function renderWorkflow(){const w=WIN.workflow;if(!w?.open)return;const c=collectWorkflow();w.body.innerHTML=`<div class="wsec"><h4>錄影目的地／後台同步 <small>修訂 ${WORKFLOW.revision}</small></h4><div class="note">後台與此處共用帳號設定，約每 10 秒同步。變更存檔目的地只影響下一次錄影。本機資料夾授權只屬於此電腦，不會傳到後台。</div><label class="lbl">儲存模式</label><select class="field full" id="wfmode">${[['local','只存本地'],['cloud','只存 Google Drive'],['both','本地＋Google Drive']].map(([k,n])=>`<option value="${k}" ${c.mode===k?'selected':''}>${n}</option>`).join('')}</select><div class="row"><button class="btn" id="wfcloud">Google 帳號／資料夾</button><button class="btn" id="wflocal">本機資料夾／錄影</button></div><div class="note">目前本機：${esc(recDir?.name||'瀏覽器下載')}；雲端：${esc(CLOUD.folderName||CLOUD.folder||'尚未設定')}</div><div class="row"><button class="btn" id="wfload">讀取後台</button><button class="btn primary" id="wfsave">儲存並同步後台</button></div></div><div class="wsec"><h4>推流／拉流設定</h4><div class="note">WHIP 推流／WHEP 拉流可直接選用；RTMP／SRT／RTSP 必須先經串流伺服器轉接。儲存設定不會自動開始推流或中斷既有連線。</div><div id="wfprofiles">${WORKFLOW.streams.map(p=>`<section class="cloud-job" data-wfrow="${esc(p.id)}"><div class="row"><input class="field grow" data-wf="name" value="${esc(p.name)}" placeholder="名稱"><select class="field" data-wf="direction"><option value="push" ${p.direction==='push'?'selected':''}>推流 WHIP</option><option value="pull" ${p.direction==='pull'?'selected':''}>拉流 WHEP</option></select></div><input class="field full" data-wf="url" value="${esc(p.url)}" placeholder="https://…/whip 或 /whep"><div class="row"><input class="field grow" type="password" data-wf="token" value="${esc(p.token)}" placeholder="Bearer token（可留空）"><select class="field" data-wf="src">${['pgm','clean','aux1','aux2','aux3','aux4'].map(k=>`<option ${k===p.src?'selected':''}>${k}</option>`).join('')}</select><input class="field" style="width:90px" type="number" data-wf="kbps" value="${p.kbps}" min="1000" max="20000"></div><div class="row"><button class="btn sm" data-wfstart="${p.id}">開始／加入來源</button><button class="btn sm" data-wfstop="${p.id}">停止</button><button class="btn sm" data-wfremove="${p.id}">移除設定</button></div></section>`).join('')}</div><button class="btn" id="wfadd">新增一組</button></div>`;const b=w.body; b.oninput=()=>{workflowDirty=true;};const read=()=>{workflowDirty=true;WORKFLOW.streams=$$('[data-wfrow]',b).map(el=>Object.fromEntries([['id',el.dataset.wfrow],...$$('[data-wf]',el).map(e=>[e.dataset.wf,e.dataset.wf==='kbps'?+e.value:e.value])]));store('wc_record_mode',$('#wfmode',b).value);CLOUD.enabled=workflowMode()!=='local';store('wc_drive_enabled',CLOUD.enabled?'1':'0');},run=fn=>async()=>{try{read();const msg=await fn();if(typeof msg==='string')toast(msg);}catch(e){toast(e.message);}};$('#wfload',b).onclick=()=>syncWorkflow(true);$('#wfsave',b).onclick=run(saveWorkflow);$('#wfcloud',b).onclick=()=>{read();openWin('cloud');};$('#wflocal',b).onclick=()=>{read();openWin('rec');};$('#wfmode',b).onchange=read;$('#wfadd',b).onclick=()=>{read();if(WORKFLOW.streams.length>=16)return toast('最多 16 組');WORKFLOW.streams.push({id:rnd(10),name:'新串流',direction:'push',url:'',token:'',src:'pgm',kbps:6000});renderWorkflow();};$$('[data-wfstart]',b).forEach(e=>e.onclick=run(()=>startProfile(e.dataset.wfstart)));$$('[data-wfstop]',b).forEach(e=>e.onclick=run(()=>stopProfile(e.dataset.wfstop)));$$('[data-wfremove]',b).forEach(e=>e.onclick=()=>{read();WORKFLOW.streams=WORKFLOW.streams.filter(p=>p.id!==e.dataset.wfremove);renderWorkflow();});}
 
+  const INGEST={rows:[],message:'請按更新狀態，從後台讀取已部署的接收頻道。'};
+  async function loadIngest(){
+    const r=await apiCall({action:'ingestChannels',token:sess.token,op:'list'});if(!r.ok)throw Error(r.error||'讀取失敗');
+    INGEST.rows=r.channels||[];INGEST.message=r.configured?'沒有頻道時，請到後台「外網回傳／RTMP」新增。':r.message;renderIngest();return INGEST.rows;
+  }
+  function renderIngest(){const w=WIN.ingest;if(!w?.open)return;w.body.innerHTML=`<div class="wsec"><h4>Pocket／外網 RTMP 回傳</h4><p class="note">由公開接收主機接收 DJI Mimo 的 RTMP 訊號，轉成導播台可播放的 WebRTC。此頁不會自動建立雲端主機。</p><button class="btn primary" id="ingestRefresh">更新狀態</button><p class="note">${esc(INGEST.message)}</p>${INGEST.rows.map((r,i)=>`<div class="wsec"><h4>${esc(r.name)} · ${esc(r.status)}</h4><label class="lbl">貼到 DJI Mimo 的完整 RTMP 網址</label><input class="field full" readonly value="${esc(r.rtmpUrl)}"><button class="btn" data-ig-copy="${i}">複製 Pocket 推流網址</button><button class="btn primary" data-ig-add="${i}" ${!r.enabled||!r.ready?'disabled':''}>加入 PREVIEW</button>${r.error?`<p class="note">${esc(r.error)}</p>`:''}</div>`).join('')}</div>`;$('#ingestRefresh',w.body).onclick=async()=>{try{await loadIngest();}catch(e){toast(e.message);}};$$('[data-ig-copy]',w.body).forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(INGEST.rows[+b.dataset.igCopy].rtmpUrl);toast('已複製，請勿分享串流碼');}catch{toast('請選取網址手動複製');}});$$('[data-ig-add]',w.body).forEach(b=>b.onclick=async()=>{
+    b.disabled=true;try{
+      let row=INGEST.rows[+b.dataset.igAdd],expires=Date.now()+50*60000;
+      if(!canSw())return roleDeny();
+      const getToken=async()=>{if(Date.now()>=expires){const rows=await loadIngest(),fresh=rows.find(r=>r.id===row.id);if(!fresh?.enabled)throw Error('回傳頻道已停用或刪除');row=fresh;expires=Date.now()+50*60000;}return row.token;};
+      const x=await addWhep(row.whep,row.name,getToken);if(x){x.ingestChannel=row.id;setPvw(x.id);}
+    }catch(e){toast(e.message);}finally{b.disabled=false;}
+  });}
+  function whepIceServers(header){
+    const result=[];const re=/<([^>]+)>\s*;\s*rel="ice-server"(?:\s*;\s*username="([^"\\]*)"\s*;\s*credential="([^"\\]*)"\s*;\s*credential-type="password")?/g;let m;
+    while((m=re.exec(header||''))){if(!/^(stun|stuns|turn|turns):/i.test(m[1]))continue;result.push({urls:m[1],...(m[2]!==undefined?{username:m[2],credential:m[3]}:{})});}
+    return result;
+  }
+
   let POCKET_DEVICES=[];
   async function scanPocket(){if(!navigator.mediaDevices?.getUserMedia)throw Error('請使用 HTTPS 開啟並確認瀏覽器支援相機');const temp=await navigator.mediaDevices.getUserMedia({video:true,audio:false});temp.getTracks().forEach(t=>t.stop());POCKET_DEVICES=await navigator.mediaDevices.enumerateDevices();renderPocket();}
-  function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${/pocket|osmo|dji/i.test(d.label)?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播</h4><div class="note">Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?{deviceId:{exact:aud}}:false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;setPvw(x.id);renderAll();toast('DJI Pocket 已加入 PREVIEW；可切換、ISO 錄影與送出');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');}
+  function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 4／Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 4／Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${/pocket|osmo|dji/i.test(d.label)?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播（含 Pocket 4）</h4><button class="btn primary" id="pocketManaged">開啟後台管理的外網回傳頻道</button><div class="note">Pocket 4／Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?{deviceId:{exact:aud}}:false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;setPvw(x.id);renderAll();toast('DJI Pocket 已加入 PREVIEW；可切換、ISO 錄影與送出');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');$('#pocketManaged',b).onclick=()=>{openWin('ingest');loadIngest().catch(e=>toast(e.message));};}
 
   const WDEF = {native:{title:'原生影音引擎',w:640,h:470,render:renderNative},decode:{title:'專業檔案解碼／轉碼',w:760,h:560,render:renderDecode},capture4k:{title:'4K 擷取與製播',w:760,h:560,render:renderCapture4k},ndi:{title:'原生 NDI 收送',w:760,h:580,render:renderNdi},me:{title:'多級 M/E',w:1100,h:720,render:renderMEPanel},cgdesigner:{title:'CG 動態標題設計器',w:1150,h:850,render:renderCgDesigner},color:{title:'色輪調色',w:940,h:620,render:renderColor},scopes:{title:'影像示波器',w:1000,h:540,render:renderScopes},tracking:{title:'實體攝影機追蹤',w:900,h:700,render:renderTracking}, routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
     recovery:{title:'錄影恢復／待續上傳',w:760,h:640,render:renderRecovery},
+    ingest:{title:'Pocket／外網 RTMP 回傳',w:740,h:640,render:renderIngest},
     pocket:{title:'DJI Pocket USB／網路訊號',w:720,h:640,render:renderPocket},
     workflow:{title:'錄影目的地／推流拉流同步',w:760,h:680,render:renderWorkflow},
     media16:{title:'MEDIA 16 素材庫',w:820,h:650,render:()=>{renderMedia16();restoreMedia16();}},
@@ -4522,7 +4543,7 @@ function Host(sess){
   async function acceptMon(conn, md){
     let ok = null, err = '監看憑證無效';
     try { const r = await apiCall({ action: 'verifyMon', ticket: md.ticket, sid: sess.sid }); if (r.ok) ok = r; else err = r.error || err; } catch (e) { err = e.message; }
-    const m = { conn, ticket: md.ticket, ops: ok?.ops || {}, name: ok?.name || '', remote: !!ok?.remote, calls: new Map() };
+    const m = { conn, ticket: md.ticket, ops: ok?.ops || {}, name: ok?.name || '', remote: !!ok?.remote, calls: new Map(), wants: new Set(), feedSignatures: new Map() };
     const go = () => {
       if (!ok) { conn.send({ type: 'deny', error: err }); setTimeout(() => conn.close(), 400); return; }
       mons.add(m);
@@ -4533,7 +4554,48 @@ function Host(sess){
     conn.on('data', d => { onMonData(m, d).catch(e => { if(conn.open) conn.send({type:'deny',error:e.message || '操作遭拒'}); }); });
     conn.on('close', () => { try { m.talkCall?.close(); } catch {} mons.delete(m); m.calls.forEach(c => { try { c.close(); } catch {} }); renderAll(); });
   }
-  function monFeed(what){ if (what === 'mv') return mvStream; if (what === 'pgm') return programStream; if (what === 'pvw') return pvwStream; if (/^aux\d$/.test(what)) return AUX[+what[3] - 1]?.stream || null; return inputs.get(what)?.isoStream || inputs.get(what)?.stream || null; }
+  function monFeed(what){ if (what === 'mv') return mvStream; if (what === 'pgm') return programStream; if (what === 'pvw') return pvwStream; if(what==='clean')return cleanStream; if (/^aux\d$/.test(what)) return AUX[+what[3] - 1]?.stream || null; const x=inputs.get(what);if(x?.lost)return null;for(const stream of [x?.isoStream,x?.stream]){if(stream?.getVideoTracks?.().some(t=>t.readyState!=='ended'))return stream;}return null; }
+  // Monitor transport v31: source list is independent of the guest-only control list.
+  function monitorSourceType(x){
+    if(x.kind==='guest')return '遠端來賓';
+    if(x.isPocket)return 'DJI Pocket USB';
+    if(x.ingestChannel)return 'Pocket／RTMP 回傳';
+    if(x.nativeKind==='ndi-recv')return 'NDI';
+    if(x.nativeKind==='capture')return '實體擷取卡';
+    if(x.isNet)return '網路串流';
+    return ({local:'本機相機／擷取',media:'影音素材',image:'圖片',layout:'合成版面',me:'M/E 合成'})[x.kind]||'影像來源';
+  }
+  function monitorSources(){
+    return order.map(id=>inputs.get(id)).filter(Boolean).map(x=>{
+      const stream=monFeed(x.id),track=stream?.getVideoTracks?.().find(t=>t.readyState!=='ended');
+      let settings={};try{settings=track?.getSettings?.()||{};}catch{}
+      const width=x.video?.videoWidth||settings.width,height=x.video?.videoHeight||settings.height;
+      const state=x.state||{},guest=x.kind==='guest',hasFeed=!!track&&!x.lost;
+      const net={...(x.net||{})};if(!net.res&&width&&height)net.res=width+'×'+height;
+      if(net.fps==null&&Number.isFinite(settings.frameRate))net.fps=settings.frameRate;
+      return {id:x.id,num:numOf(x),name:x.name,kind:x.kind,sourceType:monitorSourceType(x),controllable:guest,hasFeed,
+        lost:!!x.lost||!hasFeed,tally:x.tally,net,hostWarn:x.hostWarn||'',
+        state:guest?{quality:state.quality,fps:state.fps,codec:state.codec,codecs:state.codecs,orient:state.orient,portrait:state.portrait,perf:state.perf,conn:state.conn,hidden:state.hidden,pgmMic:state.pgmMic,icMic:state.icMic,cam:state.cam,battery:state.battery,zoom:state.zoom,guides:state.guides}:{},retVol:x.ctl?.retVol??1};
+    });
+  }
+  function monitorFeedSignature(stream){return stream?.getTracks?.().filter(t=>t.readyState!=='ended').map(t=>t.kind+':'+t.id).join('|')||'';}
+  function closeMonFeed(m,what){
+    const c=m.calls.get(what);m.calls.delete(what);m.feedSignatures?.delete(what);
+    try{c?.close();}catch{}
+  }
+  function openMonFeed(m,what){
+    const stream=monFeed(what),signature=monitorFeedSignature(stream);
+    closeMonFeed(m,what);m.feedSignatures??=new Map();m.feedSignatures.set(what,signature);
+    if(!signature){m.conn.send({type:'nofeed',what});return;}
+    const call=peer.call(m.conn.peer,stream,{metadata:{role:'mfeed',what}});m.calls.set(what,call);
+    const cleanup=()=>{if(m.calls.get(what)!==call)return;m.calls.delete(what);m.feedSignatures.delete(what);};
+    call.on('close',cleanup);call.on('error',cleanup);
+    setTimeout(()=>{if(m.calls.get(what)===call)setBitrate(call.peerConnection,what==='mv'?2500:4000);},1500);
+  }
+  function syncMonFeeds(m){
+    for(const what of m.wants||[]){const signature=monitorFeedSignature(monFeed(what));if(m.feedSignatures?.get(what)!==signature)openMonFeed(m,what);}
+  }
+
   async function onMonData(m, d){
     if (!d || !mons.has(m)) return;
     if (d.type === 'opsCommand') return opsHandleCommand(m, d);
@@ -4543,13 +4605,13 @@ function Host(sess){
     if (d.type === 'msg') await opsVerifyMonitor(m, 'message');
     if (!mons.has(m) || !m.conn.open) return;
     if (d.type === 'watch') {
-      const what = String(d.what || ''), st = monFeed(what);
-      try { m.calls.get(what)?.close(); } catch {}
-      if (!st) return m.conn.send({ type: 'nofeed', what });
-      const c = peer.call(m.conn.peer, st, { metadata: { role: 'mfeed', what } }); c.on('error', () => {}); m.calls.set(what, c);
-      setTimeout(() => setBitrate(c.peerConnection, what === 'mv' ? 2500 : 4000), 1500);
+      const what = String(d.what || '');
+      if(!inputs.has(what)&&!['mv','pgm','pvw','clean',...AUX.map((_,i)=>'aux'+(i+1))].includes(what))return m.conn.send({type:'nofeed',what});
+      m.wants??=new Set();
+      if(!m.wants.has(what)&&m.wants.size>=32)return m.conn.send({type:'deny',error:'單一監看連線最多 32 路'});
+      m.wants.add(what);openMonFeed(m,what);
     }
-    if (d.type === 'unwatch') { const what = String(d.what || ''); try { m.calls.get(what)?.close(); } catch {} m.calls.delete(what); }
+    if (d.type === 'unwatch') {const what=String(d.what||'');m.wants?.delete(what);closeMonFeed(m,what);}
     if (d.type === 'ctl') {
       if (!m.remote) return m.conn.send({ type: 'deny', error: '你的帳號沒有遠端控制權限' });
       const g = inputs.get(d.gid); if (!g || g.kind !== 'guest') return;
@@ -4566,10 +4628,11 @@ function Host(sess){
     if (!mons.size) return;
     const tot = guests().reduce((a, g) => a + (g.lost ? 0 : (g.net?.kbps || 0)), 0);
     const payload = { type: 'mstats', ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
+      sources:monitorSources(),
       guests: guests().map(g => ({ id: g.id, num: numOf(g), name: g.name, lost: !!g.lost, tally: g.tally, net: g.net || null, hostWarn: g.hostWarn || '',
         state: { quality: g.state.quality, fps: g.state.fps, codec: g.state.codec, codecs: g.state.codecs, orient: g.state.orient, portrait: g.state.portrait, perf: g.state.perf, conn: g.state.conn,
           hidden: g.state.hidden, pgmMic: g.state.pgmMic, icMic: g.state.icMic, cam: g.state.cam, battery: g.state.battery, zoom: g.state.zoom, guides: g.state.guides }, retVol: g.ctl.retVol ?? 1 })) };
-    mons.forEach(m => { try { m.conn.open && m.conn.send(payload); } catch {} });
+    mons.forEach(m => {try{if(m.conn.open){syncMonFeeds(m);m.conn.send(payload);}}catch{}});
   }
   setInterval(sendMonStats, 1000);
 
@@ -5234,11 +5297,14 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     const go = async () => {
       if (!inputs.has(inp.id) || inp.whepStop) return;
       try {
-        const pc = new RTCPeerConnection({ iceServers: CONFIG.ICE_SERVERS }); inp.whep = pc;
+        const accessToken=typeof token==='function'?await token():token;
+        let remoteIce=[];
+        try{const options=await fetch(url,{method:'OPTIONS',headers:authH(accessToken)});if(options.ok)remoteIce=whepIceServers(options.headers.get('Link'));}catch{}
+        const pc = new RTCPeerConnection({ iceServers: remoteIce.length?remoteIce:CONFIG.ICE_SERVERS }); inp.whep = pc;
         pc.addTransceiver('video', { direction: 'recvonly' }); pc.addTransceiver('audio', { direction: 'recvonly' });
         const ms = new MediaStream(); pc.ontrack = ev => { if (!ms.getTracks().includes(ev.track)) ms.addTrack(ev.track); };
         await pc.setLocalDescription(await pc.createOffer()); await waitIce(pc);
-        const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/sdp', ...authH(token) }, body: pc.localDescription.sdp });
+        const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/sdp', ...authH(accessToken) }, body: pc.localDescription.sdp });
         if (!r.ok) throw new Error('伺服器回應 ' + r.status + (r.status === 404 ? '（這個串流還沒有人推上來）' : ''));
         await pc.setRemoteDescription({ type: 'answer', sdp: await r.text() });
         setTimeout(() => { if (inputs.has(inp.id) && inp.whep === pc) { setStream(inp, ms); renderAll(); } }, 80);
@@ -5847,7 +5913,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       if(pc.iceGatheringState!=='complete')await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('本機 ICE 協商逾時')),10000);pc.addEventListener('icegatheringstatechange',()=>{if(pc.iceGatheringState==='complete'){clearTimeout(timer);resolve();}});});
       const answer=await nativeJson('/rtc',{kind,...options,sdp:pc.localDescription.sdp});remoteId=answer.id;await pc.setRemoteDescription(answer);PROD.peers.set(remoteId,{pc,clean,name:options.name||options.device,kind});
       pc.onconnectionstatechange=()=>{if(['failed','closed'].includes(pc.connectionState))clean();};
-      if(!stream){if(!media.getVideoTracks().length)await new Promise((resolve,reject)=>{const onTrack=()=>{if(media.getVideoTracks().length){clearTimeout(timer);media.removeEventListener('addtrack',onTrack);resolve();}};const timer=setTimeout(()=>{media.removeEventListener('addtrack',onTrack);reject(Error('沒有收到原生影像軌'));},10000);media.addEventListener('addtrack',onTrack);});const x=newInput('N-'+rnd(6),'local',options.name||'原生擷取');createdInput=x;setStream(x,media);x.nativeClose=clean;if(x.video.readyState<2)await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('原生引擎未收到可解碼影格')),15000);x.video.addEventListener('loadeddata',()=>{clearTimeout(timer);resolve();},{once:true});});if(kind==='capture'&&(x.video.videoWidth!==options.width||x.video.videoHeight!==options.height))throw Error('要求 '+options.width+'×'+options.height+'，實際收到 '+x.video.videoWidth+'×'+x.video.videoHeight+'；不能當成原生4K');setPvw(x.id);renderAll();return x;}
+      if(!stream){if(!media.getVideoTracks().length)await new Promise((resolve,reject)=>{const onTrack=()=>{if(media.getVideoTracks().length){clearTimeout(timer);media.removeEventListener('addtrack',onTrack);resolve();}};const timer=setTimeout(()=>{media.removeEventListener('addtrack',onTrack);reject(Error('沒有收到原生影像軌'));},10000);media.addEventListener('addtrack',onTrack);});const x=newInput('N-'+rnd(6),'local',options.name||'原生擷取');createdInput=x;setStream(x,media);x.nativeKind=kind;x.nativeClose=clean;if(x.video.readyState<2)await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('原生引擎未收到可解碼影格')),15000);x.video.addEventListener('loadeddata',()=>{clearTimeout(timer);resolve();},{once:true});});if(kind==='capture'&&(x.video.videoWidth!==options.width||x.video.videoHeight!==options.height))throw Error('要求 '+options.width+'×'+options.height+'，實際收到 '+x.video.videoWidth+'×'+x.video.videoHeight+'；不能當成原生4K');setPvw(x.id);renderAll();return x;}
       return answer.id;
     }catch(e){if(createdInput&&inputs.has(createdInput.id)){createdInput.nativeClose=null;removeInput(createdInput.id);}await clean();throw e;}
   }
