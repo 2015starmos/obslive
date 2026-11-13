@@ -881,6 +881,8 @@ body.opp{overflow:hidden}
 
 #hroot.layout-preset .hmain [data-layout-panel=transition].compact.compact-narrow{grid-template-columns:1fr 1fr!important;grid-template-rows:23px 23px 23px 27px 27px minmax(35px,1fr)!important}
 #hroot.layout-preset .compact.compact-narrow .tbar{grid-column:1 / span 2!important;grid-row:6!important;width:42px!important;justify-self:center}
+
+.prod-wheels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.prod-wheels canvas{width:100%;max-width:180px;display:block;touch-action:none}.prod-scopes{display:grid;grid-template-columns:1.5fr 1fr;gap:15px}.prod-scopes canvas{width:100%;background:#071014;border:1px solid #395366}.prod-cg-canvas{display:block;width:100%;height:auto;max-height:44vh;object-fit:contain;background:repeating-conic-gradient(#202c35 0% 25%,#15202a 0% 50%) 50% / 24px 24px;touch-action:none}.prod-property-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}.win .wtabs{overflow:auto;flex-wrap:wrap;max-height:100px}.win .wb{min-width:0}.win pre{white-space:pre-wrap;overflow-wrap:anywhere}.prod-wheels section{min-width:0}.prod-wheels .row{flex-wrap:wrap}@media(max-width:700px){.prod-wheels,.prod-scopes{grid-template-columns:1fr}.prod-wheels section{display:flex;flex-wrap:wrap;gap:8px}.prod-wheels canvas{max-width:130px}}
 </style>
 </head>
 <body>
@@ -905,7 +907,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
-const BUILD = 'v28-layouts-20261112';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
+const BUILD = 'v29-production-rc-20261113';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -921,7 +923,7 @@ const CANVAS = {
 };
 const CANVAS_KEYS = ['custom', '4320', '2160', '1440', '1080', '720', '540', '480', '360'];
 const canvasOpts = cur => CANVAS_KEYS.map(r => r === 'custom' ? `<option value="custom" ${String(cur)==='custom'?'selected':''}>自訂尺寸（Custom）</option>` : `<option value="${r}" ${String(cur) === r ? 'selected' : ''}>${CANVAS[r].label}（${CANVAS[r].w}×${CANVAS[r].h}）</option>`).join('');
-const TRANS = [['mix', 'MIX 溶接'], ['dip', 'DIP 過場色'], ['wipe', 'WIPE 劃變'], ['push', 'PUSH 推移'], ['slide', 'SLIDE 滑入'], ['zoom', 'ZOOM 縮放'], ['stinger', 'STINGER 轉場影片'], ['cut', 'CUT 直切']];
+const TRANS = [['mix', 'MIX 溶接'], ['dip', 'DIP 過場色'], ['wipe', 'WIPE 劃變'], ['push', 'PUSH 推移'], ['slide', 'SLIDE 滑入'], ['zoom', 'ZOOM 縮放'], ['stinger', 'STINGER 轉場影片'], ['cut', 'CUT 直切'],['fly','FLY 飛行'],['crosszoom','CROSS ZOOM'],['flyrotate','FLY ROTATE'],['cube','CUBE 立方體']];
 const WDIRS = [['lr', '由左到右'], ['rl', '由右到左'], ['tb', '由上到下'], ['bt', '由下到上'], ['circle', '圓形'], ['box', '方形'], ['diag', '斜角']];
 const PDIRS = [['l', '向左'], ['r', '向右'], ['u', '向上'], ['d', '向下']];
 const LAYOUTS = [['split2', '左右對切', 2], ['split2v', '上下對切', 2], ['tri', '三框（一大二小）', 3], ['tri3', '三框並排', 3], ['quad', '四宮格', 4], ['main3', '主畫面＋三小', 4], ['pipL', '子母（左下小）', 2]];
@@ -1734,6 +1736,17 @@ function snapPanelRect(rect,W,H,peers,operation,options={}){
 }
 
 /* ===================== 導播台 ===================== */
+/* Pure shared production math, validation and graph ordering. */
+const ProductionCore=(()=>{
+ const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+ function grade(rgb,lift=[0,0,0],gamma=[1,1,1],gain=[1,1,1]){return rgb.map((v,i)=>Math.pow(clamp((v*(1-lift[i])+lift[i])*gain[i],0,1),1/Math.max(.05,gamma[i])));}
+ function order(nodes){const map=new Map(nodes.map(n=>[n.id,n])),visiting=new Set(),done=new Set(),out=[];function visit(id){if(done.has(id)||!map.has(id))return;if(visiting.has(id))throw Error('M/E 不能循環引用自己或下游母線');visiting.add(id);const n=map.get(id);[n.a,n.b,...(n.layers||[]).map(l=>l.src)].forEach(visit);visiting.delete(id);done.add(id);out.push(n);}nodes.forEach(n=>visit(n.id));return out;}
+ function cg(raw){if(!raw||!Array.isArray(raw.layers)||raw.layers.length>64)throw Error('CG 文件需有圖層，最多 64 層');const num=(v,d,a,b)=>Number.isFinite(+v)?clamp(+v,a,b):d;const color=(v,d)=>/^#[0-9a-f]{6}$/i.test(v)?v:d;return {name:String(raw.name||'CG').slice(0,80),width:num(raw.width,1920,320,3840),height:num(raw.height,1080,180,2160),duration:num(raw.duration,5,.1,3600),layers:raw.layers.map((l,i)=>({id:String(l.id||i),type:['text','rect','image','clock'].includes(l.type)?l.type:'text',text:String(l.text||'').slice(0,4000),image:typeof l.image==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(l.image)&&l.image.length<14000000?l.image:'',x:num(l.x,100,-7680,7680),y:num(l.y,800,-4320,4320),w:num(l.w,900,1,7680),h:num(l.h,100,1,4320),fontSize:num(l.fontSize,60,8,600),color:color(l.color,'#ffffff'),bg:color(l.bg,'#c5162e'),opacity:num(l.opacity,1,0,1),rotation:num(l.rotation,0,-360,360),start:num(l.start,0,0,3600),end:num(l.end,5,0,3600),fromX:num(l.fromX,l.x||100,-7680,7680),fromY:num(l.fromY,l.y||800,-4320,4320),fade:l.fade!==false,visible:l.visible!==false,keyframes:Array.isArray(l.keyframes)?l.keyframes.slice(0,64).map(k=>({time:num(k.time,0,0,3600),x:num(k.x,l.x||0,-7680,7680),y:num(k.y,l.y||0,-4320,4320),opacity:num(k.opacity,1,0,1),rotation:num(k.rotation,0,-360,360),scale:num(k.scale,1,.01,20)})).sort((a,b)=>a.time-b.time):[]}))};}
+ function animate(layer,time,duration){if(layer.keyframes?.length){const keys=[...layer.keyframes].sort((a,b)=>a.time-b.time);let a=keys[0],b=keys[keys.length-1];for(let i=1;i<keys.length;i++)if(time<keys[i].time){a=keys[i-1];b=keys[i];break;}const t=clamp((time-a.time)/Math.max(.001,b.time-a.time),0,1),state={};for(const k of ['x','y','opacity','rotation','scale'])state[k]=a[k]+(b[k]-a[k])*t;state.alpha=time<layer.start||time>layer.end?0:state.opacity;return state;}const start=layer.start,end=Math.max(start+.01,layer.end),inT=clamp((time-start)/.35,0,1),outT=clamp((end-time)/.35,0,1),ease=1-Math.pow(1-inT,3);return {x:layer.fromX+(layer.x-layer.fromX)*ease,y:layer.fromY+(layer.y-layer.fromY)*ease,alpha:time<start||time>end?0:layer.opacity*(layer.fade?Math.min(inT,outT):1)};}
+ function trackingPose(f,c){const radians=Math.PI/180;const pan=(f.pan-(c.pan0||0))*(c.panSign||1),tilt=(f.tilt-(c.tilt0||0))*(c.tiltSign||1),yaw=pan*radians,pitch=tilt*radians;const eye=[((f.x-(c.x0||0))*(c.scale||.001))+(c.ox||0),((f.y-(c.y0||0))*(c.scale||.001))+(c.oy||1.5),((f.z-(c.z0||0))*(c.scale||.001))+(c.oz||5)];let fov=c.fov||50;const points=(c.lens||[]).filter(p=>Number.isFinite(+p.zoom)&&Number.isFinite(+p.fov)).sort((a,b)=>a.zoom-b.zoom);if(points.length){fov=points[0].fov;for(let i=1;i<points.length;i++){if(f.zoom>=points[i].zoom)fov=points[i].fov;else{const a=points[i-1],b=points[i],t=clamp((f.zoom-a.zoom)/(b.zoom-a.zoom),0,1);fov=a.fov+(b.fov-a.fov)*t;break;}}}const dir=[Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)],r=(f.roll||0)*radians;const right=[Math.cos(yaw),0,Math.sin(yaw)],up=[-Math.sin(yaw)*Math.sin(pitch),Math.cos(pitch),Math.cos(yaw)*Math.sin(pitch)];return {eye,target:eye.map((v,i)=>v+dir[i]),up:up.map((v,i)=>v*Math.cos(r)+right[i]*Math.sin(r)),fov:clamp(fov,5,150)};}
+ return {grade,order,cg,animate,trackingPose,clamp};
+})();
+
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
   let invite = sess.invite, roomKey = sess.key;
@@ -1761,15 +1774,15 @@ function Host(sess){
     mixg: { key: 'Audio Console｜數位混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
     audg: { key: '聲音路由', title: 'AUDIO ROUTING 聲音路由／回傳', w: 820, h: 780, tabs: ['aud', 'ret'] },
     ctl:  { key: '遠端控制', tabs: ['ctl'] },
-    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','replay','cloud','recovery','workflow','pocket'] },
-    swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src', 'vset', 'gfx', 'still', 'scene', 'lay', 'rec', 'set'] },
-    outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['routing', 'out', 'aux', 'strm'] },
-    sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc', 'ops', 'keys'] },
+    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','decode','replay','cloud','recovery','workflow','pocket'] },
+    swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src','capture4k','me','vset','tracking','color','scopes','gfx','cgdesigner','still','scene','lay','rec','set'] },
+    outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['routing', 'out', 'aux', 'strm', 'ndi'] },
+    sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc','ops','keys','native'] },
   };
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
-  const PROTAB = new Set(['mtx', 'lay', 'aux', 'strm', 'noc']);   // 專業版才顯示的分頁
-  const TABN = { routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const PROTAB = new Set(['mtx','lay','aux','strm','noc','me','color','scopes','tracking','cgdesigner','ndi','capture4k']);   // 專業版才顯示的分頁
+  const TABN = {native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1831,10 +1844,10 @@ function Host(sess){
     try {
       const test = document.createElement('canvas'); test.width = q.w; test.height = q.h;
       const ctx = test.getContext('2d');
-      if (!ctx || ctx.getImageData(0, 0, 1, 1).length !== 4) throw Error('瀏覽器無法配置畫布');
+      if (!ctx || ctx.getImageData(0, 0, 1, 1).data.length !== 4) throw Error('瀏覽器無法配置畫布');
       test.width = test.height = 1;
       if (q.w*q.h > 1920*1080 && typeof MediaRecorder !== 'undefined' && !MediaRecorder.isTypeSupported('video/webm')) console.warn('目前瀏覽器可能無法錄製 WebM');
-      setPgmRes(r); SW.res = r; store('wc_pgmres', r);
+      setPgmRes(r);pvwCanvas.width=pgmCanvas.width;pvwCanvas.height=pgmCanvas.height; SW.res = r; store('wc_pgmres', r);
       refreshSlot('pgm'); refreshSlot('clean');
       const badge = $('#pgmres'); if (badge) badge.textContent = `${q.w}×${q.h} · ${PGMFPS}p`;
       toast(`製播畫布已設定 ${q.w}×${q.h}；請檢查實際輸出畫質與掉幀`);
@@ -1933,7 +1946,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v28-LAYOUTS</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v29-RC</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -1995,7 +2008,7 @@ function Host(sess){
     </div>
   </div>`;
   $('#pgms').prepend(pgmCanvas);
-  const pvwCanvas = $('#pvwc'), vctx = pvwCanvas.getContext('2d');
+  const pvwCanvas = $('#pvwc'), vctx = pvwCanvas.getContext('2d');pvwCanvas.width=pgmCanvas.width;pvwCanvas.height=pgmCanvas.height;
   const pvwStream = new MediaStream([pvwCanvas.captureStream(30).getVideoTracks()[0]]);
   /* Enlarge the existing monitor node; never replace its canvas or video track. */
   function setupMonitorExpansion(){
@@ -2157,7 +2170,7 @@ function Host(sess){
     if (inp.slot) refreshSlot(inp.slot);
   }
   function isoCanvasTrack(inp){
-    if (!inp.isoC) { inp.isoC = Object.assign(document.createElement('canvas'), { width: 1280, height: 720 }); inp.isoX = inp.isoC.getContext('2d'); inp.isoTrack = inp.isoC.captureStream(30).getVideoTracks()[0]; }
+    if (!inp.isoC) { inp.isoC = Object.assign(document.createElement('canvas'), { width: srcDims(srcEl(inp))[0]||pgmCanvas.width, height:srcDims(srcEl(inp))[1]||pgmCanvas.height }); inp.isoX = inp.isoC.getContext('2d'); inp.isoTrack = inp.isoC.captureStream(30).getVideoTracks()[0]; }
     return inp.isoTrack;
   }
   // 來賓送來的聲音：新版是三條（節目麥、對講麥、回放），舊版只有一條
@@ -2201,7 +2214,7 @@ function Host(sess){
     toast(`⚠「${inp.name}」斷線，${inp.tally === 'live' ? '節目畫面已換成訊號中斷圖卡，' : ''}等待重新連線`);
   }
   function removeInput(id){
-    const inp = inputs.get(id); if (!inp) return;
+    const inp = inputs.get(id); if(inp)productionReleaseInput(inp); if (!inp) return;
     inputs.delete(id); order.splice(order.indexOf(id), 1);
     clearInterval(inp.statT); clearTimeout(inp.callT); clearTimeout(inp.lostT); clearTimeout(inp.cdT);
     [inp.src, inp.icSrc, inp.medSrc, inp.pgmGain, inp.afvGain, inp.retSend, inp.retSendPre, inp.toPgm, inp.delay, ...(inp.auxS || []), inp.monGain, inp.icGain, inp.icLis, inp.icIn, inp.medIn, inp.medPgm, inp.medMon, inp.retMon, inp.retGain, inp.talkGain, inp.cueGain, inp.earBus, inp.fxn?.gate].forEach(n => { try { n?.disconnect(); } catch {} });
@@ -2535,7 +2548,7 @@ function Host(sess){
     if (!inp) return null;
     if (inp.view.freeze && inp.frozen) return inp.frozen;
     if (inp.kind === 'image') return inp.img;
-    if (inp.kind === 'layout') return inp.canvas;
+    if (['layout','me','cg'].includes(inp.kind)) return inp.canvas;
     if (inp.kind === 'loop') return loopCanvas(inp.loop.bus);
     return inp.video;
   }
@@ -2550,6 +2563,7 @@ function Host(sess){
     if (!inp) { g.fillStyle = '#000'; g.fillRect(x, y, w, h); return; }
     if (inp.kind === 'loop' && (inp.loop.bus === CUR_BUS || (CUR_BUS === 'pgm' && inp.loop.bus === 'clean'))) { drawLoopBlock(g, x, y, w, h, inp); return; }
     if (inp.audioOnly) { drawAudioCard(g, x, y, w, h, inp); return; }
+    if(inp.kind==='me'&&PROD.mes.has(inp.id))renderME(PROD.mes.get(inp.id));
     let el = srcEl(inp); const [vw, vh] = srcDims(el);
     const ready = el && vw && vh && (el.readyState === undefined || el.readyState >= 2) && el.complete !== false;
     if (inp.lost || (!ready && inp.kind === 'guest' && inp.stream)) { drawSlate(g, x, y, w, h, inp); return; }
@@ -2566,6 +2580,7 @@ function Host(sess){
         if (V.kbg && depth < 1) { const bsrc = V.kbg.startsWith('p:') ? null : inputs.get(V.kbg); if (V.kbg.startsWith('p:')) { const bc = bgCanvasOf(V.kbg); g.drawImage(bc, x, y, w, h); } else if (bsrc && bsrc !== inp) drawSource(g, bsrc, x, y, w, h, null, depth + 1); else { g.fillStyle = '#000'; g.fillRect(x, y, w, h); } }
       }
     }
+    el=gradedFrame(inp,el,keyed?el.width:vw,keyed?el.height:vh);
     g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
     if (V.op != null && V.op < 1) g.globalAlpha *= V.op;
     if (V.br || V.co || V.sa) g.filter = `brightness(${1 + V.br}) contrast(${1 + V.co}) saturate(${1 + V.sa})`;
@@ -2608,19 +2623,19 @@ function Host(sess){
     else if (d === 'diag') { const L = (W + H) * t; g.moveTo(0, 0); g.lineTo(Math.min(L, W), 0); if (L > W) g.lineTo(W, L - W); g.lineTo(Math.max(0, L - H), Math.min(L, H)); if (L > H) g.lineTo(0, H); g.lineTo(0, Math.min(L, H)); g.closePath(); }
     else g.rect(0, 0, W * t, H);
   }
-  function renderTrans(g, A, B, t, W, H){
-    const ty = SW.type;
+  function renderTrans(g,A,B,t,W,H,selectedType=SW.type,settings=SW){
+    const ty=selectedType;if(renderExtraTrans(g,A,B,t,W,H,ty))return;
     if (ty === 'mix') { drawSource(g, A, 0, 0, W, H); g.globalAlpha = t; drawSource(g, B, 0, 0, W, H); g.globalAlpha = 1; return; }
-    if (ty === 'dip') { drawSource(g, t < .5 ? A : B, 0, 0, W, H); g.globalAlpha = t < .5 ? t * 2 : (1 - t) * 2; g.fillStyle = SW.dipColor; g.fillRect(0, 0, W, H); g.globalAlpha = 1; return; }
+    if (ty === 'dip') { drawSource(g, t < .5 ? A : B, 0, 0, W, H); g.globalAlpha = t < .5 ? t * 2 : (1 - t) * 2; g.fillStyle = settings.dipColor; g.fillRect(0, 0, W, H); g.globalAlpha = 1; return; }
     if (ty === 'wipe') {
-      drawSource(g, A, 0, 0, W, H); g.save(); g.beginPath(); wipePath(g, SW.wdir, t, W, H); g.clip(); drawSource(g, B, 0, 0, W, H); g.restore();
-      if (SW.border > 0 && t > 0 && t < 1) { g.save(); g.beginPath(); wipePath(g, SW.wdir, t, W, H); g.strokeStyle = SW.borderColor; g.lineWidth = SW.border * W / 1280; g.stroke(); g.restore(); }
+      drawSource(g, A, 0, 0, W, H); g.save(); g.beginPath(); wipePath(g, settings.wdir, t, W, H); g.clip(); drawSource(g, B, 0, 0, W, H); g.restore();
+      if (settings.border > 0 && t > 0 && t < 1) { g.save(); g.beginPath(); wipePath(g, settings.wdir, t, W, H); g.strokeStyle = settings.borderColor; g.lineWidth = settings.border * W / 1280; g.stroke(); g.restore(); }
       return;
     }
-    if (ty === 'push') { const [dx, dy] = dirVec(SW.pdir); drawSource(g, A, -dx * W * t, -dy * H * t, W, H); drawSource(g, B, dx * W * (1 - t), dy * H * (1 - t), W, H); return; }
-    if (ty === 'slide') { const [dx, dy] = dirVec(SW.pdir); drawSource(g, A, 0, 0, W, H); drawSource(g, B, dx * W * (1 - t), dy * H * (1 - t), W, H); return; }
+    if (ty === 'push') { const [dx, dy] = dirVec(settings.pdir); drawSource(g, A, -dx * W * t, -dy * H * t, W, H); drawSource(g, B, dx * W * (1 - t), dy * H * (1 - t), W, H); return; }
+    if (ty === 'slide') { const [dx, dy] = dirVec(settings.pdir); drawSource(g, A, 0, 0, W, H); drawSource(g, B, dx * W * (1 - t), dy * H * (1 - t), W, H); return; }
     if (ty === 'zoom') { drawSource(g, A, 0, 0, W, H); const k = .4 + .6 * t; g.globalAlpha = Math.min(1, t * 1.6); drawSource(g, B, W * (1 - k) / 2, H * (1 - k) / 2, W * k, H * k); g.globalAlpha = 1; return; }
-    if (ty === 'stinger') { drawSource(g, t < SW.stingCut ? A : B, 0, 0, W, H); const sv = SW.stingEl; if (sv && sv.readyState >= 2 && !sv.paused && !sv.ended) g.drawImage(sv, 0, 0, W, H); return; }
+    if (ty === 'stinger') { drawSource(g, t < settings.stingCut ? A : B, 0, 0, W, H); const sv = settings.stingEl; if (sv && sv.readyState >= 2 && !sv.paused && !sv.ended) g.drawImage(sv, 0, 0, W, H); return; }
     drawSource(g, t < .5 ? A : B, 0, 0, W, H);
   }
   function renderBase(g, W, H){
@@ -2636,8 +2651,8 @@ function Host(sess){
     const W = pgmCanvas.width, H = pgmCanvas.height; CUR_BUS = 'pgm';
     if (hasOut('clean') || REC.has('clean') || busNeeded('clean')) {
       if (cleanCanvas.width !== W || cleanCanvas.height !== H) { cleanCanvas.width = W; cleanCanvas.height = H; }
-      renderBase(cleanCtx, W, H); pctx.drawImage(cleanCanvas, 0, 0); drawOverlays(pctx, W, H, dt, SW.pgm); ftbFill(pctx, W, H); ftbFill(cleanCtx, W, H);
-    } else { renderBase(pctx, W, H); drawOverlays(pctx, W, H, dt, SW.pgm); ftbFill(pctx, W, H); }
+      renderBase(cleanCtx, W, H); pctx.drawImage(cleanCanvas, 0, 0); drawOverlays(pctx,W,H,dt,SW.pgm);cgOverlay(pctx,W,H); ftbFill(pctx, W, H); ftbFill(cleanCtx, W, H);
+    } else { renderBase(pctx, W, H); drawOverlays(pctx,W,H,dt,SW.pgm);cgOverlay(pctx,W,H); ftbFill(pctx, W, H); }
     CUR_BUS = '';
   }
   function renderPreview(){
@@ -2668,7 +2683,7 @@ function Host(sess){
       if (SW.t > 0 && SW.pvw && !SW.prevTrans) live.add(SW.pvw);
       if (SW.pip.alpha > 0 && SW.pip.src) live.add(SW.pip.src);
       // 版面（雙框／四宮格）裡的來源也算 ON AIR
-      [...live].forEach(id => { const x = inputs.get(id); if (x?.kind === 'layout') x.layout.srcs.forEach(s2 => s2 && live.add(s2)); });
+      for(const id of live)productionDependencies(id).forEach(child=>live.add(child));
     }
     const key = [...live].join(',') + '|' + SW.pvw;
     order.forEach(id => {
@@ -2694,12 +2709,12 @@ function Host(sess){
     const fT = SW.ftbOn ? 1 : 0; if (SW.ftb !== fT) { SW.ftb = clamp(SW.ftb + Math.sign(fT - SW.ftb) * dt / SW.ftbDur, 0, 1); updateTally(); }
     if ((SW.t > 0) !== lastTr) { lastTr = SW.t > 0; updateTally(); }
     [...OVK.map(k => OV[k]), ...STILLS].forEach(L => { const T = L.on ? 1 : 0; if (L.a !== T) { L.a = clamp(L.a + Math.sign(T - L.a) * dt / (L.fadeMs || OV.fade), 0, 1); if (L.a === T) L.fadeMs = 0; } });
-    gateTick();
+    gateTick();productionTick();
     // 虛擬來源（版面、圖卡）
     inputs.forEach(x => {
       if (x.kind === 'layout') { const hot = x.tally !== 'off' || SW.pip.src === x.id || (x.slot && hasOut(x.slot)) || REC.has(x.id); if (hot || frameNo % (x.layout.type === 'vset' ? 15 : 3) === 0) renderLayout(x); }
-      else if (x.kind === 'image' && frameNo % 15 === 0) paintStill(x);
-      if (x.isoGfx && x.isoX && ((x.slot && hasOut(x.slot)) || REC.has(x.id))) { drawSource(x.isoX, x, 0, 0, 1280, 720); drawLowerThird(x.isoX, 1280, 720, { l1: x.title.l1, l2: x.title.l2, style: OV.lt.style, pos: OV.lt.pos }, 1, 0); }
+      else if(x.kind==='image'&&frameNo%15===0){ensureProductionCanvas(x);paintStill(x);}
+      if (x.isoGfx && x.isoX && ((x.slot && hasOut(x.slot)) || REC.has(x.id))) { const dims=srcDims(srcEl(x));if(dims[0]&&dims[1]&&(x.isoC.width!==dims[0]||x.isoC.height!==dims[1])){x.isoC.width=dims[0];x.isoC.height=dims[1];}drawSource(x.isoX,x,0,0,x.isoC.width,x.isoC.height);drawLowerThird(x.isoX,x.isoC.width,x.isoC.height, { l1: x.title.l1, l2: x.title.l2, style: OV.lt.style, pos: OV.lt.pos }, 1, 0); }
     });
     renderProgram(dt);
     if (!document.hidden || hasOut('pvw') || hasOut('mv') || busNeeded('pvw') || busNeeded('mv')) renderPreview();
@@ -2900,14 +2915,15 @@ function Host(sess){
   const effRet = g => { const s = IFBG[g.ifb?.grp || 'A']?.src || 'default'; return s === 'default' ? RET.src : s; };
   const related = (a, b) => a === b || a.parent === b.id || b.parent === a.id;
   function rebuildReturn(){
+    PROD.returnRoutes=[];
     RETC.splice(0).forEach(([n, d]) => { try { n.disconnect(d); } catch {} });
     const link = (n, d) => { if (!n || !d) return; try { n.connect(d); RETC.push([n, d]); } catch {} };
     guests().forEach(g => {
       const s = effRet(g);
-      if (s === 'program') inputs.forEach(x => { if (!related(x, g)) { link(x.retSend, g.retGain); link(x.retSendPre, g.retGain); } });
-      else if (/^aux\d$/.test(s)) { const i = +s[3] - 1; inputs.forEach(x => { if (!related(x, g)) link(x.auxS?.[i], g.retGain); }); }
+      if (s === 'program') inputs.forEach(x => { if(x.kind==='me')productionConnectReturn(g,x,'program',null,link);else if(!related(x,g)){link(x.retSend,g.retGain);link(x.retSendPre,g.retGain);} });
+      else if (/^aux\d$/.test(s)) { const i = +s[3] - 1; inputs.forEach(x => { if(x.kind==='me')productionConnectReturn(g,x,'aux',i,link);else if(!related(x,g))link(x.auxS?.[i],g.retGain); }); }
       else if (s === RET.src && RET.node) link(RET.node, g.retGain);
-      else if (inputs.get(s)?.src && s !== g.id) link(inputs.get(s).src, g.retGain);
+      else if(inputs.get(s)?.kind==='me')productionConnectReturn(g,inputs.get(s),'direct',null,link);else if(inputs.get(s)?.src&&s!==g.id)link(inputs.get(s).src,g.retGain);
       earLinks(g, link);
     });
   }
@@ -3026,13 +3042,13 @@ function Host(sess){
 
   /* =============== 新來源：圖卡／影片／版面 =============== */
   function virtualCanvas(inp){
-    inp.canvas = Object.assign(document.createElement('canvas'), { width: 1280, height: 720 }); inp.cx = inp.canvas.getContext('2d');
+    inp.canvas = Object.assign(document.createElement('canvas'), { width: pgmCanvas.width, height: pgmCanvas.height }); inp.cx = inp.canvas.getContext('2d');
     const st = inp.canvas.captureStream(30); inp.vtrack = st.getVideoTracks()[0];
     inp.video.srcObject = new MediaStream([inp.vtrack]); inp.video.play().catch(() => {});
     $('[data-k="nosig"]', inp.el).classList.add('hidden');
     buildIso(inp);
   }
-  function paintStill(x){ const g = x.cx, im = x.img; if (!im?.naturalWidth) return; g.fillStyle = '#000'; g.fillRect(0, 0, 1280, 720); const k = Math.min(1280 / im.naturalWidth, 720 / im.naturalHeight); g.drawImage(im, (1280 - im.naturalWidth * k) / 2, (720 - im.naturalHeight * k) / 2, im.naturalWidth * k, im.naturalHeight * k); }
+  function paintStill(x){const g=x.cx,im=x.img,W=x.canvas.width,H=x.canvas.height;if(!im?.naturalWidth)return;g.clearRect(0,0,W,H);const k=Math.min(W/im.naturalWidth,H/im.naturalHeight);g.drawImage(im,(W-im.naturalWidth*k)/2,(H-im.naturalHeight*k)/2,im.naturalWidth*k,im.naturalHeight*k);}
   function addImage(file){
     return new Promise(resolve=>{const url=URL.createObjectURL(file),im=new Image();im.onload=()=>{try{const inp=newInput('I-'+rnd(6),'image',file.name.replace(/\.[^.]+$/,'').slice(0,30)||'圖卡');inp.img=im;inp.view.fit='contain';virtualCanvas(inp);paintStill(inp);renderAll();toast('已加入圖卡「'+inp.name+'」');resolve(inp);}catch(e){toast(e.message);resolve(null);}finally{URL.revokeObjectURL(url);}};im.onerror=()=>{URL.revokeObjectURL(url);toast('無法讀取這張圖片');resolve(null);};im.src=url;});
   }
@@ -3047,6 +3063,7 @@ function Host(sess){
       buildIso(inp); renderAll();if(typeof renderMedia16==='function')renderMedia16();
     };
     const upd = () => { const f = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`; $('[data-k="stats"]', inp.el).textContent = `影片 ${f(v.currentTime || 0)} / ${f(v.duration || 0)}${v.loop ? ' · 循環' : ''}`; $('[data-a="play"]', inp.el).innerHTML = ic(v.paused ? 'play' : 'pause'); updateTile(inp); };
+    v.onerror=()=>{inp.mediaError='瀏覽器無法解碼，請使用「素材 → 專業檔案解碼」';toast(inp.mediaError);};
     v.ontimeupdate = upd; v.onplay = v.onpause = v.onended = upd;
     toast((inp.audioOnly ? '已加入聲音「' : '已加入影片「') + inp.name + '」（按 ON AIR 會自動播放）');
     return inp;
@@ -3075,10 +3092,10 @@ function Host(sess){
     }
   }
   function renderLayout(x){
-    const g = x.cx, W = 1280, H = 720, L = x.layout, prevBus = CUR_BUS;
+    ensureProductionCanvas(x);const g=x.cx,W=x.canvas.width,H=x.canvas.height,L=x.layout, prevBus = CUR_BUS;
     CUR_BUS = x.tally === 'live' ? 'pgm' : AUX.find(a => a.pgm === x.id) ? 'aux' + (AUX.find(a => a.pgm === x.id).i + 1) : '';
     if (L.type === 'vset') { renderVset(x, g, W, H); CUR_BUS = prevBus; return; }
-    if (L.useBg) { if (!L._bgc || L._bgk !== L.bgImg) { L._bgc = makeBgCanvas(L.bgImg, 640, 360); L._bgk = L.bgImg; } g.drawImage(L._bgc, 0, 0, W, H); } else { g.fillStyle = L.bg; g.fillRect(0, 0, W, H); }
+    if (L.useBg) { if (!L._bgc || L._bgk !== L.bgImg||L._bgc.width!==W||L._bgc.height!==H) { L._bgc = makeBgCanvas(L.bgImg,W,H); L._bgk = L.bgImg; } g.drawImage(L._bgc, 0, 0, W, H); } else { g.fillStyle = L.bg; g.fillRect(0, 0, W, H); }
     if (L.type === 'custom') { renderCustomLayout(x, g, W, H); CUR_BUS = prevBus; return; }
     layoutBoxes(L.type, W, H, L.type === 'pipL' ? 0 : W * L.gap).forEach(([bx, by, bw, bh], i) => {
       const src = inputs.get(L.srcs[i]);
@@ -3239,7 +3256,8 @@ function Host(sess){
     j={id,recordId:id,name,folder:destination?.folder??CLOUD.folder,blob:null,status:'待上傳',progress:0,url:'',offset:0,fileId:''};CLOUD.jobs.push(j);await persistCloudJob(j);cloudPump();softRender('cloud');
   }
   async function cloudPump(){if(CLOUD.busy)return;CLOUD.busy=true;try{for(;;){const j=CLOUD.jobs.find(x=>x.status==='待上傳');if(!j)break;j.status='上傳中';j.error='';try{const upload=async()=>{const saved=await journalGet(j.recordId);if(saved?.cloudState==='已儲存'&&saved.fileId){j.fileId=saved.fileId;return;}cloudToken();await persistCloudJob(j);if(!j.blob)j.blob=await journalBlob(j.recordId);await uploadDriveJob(j);j.status='已儲存';j.progress=100;await persistCloudJob(j);};if(typeof navigator!=='undefined'&&navigator.locks?.request)await navigator.locks.request('wc-upload:'+journalName+':'+j.id,upload);else await upload();j.status='已儲存';j.progress=100;j.blob=null;}catch(e){j.status='失敗';j.error=e.message;j.blob=null;}try{await persistCloudJob(j);}catch(e){j.error=(j.error?j.error+'；':'')+'保存上傳進度失敗：'+e.message;}softRender('cloud');}}finally{CLOUD.busy=false;}}
-  async function endSession(reason){if(endTask)return endTask;if(ended)return;sessionEnding=true;endTask=(async()=>{
+  async function endSession(reason){
+    productionStop();if(endTask)return endTask;if(ended)return;sessionEnding=true;endTask=(async()=>{
     const overlay=document.createElement('div');overlay.className='modal';overlay.innerHTML='<div class="m"><h2>正在完成錄影存檔</h2><p>請保持此分頁開啟，等待錄影器、硬碟與恢復快取寫入完成。</p><p id="endProgress" role="status">收尾中…</p></div>';document.body.appendChild(overlay);
     try{await stopReplay();const results=await stopRec();const bad=results.filter(r=>!r.ok);ended=true;STREAMS.forEach(S=>whipStop(S));try{pgmTicker.stop();}catch{}guests().forEach(g=>{try{g.conn?.send({type:'kick',end:true});}catch{}});try{peer?.destroy();}catch{}for(const inp of inputs.values()){clearInterval(inp.statT);clearTimeout(inp.whepT);inp.whepStop=true;try{inp.whep?.close();inp.video?.pause();if(inp.kind==='local')inp.stream?.getTracks().forEach(t=>t.stop());}catch{}}sstore('wc_host',null);apiCall({action:'end',token:sess.token,sid:sess.sid}).catch(()=>{});const pending=CLOUD.jobs.filter(j=>j.status!=='已儲存').length;
       app.innerHTML=`<div class="home"><div class="box">${brand()}<h1>導播已結束</h1><p>${esc(reason||'')}</p><p>${bad.length?`${bad.length} 路錄影需要檢查，請先恢復／下載。`:'錄影存檔收尾已完成。'}</p><p>${pending?`${pending} 筆雲端上傳尚未完成；工作已保存在此瀏覽器，可保持分頁上傳或下次重新登入續傳。`:'沒有待續的雲端上傳。'}</p><button class="btn" id="endedRecovery">錄影恢復／下載</button><button class="btn" id="endedCloud">雲端上傳狀態</button><button class="btn primary" id="endedHome">回首頁</button></div></div>`;$$('.win').forEach(w=>w.classList.add('hidden'));$('#endedRecovery').onclick=()=>openWin('recovery');$('#endedCloud').onclick=()=>openWin('cloud');$('#endedHome').onclick=()=>location.href=location.pathname;wcIdle();
@@ -3456,11 +3474,11 @@ function Host(sess){
   async function putSlot(i,file){
     if(!canSw())return roleDeny();if(mediaBusy)return toast('素材正在載入');
     if(slotLocked(i))return toast('這格素材正在預覽、播出或錄影，請先切離／停止再更換');
-    if(!/^(image|video|audio)\//.test(file.type)&&! /\.(mp4|mov|webm|m4v|mp3|wav|m4a|aac|ogg|flac|png|jpg|jpeg|webp|gif)$/i.test(file.name))return toast('請選擇圖片、影片或聲音檔');
+    if(!/^(image|video|audio)\//.test(file.type)&&! /\.(avi|wmv|asf|mpg|mpeg|m2v|mxf|tif|tiff|aif|aiff|mp4|mov|webm|m4v|mp3|wav|m4a|aac|ogg|flac|png|jpg|jpeg|webp|gif)$/i.test(file.name))return toast('請選擇圖片、影片或聲音檔');
     mediaBusy=true;try{
       const old=MEDIA16[i],im=/^image\//.test(file.type)||/\.(png|jpg|jpeg|webp|gif)$/i.test(file.name);
-      const inp=im?await addImage(file):addMedia(file);if(!inp)throw Error('素材無法載入');
-      MEDIA16[i]=inp.id;MEDIA_FILES[i]=file;if(old&&inputs.has(old))removeInput(old);
+      const inp=requiresNative(file)?await nativeTranscode(file,false):im?await addImage(file):addMedia(file);if(!inp)throw Error('素材無法載入');
+      if(slotLocked(i)){removeInput(inp.id);throw Error('轉碼期間原素材已進入預覽／播出，請先切離再更換');}file=inp.normalizedFile||file;MEDIA16[i]=inp.id;MEDIA_FILES[i]=file;if(old&&inputs.has(old))removeInput(old);
       try{await slotDB(i,file);}catch{toast('素材已載入，但瀏覽器空間不足，重新開啟後需重選檔案');}
       renderMedia16();return inp;
     }catch(e){toast(e.message);}finally{mediaBusy=false;}
@@ -3529,7 +3547,7 @@ function Host(sess){
   async function scanPocket(){if(!navigator.mediaDevices?.getUserMedia)throw Error('請使用 HTTPS 開啟並確認瀏覽器支援相機');const temp=await navigator.mediaDevices.getUserMedia({video:true,audio:false});temp.getTracks().forEach(t=>t.stop());POCKET_DEVICES=await navigator.mediaDevices.enumerateDevices();renderPocket();}
   function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${/pocket|osmo|dji/i.test(d.label)?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播</h4><div class="note">Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?{deviceId:{exact:aud}}:false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;setPvw(x.id);renderAll();toast('DJI Pocket 已加入 PREVIEW；可切換、ISO 錄影與送出');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');}
 
-  const WDEF = { routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
+  const WDEF = {native:{title:'原生影音引擎',w:640,h:470,render:renderNative},decode:{title:'專業檔案解碼／轉碼',w:760,h:560,render:renderDecode},capture4k:{title:'4K 擷取與製播',w:760,h:560,render:renderCapture4k},ndi:{title:'原生 NDI 收送',w:760,h:580,render:renderNdi},me:{title:'多級 M/E',w:1100,h:720,render:renderMEPanel},cgdesigner:{title:'CG 動態標題設計器',w:1150,h:850,render:renderCgDesigner},color:{title:'色輪調色',w:940,h:620,render:renderColor},scopes:{title:'影像示波器',w:1000,h:540,render:renderScopes},tracking:{title:'實體攝影機追蹤',w:900,h:700,render:renderTracking}, routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
     recovery:{title:'錄影恢復／待續上傳',w:760,h:640,render:renderRecovery},
     pocket:{title:'DJI Pocket USB／網路訊號',w:720,h:640,render:renderPocket},
     workflow:{title:'錄影目的地／推流拉流同步',w:760,h:680,render:renderWorkflow},
@@ -4045,7 +4063,7 @@ function Host(sess){
   function renderSrc(){
     const w = WIN.src; if (!w?.open) return;
     const locals = order.filter(id => inputs.get(id).kind !== 'guest');
-    w.body.innerHTML = `<div class="wsec"><h4>版面（雙框／多框）</h4><div class="row" style="flex-wrap:wrap">${LAYOUTS.map(([k, n]) => `<button class="btn sm" data-nl="${k}">${ic('layout')}${n}</button>`).join('')}</div>
+    w.body.innerHTML = `<div class="wsec"><h4>原生來源整合</h4><div class="row"><button class="btn" data-production-open="decode">專業檔案解碼</button><button class="btn" data-production-open="capture4k">4K 擷取卡</button><button class="btn" data-production-open="ndi">NDI 來源</button><button class="btn" data-production-open="me">多級 M/E</button></div></div><div class="wsec"><h4>版面（雙框／多框）</h4><div class="row" style="flex-wrap:wrap">${LAYOUTS.map(([k, n]) => `<button class="btn sm" data-nl="${k}">${ic('layout')}${n}</button>`).join('')}</div>
         <div class="note">版面會變成一路新的來源，可以 ON AIR、切到 PGM、指派 OUT 給 OBS。</div></div>
       <div class="wsec"><h4>去背合成（虛擬攝影棚） <span class="grow"></span><button class="btn sm primary" id="svset">${ic('layers')}新增去背合成</button></h4><div class="note" style="margin:0">把來賓或攝影機去背，合成到 2D 背景或 3D 虛擬攝影棚，可以運鏡。</div></div>
       <div class="wsec"><h4>自訂佈局 <span class="grow"></span><button class="btn sm" data-nl="custom">${ic('layout')}新增自訂佈局</button></h4><div class="note" style="margin:0">自由拖拉每一個畫面框的位置、大小、裁切；可以存成模板，一鍵叫出或直接 TAKE 上 PGM（「版面庫」）。</div></div>
@@ -4099,9 +4117,10 @@ function Host(sess){
     $$('[data-nl]', w.body).forEach(b => b.onclick = () => addLayout(b.dataset.nl));
     $$('[data-loop]', w.body).forEach(b => b.onclick = () => addLoop(b.dataset.loop));
     $('#swhep', w.body).onclick = () => { openWin('strm'); };
+    $$('[data-production-open]',w.body).forEach(e=>e.onclick=()=>openWin(e.dataset.productionOpen,true));
     $('#svset', w.body).onclick = () => addVset();
     $('#sim', w.body).onchange = e => { [...e.target.files].forEach(addImage); e.target.value = ''; };
-    $('#smd', w.body).onchange = e => { [...e.target.files].forEach(addMedia); e.target.value = ''; };
+    $('#smd', w.body).onchange = e => { [...e.target.files].forEach(file=>importProductionFile(file)); e.target.value = ''; };
   }
   /* 內建設定：自訂快捷鍵與 Web MIDI。無浮動按鈕。 */
   const WC_ACTIONS = {CUT:'Space',AUTO:'Enter',MIX:'KeyX',QA:'KeyQ',KEYS:'KeyK',RECORD:'Shift+KeyR'};
@@ -4883,7 +4902,7 @@ function Host(sess){
     const x = STILLS[n - 1]; if (!x) return;
     const im = new Image(), u = URL.createObjectURL(file);
     im.onload = () => {
-      const k = Math.min(1, 1920 / im.naturalWidth, 1080 / im.naturalHeight), c = Object.assign(document.createElement('canvas'), { width: Math.round(im.naturalWidth * k), height: Math.round(im.naturalHeight * k) });
+      const k=Math.min(1,Math.max(3840,pgmCanvas.width)/im.naturalWidth,Math.max(2160,pgmCanvas.height)/im.naturalHeight), c = Object.assign(document.createElement('canvas'), { width: Math.round(im.naturalWidth * k), height: Math.round(im.naturalHeight * k) });
       c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
       x.url = c.toDataURL('image/png'); x.name = x.name || file.name.replace(/\.[^.]+$/, '').slice(0, 20);
       x.full = !!(Math.abs(c.width / c.height - 16 / 9) < .05 && c.width >= 1280);   // 1920×1080 透明圖＝全畫面疊加；小圖＝角標
@@ -5069,7 +5088,7 @@ function Host(sess){
   }
 
   // ---------- 去背 Chroma／Luma Key（WebGL，每一路各自設定） ----------
-  const BGC = new Map(); const bgCanvasOf = id => { if (!BGC.has(id)) BGC.set(id, makeBgCanvas(id, 1280, 720)); return BGC.get(id); };
+  const BGC = new Map(); const bgCanvasOf=id=>{const key=id+':'+pgmCanvas.width+'x'+pgmCanvas.height;if(!BGC.has(key)){if(BGC.size>16)BGC.clear();BGC.set(key,makeBgCanvas(id,pgmCanvas.width,pgmCanvas.height));}return BGC.get(key);};
   const KG = { cv: null, gl: null, u: {}, fail: false };
   function keyInit(){
     if (KG.gl || KG.fail) return KG.gl;
@@ -5099,7 +5118,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   function keyFrame(inp, el, V, vw, vh){
     if (inp._kf === frameNo && inp._kc && inp._kel === el) return inp._kc;
     const gl = keyInit(); if (!gl) return null;
-    const cw = Math.min(vw, 1280), ch = Math.max(2, Math.round(vh * cw / vw)), cv = KG.cv;
+    const cw = Math.min(vw,pgmCanvas.width), ch = Math.max(2, Math.round(vh * cw / vw)), cv = KG.cv;
     if (cv.width !== cw || cv.height !== ch) { cv.width = cw; cv.height = ch; }
     gl.viewport(0, 0, cw, ch);
     try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, el); } catch { return null; }
@@ -5159,7 +5178,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       const files = [...e.dataTransfer.files], slot = e.target.closest?.('[data-stdrop]');
       if (slot) { const f = files.find(f2 => /^image\//.test(f2.type)); if (f) setStillFile(+slot.dataset.stdrop, f); else toast('圖庫插槽只能放圖片（PNG 透明背景最好）'); return; }
       let n = 0;
-      files.forEach(f => { if (/^image\//.test(f.type)) { addImage(f); n++; } else if (/^(video|audio)\//.test(f.type) || /\.(mp4|mov|webm|mkv|m4v|mp3|wav|m4a|aac|ogg|flac)$/i.test(f.name)) { addMedia(f); n++; } });
+      files.forEach(f => { if (/^image\//.test(f.type)) { importProductionFile(f); n++; } else if (/^(video|audio)\//.test(f.type) || /\.(avi|wmv|asf|mpg|mpeg|m2v|mxf|tif|tiff|aif|aiff|mp4|mov|webm|mkv|m4v|mp3|wav|m4a|aac|ogg|flac)$/i.test(f.name)) { importProductionFile(f); n++; } });
       if (!n) toast('不支援這種檔案：請拖入圖片、影片或聲音檔');
     });
   })();
@@ -5532,8 +5551,9 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     else if (!v.camFrom) v.cam = { ...v.camT };
     const C = v.cam, yaw = (C.yaw + (v.orbit ? Math.sin(performance.now() / 6000) * 8 : 0)) * Math.PI / 180, pit = C.pitch * Math.PI / 180;
     const tgt = [0, 1.3, 0], eye = [tgt[0] + Math.sin(yaw) * Math.cos(pit) * C.dist, tgt[1] + Math.sin(pit) * C.dist, tgt[2] + Math.cos(yaw) * Math.cos(pit) * C.dist];
-    const VP = M4.mul(M4.persp(C.fov, 16 / 9, .1, 100), M4.look(eye, tgt, [0, 1, 0]));
-    gl.viewport(0, 0, 1280, 720); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    const tracked=trackedPose(x.id);if(G3.cv.width!==pgmCanvas.width||G3.cv.height!==pgmCanvas.height){G3.cv.width=pgmCanvas.width;G3.cv.height=pgmCanvas.height;}
+    const VP=M4.mul(M4.persp(tracked?.fov||C.fov,G3.cv.width/G3.cv.height,.1,100),M4.look(tracked?.eye||eye,tracked?.target||tgt,tracked?.up||[0,1,0]));
+    gl.viewport(0,0,G3.cv.width,G3.cv.height); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.disable(gl.BLEND); gl.depthMask(true);
     // 牆面
     const W1 = wallEl(v, 'bg', x), W2 = wallEl(v, 'side', x), wall = (key, w, c, r, u, tint) => { if (w && g3Tex(key, w.el, w.stat)) g3Quad(VP, c, r, u, 1, tint || [1, 1, 1]); };
@@ -5548,7 +5568,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     // 地板
     // 先畫倒影（在地板下方），地板半透明蓋上去
     const lay = v.layers.map(l => ({ l, src: inputs.get(l.src) })).filter(o => o.src && o.src !== x && o.src.kind !== 'layout').sort((a, b) => a.l.z - b.l.z);
-    const tal = o => { const el0 = srcEl(o.src), [vw, vh] = srcDims(el0); if (!vw) return null; let el = el0; const V = { ...o.src.view, ...layerVo(o.l), z: 1 }; if (V.key !== 'none') { const k = keyFrame(o.src, el0, V, vw, vh); if (k) el = k; } return { el, ar: srcAspect(o.src, o.l), V, vw, vh }; };
+    const tal = o => { const rawEl=srcEl(o.src),dims=srcDims(rawEl),el0=gradedFrame(o.src,rawEl,dims[0],dims[1]), [vw, vh] = srcDims(el0); if (!vw) return null; let el = el0; const V = { ...o.src.view, ...layerVo(o.l), z: 1 }; if (V.key !== 'none') { const k = keyFrame(o.src, el0, V, vw, vh); if (k) el = k; } return { el, ar: srcAspect(o.src, o.l), V, vw, vh }; };
     const T = lay.map(o => ({ ...o, t: tal(o) })).filter(o => o.t);
     const placeUV = o => { const V = o.t.V, l = o.l; return [V.cl + (l.bcl || 0), V.ct + (l.bct || 0), 1 - V.cr - (l.bcr || 0), 1 - V.cb - (l.bcb || 0)]; };
     const ry = o => (o.l.ry || 0) * Math.PI / 180;
@@ -5793,6 +5813,114 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   }
   renderCrystalConsole();
   const crystalTimer=setInterval(()=>{if(ended){clearInterval(crystalTimer);return;}if(!document.hidden) renderCrystalConsole();},200);
+
+  /* v29 production modules; embedded in index.html at release time. */
+  const PROD={native:{url:store('wc_bridge_url')||'http://127.0.0.1:8765',token:sstore('wc_bridge_token')||'',caps:null},peers:new Map(),jobs:[],gradeTarget:null,cgOn:false,cgStart:0,cgImages:new Map(),tracking:{enabled:false,frames:[],error:'',timer:null,bindings:{}},mes:new Map(),meOrder:[],rendering:new Set()};
+  try{PROD.cg=ProductionCore.cg(JSON.parse(store('wc_cg29')||'null'));}catch{PROD.cg=ProductionCore.cg({name:'新聞下標',layers:[{type:'rect',x:90,y:820,w:1450,h:155,bg:'#bd1830',start:0,end:10},{type:'text',text:'新聞標題',x:130,y:845,w:1350,h:100,fontSize:64,color:'#ffffff',start:0,end:10}],duration:10});}
+  try{PROD.tracking.bindings=JSON.parse(store('wc_tracking29')||'{}');}catch{}
+  function productionAllowed(){if(!canSw()){roleDeny();return false;}return true;}
+  async function nativeCall(path,options={}){
+    const url=new URL(PROD.native.url);if(!['127.0.0.1','localhost','[::1]'].includes(url.hostname)||!['http:','https:'].includes(url.protocol))throw Error('原生引擎僅允許本機 localhost 位址');
+    if(!PROD.native.token)throw Error('請先在「系統 → 原生影音引擎」填入本機配對碼');
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),options.body instanceof File?3600000:20000);
+    try{const r=await fetch(PROD.native.url.replace(/\/$/,'')+path,{...options,signal:controller.signal,headers:{...options.headers,Authorization:'Bearer '+PROD.native.token}});if(!r.ok){let msg;try{msg=(await r.json()).detail;}catch{msg='HTTP '+r.status;}throw Error(msg||'引擎請求失敗');}return r;}finally{clearTimeout(timer);}
+  }
+  async function nativeJson(path,body){return (await nativeCall(path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();}
+  function renderNative(){const w=WIN.native;if(!w?.open)return;const b=w.body;b.innerHTML=`<div class="wsec"><h4>本機原生影音引擎</h4><p class="note">啟動更新包 native-engine 裡的本機服務，再貼入它顯示的配對碼。這不是 Apps Script 後台功能。未連線的功能會如實顯示不可用。</p><p class="note">此頁來源：${esc(location.origin)}；本機服務需允許此來源。</p><label class="lbl">本機服務</label><input class="field full" id="pnurl" value="${esc(PROD.native.url)}"><label class="lbl">配對碼（只留在此分頁）</label><input class="field full" id="pntoken" type="password" value="${esc(PROD.native.token)}"><button class="btn primary" id="pnconnect">檢查連線／解碼器／NDI</button><div class="note" id="pnstatus" role="status">${PROD.native.caps?esc(JSON.stringify(PROD.native.caps)): '尚未驗證，不能宣稱已支援原生 NDI 或所有格式。'}</div></div>`;$('#pnconnect',b).onclick=async()=>{try{PROD.native.url=$('#pnurl',b).value.trim();PROD.native.token=$('#pntoken',b).value.trim();store('wc_bridge_url',PROD.native.url);sstore('wc_bridge_token',PROD.native.token);PROD.native.caps=await nativeJson('/capabilities');$('#pnstatus',b).textContent=JSON.stringify(PROD.native.caps);}catch(e){PROD.native.caps=null;$('#pnstatus',b).textContent='未就緒：'+e.message;}};}
+  async function nativeTranscode(file,cue=true){
+    if(!productionAllowed())return;const job={name:file.name,state:'上傳中'};PROD.jobs.push(job);softRender('decode');
+    try{const result=await (await nativeCall('/media',{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file})).json();job.id=result.id;let status;
+      for(;;){status=await nativeJson('/media/'+job.id);job.state=status.state;softRender('decode');if(['ready','failed'].includes(status.state))break;await new Promise(r=>setTimeout(r,1000));if(ended)throw Error('導播已結束；轉碼結果仍留在本機引擎');}
+      if(status.state!=='ready')throw Error(status.error||'轉碼失敗');const blob=await (await nativeCall('/media/'+job.id+'/file')).blob();const kind=status.kind,name=file.name.replace(/\.[^.]+$/,'')+({image:'.png',video:'.mp4',audio:'.m4a'}[kind]);
+      const normalized=new File([blob],name,{type:kind==='image'?'image/png':kind==='audio'?'audio/mp4':'video/mp4'});const x=kind==='image'?await addImage(normalized):addMedia(normalized);if(x){x.normalizedFile=normalized;if(cue)setPvw(x.id);}job.state=cue?'已加入 PREVIEW':'已加入來源';job.meta=status.result;softRender('decode');return x;
+    }catch(e){job.state='失敗：'+e.message;}softRender('decode');
+  }
+  const requiresNative=file=>/\.(avi|wmv|asf|mpg|mpeg|m2v|mxf|tif|tiff|aif|aiff)$/i.test(file.name);
+  async function importProductionFile(file,cue=false){if(requiresNative(file))return nativeTranscode(file,cue);if(/^image\//.test(file.type))return addImage(file);return addMedia(file);}
+  function renderDecode(){const w=WIN.decode;if(!w?.open)return;const b=w.body;b.innerHTML=`<div class="wsec"><h4>專業檔案解碼／轉碼</h4><p class="note">AVI、WMV、MPEG-2、MXF 等交由本機 FFmpeg，轉成 H.264/AAC MP4、AAC 聲音或 PNG 後加入來源。保持最高 4K，不補造低解析度素材細節。DRM、損毀檔與缺少解碼器會回報錯誤。</p><label class="btn primary">選擇檔案並轉碼<input id="pdfile" type="file" multiple hidden accept=".avi,.wmv,.asf,.mpg,.mpeg,.m2v,.mxf,.mov,.mp4,.mkv,.mp3,.wav,.aif,.aiff,.flac,.png,.jpg,.jpeg,.tif,.tiff,.webp"></label><button class="btn" id="pdsetup">原生引擎設定</button><div>${PROD.jobs.map(j=>`<p><b>${esc(j.name)}</b> · ${esc(j.state)}${j.meta?'<small>'+esc(JSON.stringify(j.meta))+'</small>':''}</p>`).join('')}</div></div>`;$('#pdfile',b).onchange=e=>[...e.target.files].forEach(file=>nativeTranscode(file,true));$('#pdsetup',b).onclick=()=>openWin('native',true);}
+  async function nativeRtc(kind,options={},stream){
+    if(!productionAllowed())return;const pc=new RTCPeerConnection({iceServers:[]}),media=new MediaStream();let remoteId=null,createdInput=null;
+    const clean=async()=>{pc.onconnectionstatechange=null;pc.close();if(remoteId){PROD.peers.delete(remoteId);await nativeCall('/rtc/'+remoteId,{method:'DELETE'}).catch(()=>{});}};
+    try{
+      if(stream)stream.getTracks().forEach(t=>pc.addTrack(t,stream));else{pc.addTransceiver('video',{direction:'recvonly'});pc.addTransceiver('audio',{direction:'recvonly'});}
+      pc.ontrack=e=>{media.addTrack(e.track);};await pc.setLocalDescription(await pc.createOffer());
+      if(pc.iceGatheringState!=='complete')await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('本機 ICE 協商逾時')),10000);pc.addEventListener('icegatheringstatechange',()=>{if(pc.iceGatheringState==='complete'){clearTimeout(timer);resolve();}});});
+      const answer=await nativeJson('/rtc',{kind,...options,sdp:pc.localDescription.sdp});remoteId=answer.id;await pc.setRemoteDescription(answer);PROD.peers.set(remoteId,{pc,clean,name:options.name||options.device,kind});
+      pc.onconnectionstatechange=()=>{if(['failed','closed'].includes(pc.connectionState))clean();};
+      if(!stream){if(!media.getVideoTracks().length)await new Promise((resolve,reject)=>{const onTrack=()=>{if(media.getVideoTracks().length){clearTimeout(timer);media.removeEventListener('addtrack',onTrack);resolve();}};const timer=setTimeout(()=>{media.removeEventListener('addtrack',onTrack);reject(Error('沒有收到原生影像軌'));},10000);media.addEventListener('addtrack',onTrack);});const x=newInput('N-'+rnd(6),'local',options.name||'原生擷取');createdInput=x;setStream(x,media);x.nativeClose=clean;if(x.video.readyState<2)await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('原生引擎未收到可解碼影格')),15000);x.video.addEventListener('loadeddata',()=>{clearTimeout(timer);resolve();},{once:true});});if(kind==='capture'&&(x.video.videoWidth!==options.width||x.video.videoHeight!==options.height))throw Error('要求 '+options.width+'×'+options.height+'，實際收到 '+x.video.videoWidth+'×'+x.video.videoHeight+'；不能當成原生4K');setPvw(x.id);renderAll();return x;}
+      return answer.id;
+    }catch(e){if(createdInput&&inputs.has(createdInput.id)){createdInput.nativeClose=null;removeInput(createdInput.id);}await clean();throw e;}
+  }
+  function renderNdi(){const w=WIN.ndi;if(!w?.open)return;const b=w.body;b.innerHTML=`<div class="wsec"><h4>原生 NDI 收送</h4><p class="note">需要官方 NDI SDK 編譯的 webcall-ndi 與本機引擎。音訊與影像一併處理；瀏覽器連接使用 WebRTC，不是端到端無損 NDI。</p><button class="btn" id="pndiscan">掃描 NDI 來源</button><div id="pndilist"></div><hr><input class="field" id="pndiname" value="WebCall PGM"><button class="btn primary" id="pndisend">將目前 PGM 送出 NDI</button><div id="pndiactive">${[...PROD.peers].map(([id,p])=>`<p>${esc(p.kind)} · ${esc(p.name||'')}<button class="btn sm" data-pndistop="${id}">停止</button></p>`).join('')}</div><p class="note" id="pndierror" role="status"></p></div>`;const run=fn=>async()=>{try{await fn();}catch(e){$('#pndierror',b).textContent=e.message;}};$('#pndiscan',b).onclick=run(async()=>{const rows=await nativeJson('/ndi/sources');$('#pndilist',b).innerHTML=rows.map((x,i)=>`<button class="btn" data-pndi="${i}">${esc(x.name)}</button>`).join('')||'未找到 NDI 來源';$$('[data-pndi]',b).forEach(button=>button.onclick=run(async()=>{await nativeRtc('ndi-recv',{name:rows[+button.dataset.pndi].name});renderNdi();}));});$('#pndisend',b).onclick=run(async()=>{await nativeRtc('ndi-send',{name:$('#pndiname',b).value,fps:PGMFPS},programStream);renderNdi();});$$('[data-pndistop]',b).forEach(e=>e.onclick=run(async()=>{await PROD.peers.get(e.dataset.pndistop)?.clean();renderNdi();}));}
+  function renderCapture4k(){const w=WIN.capture4k;if(!w?.open)return;const b=w.body;b.innerHTML=`<div class="wsec"><h4>4K 實體擷取與製播</h4><p class="note">瀏覽器擷取可從原有「訊號來源」選 4K；此處用本機 FFmpeg/PyAV 驅動。裝置名稱必須在本機 capture 設定檔登錄。可用性依硬體／驅動；不是安裝選單就能讓不支援的裝置變成 4K。</p><button class="btn" id="pcscan">讀取已設定的擷取卡</button><select class="field full" id="pcdevice"></select><select class="field" id="pcfps"><option>25</option><option selected>30</option><option>50</option><option>60</option></select><button class="btn" id="pcadd">以 3840×2160 開啟</button><button class="btn" id="pcpgm">PGM 設為 4K</button><pre id="pcactual" class="note">目前製播 ${pgmCanvas.width}×${pgmCanvas.height} · 最近繪製 ${(PROD.fps||0).toFixed(1)} fps（非編碼器效能保證）\n${[...inputs.values()].map(x=>x.name+': '+srcDims(srcEl(x)).join('×')).join('\n')}</pre></div>`;const run=fn=>async()=>{try{await fn();}catch(e){$('#pcactual',b).textContent=e.message;}};$('#pcscan',b).onclick=run(async()=>{const rows=await nativeJson('/capture/devices');$('#pcdevice',b).innerHTML=rows.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');});$('#pcadd',b).onclick=run(async()=>{const x=await nativeRtc('capture',{device:$('#pcdevice',b).value,name:$('#pcdevice',b).selectedOptions[0]?.textContent,width:3840,height:2160,fps:+$('#pcfps',b).value});toast('來源已加入；請確認實際影像尺寸，不以要求值冒充實際 4K');renderCapture4k();});$('#pcpgm',b).onclick=run(()=>applyProductionResolution('2160'));}
+  let gradeGpu=null;
+  function gpuProgram(gl,vertex,fragment){const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};const p=gl.createProgram();gl.attachShader(p,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(p,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;}
+  function cpuGrade(inp,el,w,h){const c=inp.grade,sig=JSON.stringify(c);if(inp._gradeSig===sig&&inp._gradeInput===el&&inp._gradeCanvas&&(inp._gradeFrame===frameNo||(inp.kind==='image'&&el===inp.img)))return inp._gradeCanvas;const out=inp._gradeCanvas||(inp._gradeCanvas=document.createElement('canvas'));if(out.width!==w||out.height!==h){out.width=w;out.height=h;}const g=out.getContext('2d',{willReadFrequently:true});g.clearRect(0,0,w,h);g.drawImage(el,0,0,w,h);const data=g.getImageData(0,0,w,h),tables=[0,1,2].map(channel=>Uint8Array.from({length:256},(_,v)=>Math.round(ProductionCore.grade([v/255,v/255,v/255],c.lift,c.gamma,c.gain)[channel]*255)));for(let i=0;i<data.data.length;i+=4)for(let channel=0;channel<3;channel++)data.data[i+channel]=tables[channel][data.data[i+channel]];g.putImageData(data,0,0);inp._gradeFrame=frameNo;inp._gradeInput=el;inp._gradeSig=sig;return out;}
+  function gradedFrame(inp,el,w,h){
+    const c=inp.grade;if(!c||c.bypass||JSON.stringify(c)===JSON.stringify({lift:[0,0,0],gamma:[1,1,1],gain:[1,1,1]}))return el;
+    if(PROD.cpuGradeOnly)return cpuGrade(inp,el,w,h);
+    try{
+      const sig=JSON.stringify(c);if(inp._gradeFrame===frameNo&&inp._gradeSig===sig&&inp._gradeInput===el)return inp._gradeCanvas;
+      if(!gradeGpu){const cv=document.createElement('canvas'),gl=cv.getContext('webgl',{alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:true});if(!gl)throw Error('WebGL 色彩引擎不可用');const p=gpuProgram(gl,'attribute vec2 a;varying vec2 uv;void main(){uv=(a+1.)*.5;gl_Position=vec4(a,0.,1.);}', 'precision highp float;varying vec2 uv;uniform sampler2D tex;uniform vec3 lift;uniform vec3 gamma;uniform vec3 gain;void main(){vec4 s=texture2D(tex,uv);vec3 rgb=pow(clamp((s.rgb*(1.-lift)+lift)*gain,0.,1.),1./max(gamma,vec3(.05)));gl_FragColor=vec4(rgb,s.a);}');gradeGpu={cv,gl,p,tex:gl.createTexture(),buf:gl.createBuffer()};}
+      const {cv,gl,p,tex,buf}=gradeGpu;if(w>gl.getParameter(gl.MAX_TEXTURE_SIZE)||h>gl.getParameter(gl.MAX_TEXTURE_SIZE))throw Error('影像超過 GPU 紋理大小');if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}gl.viewport(0,0,w,h);gl.useProgram(p);gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const a=gl.getAttribLocation(p,'a');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,el);for(const key of ['lift','gamma','gain'])gl.uniform3fv(gl.getUniformLocation(p,key),c[key]);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      const out=inp._gradeCanvas||(inp._gradeCanvas=document.createElement('canvas'));if(out.width!==w||out.height!==h){out.width=w;out.height=h;}const g=out.getContext('2d');g.clearRect(0,0,w,h);g.drawImage(cv,0,0);inp._gradeFrame=frameNo;inp._gradeInput=el;inp._gradeSig=sig;return out;
+    }catch(e){PROD.cpuGradeOnly=true;PROD.gradeError='GPU 不可用，已改用 CPU 全解析度調色：'+e.message;try{return cpuGrade(inp,el,w,h);}catch(error){PROD.gradeError='調色失敗：'+error.message;return el;}}
+  }
+  function renderColor(){const w=WIN.color;if(!w?.open)return;const b=w.body;const x=inputs.get(PROD.gradeTarget)||inputs.get(SW.pvw)||inputs.values().next().value;PROD.gradeTarget=x?.id;const c=x?(x.grade||={lift:[0,0,0],gamma:[1,1,1],gain:[1,1,1]}):null;b.innerHTML=`<div class="wsec"><h4>Lift / Gamma / Gain 色輪</h4><select class="field full" id="pgradeSource">${order.map(id=>`<option value="${esc(id)}" ${id===x?.id?'selected':''}>${esc(inputs.get(id).name)}</option>`).join('')}</select>${c?`<div class="prod-wheels">${['lift','gamma','gain'].map(key=>`<section><b>${key.toUpperCase()}</b><canvas width="180" height="180" data-wheel="${key}" aria-label="${key} 色輪"></canvas><div class="row">${c[key].map((v,i)=>`<label>${'RGB'[i]}<input class="field sm" style="width:65px" type="number" step=".01" min="${key==='lift'?-1:.05}" max="${key==='lift'?1:4}" data-grade="${key}" data-channel="${i}" value="${v}"></label>`).join('')}</div></section>`).join('')}</div><label><input id="pgradeBypass" type="checkbox" ${c.bypass?'checked':''}> 旁通</label><button class="btn" id="pgradeReset">重設目前來源</button>`:'請先加入影像來源'}<p class="note">RGB 色輪調整會實際套用到來源。這是 SDR RGB 調色，未宣稱 10-bit／HDR／廣播校準。${esc(PROD.gradeError||'')}</p></div>`;$('#pgradeSource',b).onchange=e=>{PROD.gradeTarget=e.target.value;renderColor();};if(!c)return;const saveGrade=()=>{x._gradeFrame=-1;};$$('[data-grade]',b).forEach(e=>e.oninput=()=>{if(!productionAllowed())return;const key=e.dataset.grade;c[key][+e.dataset.channel]=clamp(+e.value,key==='lift'?-1:.05,key==='lift'?1:4);saveGrade();});$('#pgradeBypass',b).onchange=e=>{if(productionAllowed())c.bypass=e.target.checked;};$('#pgradeReset',b).onclick=()=>{if(productionAllowed()){x.grade={lift:[0,0,0],gamma:[1,1,1],gain:[1,1,1]};renderColor();}};
+    $$('[data-wheel]',b).forEach(canvas=>{const g=canvas.getContext('2d'),key=canvas.dataset.wheel;for(let a=0;a<360;a++){g.beginPath();g.moveTo(90,90);g.arc(90,90,84,a*Math.PI/180,(a+1.5)*Math.PI/180);g.fillStyle=`hsl(${a} 80% 50%)`;g.fill();}const grad=g.createRadialGradient(90,90,0,90,90,84);grad.addColorStop(0,'#ffffff');grad.addColorStop(1,'#ffffff00');g.fillStyle=grad;g.beginPath();g.arc(90,90,84,0,7);g.fill();let down=false;const move=e=>{if(!down||!productionAllowed())return;const r=canvas.getBoundingClientRect(),dx=(e.clientX-r.left)/r.width*180-90,dy=(e.clientY-r.top)/r.height*180-90,dist=clamp(Math.hypot(dx,dy)/84,0,1),hue=(Math.atan2(dy,dx)/Math.PI*180+360)%360;const t=(n)=>{const k=(n+hue/30)%12;return .5-.5*Math.max(-1,Math.min(k-3,9-k,1));};const rgb=[t(0),t(8),t(4)];c[key]=rgb.map(v=>+(key==='lift'?(v-.5)*dist*.6:1+(v-.5)*dist).toFixed(3));saveGrade();$$(`[data-grade="${key}"]`,b).forEach((i,n)=>i.value=c[key][n]);};canvas.onpointerdown=e=>{down=true;canvas.setPointerCapture(e.pointerId);move(e);};canvas.onpointermove=move;canvas.onpointerup=()=>down=false;});
+  }
+  function renderScopes(){const w=WIN.scopes;if(!w?.open)return;w.body.innerHTML='<div class="wsec"><h4>PGM 影像示波器</h4><div class="prod-scopes"><section>亮度波形 0–100 IRE<canvas id="pwave" width="512" height="256"></canvas></section><section>向量示波器 Cb / Cr<canvas id="pvector" width="320" height="320"></canvas></section></div><p class="note" id="pscopeStatus">使用目前 PGM 真實像素取樣；SDR BT.709 係數，不是聲音波形或裝飾動畫。</p></div>';}
+  let scopeSample=null;
+  function scopeTick(){if(!WIN.scopes?.open||frameNo%6)return;try{scopeSample||=Object.assign(document.createElement('canvas'),{width:256,height:144});const g=scopeSample.getContext('2d',{willReadFrequently:true});g.drawImage(pgmCanvas,0,0,256,144);const data=g.getImageData(0,0,256,144).data,w=$('#pwave',WIN.scopes.body),v=$('#pvector',WIN.scopes.body);if(!w||!v)return;const a=w.getContext('2d'),b=v.getContext('2d');a.fillStyle=b.fillStyle='#071014';a.fillRect(0,0,w.width,w.height);b.fillRect(0,0,v.width,v.height);a.strokeStyle=b.strokeStyle='#355365';a.fillStyle='#9bb8ca';a.font='12px monospace';for(let k=0;k<=4;k++){a.beginPath();a.moveTo(0,k*64);a.lineTo(512,k*64);a.stroke();a.fillText(String(100-k*25),3,k*64+12);}for(const r of [60,120]){b.beginPath();b.arc(160,160,r,0,7);b.stroke();}b.beginPath();b.moveTo(160,20);b.lineTo(160,300);b.moveTo(20,160);b.lineTo(300,160);b.stroke();a.fillStyle='#55edb433';b.fillStyle='#5ed8ff30';for(let i=0;i<data.length;i+=8){const r=data[i]/255,gg=data[i+1]/255,bl=data[i+2]/255,y=.2126*r+.7152*gg+.0722*bl,cb=(bl-y)/1.8556,cr=(r-y)/1.5748;a.fillRect(((i/4)%256)*2,(1-y)*254,2,2);b.fillRect(160+cb*250,160-cr*250,2,2);}const labels=[['R',1,0,0],['G',0,1,0],['B',0,0,1],['Y',1,1,0],['C',0,1,1],['M',1,0,1]];b.fillStyle='#b9d5e5';b.font='12px monospace';labels.forEach(([label,r,gg,bl])=>{const y=.2126*r+.7152*gg+.0722*bl;b.fillText(label,155+(bl-y)/1.8556*250,165-(r-y)/1.5748*250);});}catch(e){const label=$('#pscopeStatus',WIN.scopes?.body);if(label)label.textContent='示波器無法讀取：'+e.message;}}
+  let cubeGpu=null;
+  function texturedTriangle(g,image,src,dst){const [x0,y0,x1,y1,x2,y2]=src,[u0,v0,u1,v1,u2,v2]=dst,den=x0*(y1-y2)+x1*(y2-y0)+x2*(y0-y1);if(Math.abs(den)<.001)return;const a=(u0*(y1-y2)+u1*(y2-y0)+u2*(y0-y1))/den,c=(u0*(x2-x1)+u1*(x0-x2)+u2*(x1-x0))/den,e=(u0*(x1*y2-x2*y1)+u1*(x2*y0-x0*y2)+u2*(x0*y1-x1*y0))/den,b=(v0*(y1-y2)+v1*(y2-y0)+v2*(y0-y1))/den,d=(v0*(x2-x1)+v1*(x0-x2)+v2*(x1-x0))/den,f=(v0*(x1*y2-x2*y1)+v1*(x2*y0-x0*y2)+v2*(x0*y1-x1*y0))/den;g.save();g.beginPath();g.moveTo(u0,v0);g.lineTo(u1,v1);g.lineTo(u2,v2);g.closePath();g.clip();g.transform(a,b,c,d,e,f);g.drawImage(image,0,0);g.restore();}
+  function drawCubeCPU(g,A,B,t,W,H){const cache=PROD.cubeCPU||(PROD.cubeCPU=[document.createElement('canvas'),document.createElement('canvas')]);for(let i=0;i<2;i++){const c=cache[i];if(c.width!==W||c.height!==H){c.width=W;c.height=H;}const ctx=c.getContext('2d');ctx.clearRect(0,0,W,H);drawSource(ctx,i?B:A,0,0,W,H);}const angle=-t*Math.PI/2,project=p=>{const x=Math.cos(angle)*p[0]+Math.sin(angle)*p[2],z=-Math.sin(angle)*p[0]+Math.cos(angle)*p[2],w=(5-z)/4;return [W/2+x/w*W/2,H/2-p[1]/w*H/2];},lerp=(a,b,k)=>a.map((n,i)=>n+(b[i]-n)*k),faces=[[[-1,1,1],[1,1,1],[1,-1,1],[-1,-1,1]],[[1,1,1],[1,1,-1],[1,-1,-1],[1,-1,1]]];faces.forEach((face,side)=>{const q=face.map(project),area=(q[1][0]-q[0][0])*(q[2][1]-q[0][1])-(q[1][1]-q[0][1])*(q[2][0]-q[0][0]);if(area<=.01)return;for(let i=0;i<24;i++){const a=i/24,b=(i+1)/24,p0=project(lerp(face[0],face[1],a)),p1=project(lerp(face[0],face[1],b)),p2=project(lerp(face[3],face[2],a)),p3=project(lerp(face[3],face[2],b));texturedTriangle(g,cache[side],[a*W,0,b*W,0,a*W,H],[...p0,...p1,...p2]);texturedTriangle(g,cache[side],[b*W,0,b*W,H,a*W,H],[...p1,...p3,...p2]);}});}
+  function drawCube(g,A,B,t,W,H){
+    if(PROD.cubeCPUOnly){drawCubeCPU(g,A,B,t,W,H);return;}
+    try{if(!cubeGpu){const cv=document.createElement('canvas'),gl=cv.getContext('webgl',{preserveDrawingBuffer:true,alpha:false});if(!gl)throw Error('Cube 需要 WebGL');const p=gpuProgram(gl,'attribute vec3 pos;attribute vec2 texuv;uniform float angle;uniform float aspect;varying vec2 uv;void main(){float c=cos(angle),s=sin(angle);vec3 q=vec3(c*pos.x+s*pos.z,pos.y,-s*pos.x+c*pos.z);float w=(5.-q.z)/4.;gl_Position=vec4(q.x,q.y,(-q.z+1.)*.1,w);uv=texuv;}', 'precision mediump float;uniform sampler2D tex;varying vec2 uv;void main(){gl_FragColor=texture2D(tex,uv);}');cubeGpu={cv,gl,p,buf:gl.createBuffer(),tex:gl.createTexture(),a:document.createElement('canvas'),b:document.createElement('canvas')};}
+      const c=cubeGpu,{cv,gl,p}=c;for(const surface of [c.a,c.b,cv])if(surface.width!==W||surface.height!==H){surface.width=W;surface.height=H;}drawSource(c.a.getContext('2d'),A,0,0,W,H);drawSource(c.b.getContext('2d'),B,0,0,W,H);gl.viewport(0,0,W,H);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);gl.useProgram(p);gl.uniform1f(gl.getUniformLocation(p,'angle'),-t*Math.PI/2);const faces=[[-1,-1,1,0,0,1,-1,1,1,0,-1,1,1,0,1,1,1,1,1,1],[1,-1,1,0,0,1,-1,-1,1,0,1,1,1,0,1,1,1,-1,1,1]];
+      faces.forEach((points,i)=>{gl.bindBuffer(gl.ARRAY_BUFFER,c.buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(points),gl.STREAM_DRAW);for(const [name,n,offset] of [['pos',3,0],['texuv',2,12]]){const loc=gl.getAttribLocation(p,name);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,n,gl.FLOAT,false,20,offset);}gl.bindTexture(gl.TEXTURE_2D,c.tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,i?c.b:c.a);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);});g.drawImage(cv,0,0,W,H);
+    }catch(e){PROD.cubeCPUOnly=true;PROD.cubeStatus='CPU 透視合成：'+e.message;drawCubeCPU(g,A,B,t,W,H);}
+  }
+  function renderExtraTrans(g,A,B,t,W,H,type){
+    if(type==='cube'){drawCube(g,A,B,t,W,H);return true;}
+    if(type==='fly'||type==='flyrotate'){drawSource(g,A,0,0,W,H);g.save();g.translate(W/2+(1-t)*W,H/2);if(type==='flyrotate')g.rotate((1-t)*Math.PI);const s=Math.max(.01,t);g.scale(s,s);drawSource(g,B,-W/2,-H/2,W,H);g.restore();return true;}
+    if(type==='crosszoom'){g.save();g.globalCompositeOperation='lighter';for(let i=0;i<6;i++){const z=1+Math.sin(Math.PI*t)*(.2+i*.045);g.globalAlpha=(1-t)/6;drawSource(g,A,(1-z)*W/2,(1-z)*H/2,W*z,H*z);g.globalAlpha=t/6;drawSource(g,B,(1-z)*W/2,(1-z)*H/2,W*z,H*z);}g.restore();return true;}return false;
+  }
+  function saveCG(){PROD.cgDirty=true;const json=JSON.stringify(PROD.cg);if(json.length<2000000)store('wc_cg29',json);idb.set('production-cg29',PROD.cg).catch(e=>toast('CG 儲存失敗：'+e.message));}
+  idb.get('production-cg29').then(doc=>{if(doc&&!PROD.cgDirty)PROD.cg=ProductionCore.cg(doc);}).catch(()=>{});
+  function drawCG(g,W,H,time,document=PROD.cg){g.save();g.scale(W/document.width,H/document.height);for(const l of document.layers){if(!l.visible)continue;const a=ProductionCore.animate(l,time,document.duration);if(a.alpha<=0)continue;g.save();g.globalAlpha=a.alpha;g.translate(a.x+l.w/2,a.y+l.h/2);g.rotate((a.rotation??l.rotation)*Math.PI/180);g.scale(a.scale??1,a.scale??1);if(l.type==='rect'){g.fillStyle=l.bg;g.fillRect(-l.w/2,-l.h/2,l.w,l.h);}else if(l.type==='image'&&l.image){let im=PROD.cgImages.get(l.image);if(!im){im=new Image();im.src=l.image;PROD.cgImages.set(l.image,im);}if(im.complete&&im.naturalWidth)g.drawImage(im,-l.w/2,-l.h/2,l.w,l.h);}else{g.fillStyle=l.color;g.font=`700 ${l.fontSize}px ${FONT}`;g.textBaseline='top';const text=l.type==='clock'?new Date().toLocaleTimeString('zh-TW',{hour12:false}):l.text;text.split('\n').forEach((line,i)=>g.fillText(line,-l.w/2,-l.h/2+i*l.fontSize*1.2,l.w));}g.restore();}g.restore();}
+  function cgOverlay(g,W,H){if(!PROD.cgOn)return;const t=(performance.now()-PROD.cgStart)/1000;if(t>(PROD.cgLiveDocument||PROD.cg).duration+.4){PROD.cgOn=false;return;}drawCG(g,W,H,t,PROD.cgLiveDocument||PROD.cg);}
+  function renderCgDesigner(){const w=WIN.cgdesigner;if(!w?.open)return;const b=w.body,doc=PROD.cg;let selected=0,seek=0;
+    b.innerHTML=`<div class="wsec"><h4>CG 動態標題設計器</h4><div class="row"><input class="field grow" id="pcgname" value="${esc(doc.name)}"><label>長度 <input class="field sm" id="pcgd" type="number" value="${doc.duration}" min=".1" max="3600" step=".1"></label><button class="btn primary" id="pcgon">播出／重播 CG</button><button class="btn danger" id="pcgoff">撤下</button></div><div class="row"><button class="btn sm" data-cgadd="text">＋文字</button><button class="btn sm" data-cgadd="rect">＋色塊</button><button class="btn sm" data-cgadd="clock">＋時鐘</button><label class="btn sm">＋圖片<input type="file" accept="image/png,image/jpeg,image/webp" id="pcgimage" hidden></label><button class="btn sm" id="pcgdup">複製圖層</button><button class="btn sm" id="pcgdel">移除圖層</button><button class="btn sm" id="pcgfront">移到最上層</button></div><canvas id="pcgcanvas" width="960" height="540" class="prod-cg-canvas"></canvas><label class="row">時間軸<input id="pcgseek" type="range" style="flex:1" min="0" max="${doc.duration}" step=".01" value="0"><output id="pcgtime">0.00s</output></label><select class="field full" id="pcglayers"></select><div id="pcgproperties"></div><hr><div class="row"><button class="btn" id="pcgexport">匯出 CG 文件</button><label class="btn">匯入 CG 文件<input id="pcgimport" type="file" accept="application/json,.json" hidden></label><button class="btn" id="pcgsource">加入為透明 CG 來源</button></div><p class="note">文字、圖片、色塊、時鐘、圖層排序、拖曳定位、進退場與關鍵影格。CG 使用透明畫布合成；4K 節目依文件比例繪製。可儲存自己的模板，未包含 GT／PSD 相容匯入。</p></div>`;
+    const cv=$('#pcgcanvas',b),g=cv.getContext('2d');const paint=()=>{g.clearRect(0,0,960,540);g.fillStyle='#14202b';g.fillRect(0,0,960,540);drawCG(g,960,540,seek);const l=doc.layers[selected];if(l){g.strokeStyle='#5cceff';g.lineWidth=2;const a=ProductionCore.animate(l,seek,doc.duration);g.strokeRect(a.x/doc.width*960,a.y/doc.height*540,l.w/doc.width*960,l.h/doc.height*540);}};
+    const updateList=()=>{$('#pcglayers',b).innerHTML=doc.layers.map((l,i)=>`<option value="${i}" ${i===selected?'selected':''}>${i+1} · ${esc(l.type)} · ${esc(l.text.slice(0,30))}</option>`).join('');};
+    const props=()=>{const l=doc.layers[selected],p=$('#pcgproperties',b);if(!l){p.innerHTML='尚無圖層';paint();return;}p.innerHTML=`<label>內容<textarea class="field full" data-cgp="text">${esc(l.text)}</textarea></label><div class="prod-property-grid">${['x','y','w','h','fontSize','opacity','rotation','start','end','fromX','fromY'].map(k=>`<label>${esc({x:'左',y:'上',w:'寬',h:'高',fontSize:'字級',opacity:'透明度',rotation:'旋轉',start:'進場秒',end:'退場秒',fromX:'起點 X',fromY:'起點 Y'}[k])}<input class="field full" type="number" step=".01" data-cgp="${k}" value="${l[k]}"></label>`).join('')}<label>文字色<input type="color" data-cgp="color" value="${l.color}"></label><label>色塊色<input type="color" data-cgp="bg" value="${l.bg}"></label></div><button class="btn sm" id="pcgkf">在目前時間加入關鍵影格</button><div id="pcgkeys">${(l.keyframes||[]).map((k,i)=>`<div class="row"><span>影格 ${i+1}</span>${['time','x','y','opacity','rotation','scale'].map(prop=>`<label>${prop}<input class="field sm" style="width:70px" type="number" step=".01" data-cgki="${i}" data-cgkp="${prop}" value="${k[prop]}"></label>`).join('')}<button class="btn sm" data-cgkr="${i}">×</button></div>`).join('')}</div>`;
+      $$('[data-cgp]',p).forEach(e=>e.oninput=()=>{if(!productionAllowed())return;const k=e.dataset.cgp;l[k]=e.type==='number'?+e.value:e.value;saveCG();paint();});$('#pcgkf',p).onclick=()=>{if(!productionAllowed())return;l.keyframes||=[];if(l.keyframes.length>=64)return toast('最多 64 個關鍵影格');l.keyframes.push({time:seek,x:l.x,y:l.y,opacity:l.opacity,rotation:l.rotation,scale:1});l.keyframes.sort((a,b)=>a.time-b.time);saveCG();props();};$$('[data-cgki]',p).forEach(e=>e.oninput=()=>{if(!productionAllowed())return;const value=+e.value;if(!Number.isFinite(value))return;l.keyframes[+e.dataset.cgki][e.dataset.cgkp]=value;saveCG();paint();});$$('[data-cgkr]',p).forEach(e=>e.onclick=()=>{if(!productionAllowed())return;l.keyframes.splice(+e.dataset.cgkr,1);saveCG();props();});paint();};
+    updateList();props();$('#pcglayers',b).onchange=e=>{selected=+e.target.value;props();};$('#pcgseek',b).oninput=e=>{seek=+e.target.value;$('#pcgtime',b).textContent=seek.toFixed(2)+'s';paint();};$('#pcgname',b).oninput=e=>{if(productionAllowed()){doc.name=e.target.value;saveCG();}};$('#pcgd',b).onchange=e=>{if(productionAllowed()){doc.duration=clamp(+e.target.value,.1,3600);saveCG();renderCgDesigner();}};
+    $$('[data-cgadd]',b).forEach(e=>e.onclick=()=>{if(!productionAllowed())return;if(doc.layers.length>=64)return toast('最多 64 層');doc.layers.push(ProductionCore.cg({layers:[{type:e.dataset.cgadd,text:'新增文字',x:150,y:500,w:1000,h:120,start:0,end:doc.duration}]}).layers[0]);selected=doc.layers.length-1;saveCG();updateList();props();});
+    $('#pcgimage',b).onchange=e=>{if(!productionAllowed())return;const file=e.target.files[0];if(!file)return;if(doc.layers.length>=64)return toast('最多64層');if(file.size>10*1024*1024)return toast('圖片需小於 10 MB');const r=new FileReader();r.onload=()=>{doc.layers.push(ProductionCore.cg({layers:[{type:'image',image:r.result,x:200,y:200,w:600,h:400,end:doc.duration}]}).layers[0]);selected=doc.layers.length-1;saveCG();updateList();props();};r.readAsDataURL(file);};
+    $('#pcgdup',b).onclick=()=>{if(!productionAllowed()||!doc.layers[selected]||doc.layers.length>=64)return;doc.layers.push({...structuredClone(doc.layers[selected]),id:rnd(8),x:doc.layers[selected].x+20});selected=doc.layers.length-1;saveCG();updateList();props();};$('#pcgdel',b).onclick=()=>{if(!productionAllowed())return;doc.layers.splice(selected,1);selected=Math.max(0,selected-1);saveCG();updateList();props();};$('#pcgfront',b).onclick=()=>{if(!productionAllowed()||!doc.layers[selected])return;doc.layers.push(doc.layers.splice(selected,1)[0]);selected=doc.layers.length-1;saveCG();updateList();props();};
+    $('#pcgon',b).onclick=()=>{if(productionAllowed()){PROD.cgLiveDocument=ProductionCore.cg(PROD.cg);PROD.cgStart=performance.now();PROD.cgOn=true;}};$('#pcgoff',b).onclick=()=>{if(productionAllowed())PROD.cgOn=false;};$('#pcgexport',b).onclick=()=>saveBlob(new Blob([JSON.stringify(doc,null,2)],{type:'application/json'}),doc.name+'.webcall-cg.json');$('#pcgimport',b).onchange=async e=>{try{if(!productionAllowed())return;const f=e.target.files[0];if(!f)return;if(f.size>20*1024*1024)throw Error('CG 文件太大');PROD.cg=ProductionCore.cg(JSON.parse(await f.text()));saveCG();renderCgDesigner();}catch(error){toast(error.message);}};
+    $('#pcgsource',b).onclick=()=>{if(!productionAllowed())return;const x=newInput('CG-'+rnd(6),'cg',doc.name);x.cgDoc=ProductionCore.cg(doc);x.cgStart=performance.now();virtualCanvas(x);setPvw(x.id);renderAll();};
+    let drag=null;cv.onpointerdown=e=>{if(!productionAllowed()||!doc.layers[selected])return;const r=cv.getBoundingClientRect();drag={x:e.clientX,y:e.clientY,left:doc.layers[selected].x,top:doc.layers[selected].y,sx:doc.width/r.width,sy:doc.height/r.height};cv.setPointerCapture(e.pointerId);};cv.onpointermove=e=>{if(!drag)return;const l=doc.layers[selected];l.x=Math.round((drag.left+(e.clientX-drag.x)*drag.sx)/4)*4;l.y=Math.round((drag.top+(e.clientY-drag.y)*drag.sy)/4)*4;paint();};cv.onpointerup=()=>{if(!drag)return;drag=null;saveCG();props();};
+  }
+  function productionDependencies(id){const x=inputs.get(id);if(x?.kind==='layout')return (x.layout.srcs||[]).filter(Boolean);const m=PROD.mes.get(id);return m?[m.t<1?m.a:null,m.t>0?m.b:null,...m.layers.filter(l=>l.on&&l.opacity>0).map(l=>l.src)].filter(Boolean):[];}
+  function meGraphOrder(){const graph=[...PROD.mes.values(),...[...inputs.values()].filter(x=>x.kind==='layout').map(x=>({id:x.id,layers:(x.layout.srcs||[]).map(src=>({src}))}))];return ProductionCore.order(graph).filter(m=>PROD.mes.has(m.id));}
+  function meLeafWeights(root,all=false){const result=new Map(),path=new Set();function walk(id,weight,isRoot=false){if(!id||!inputs.has(id)||path.has(id))return;path.add(id);const x=inputs.get(id),m=PROD.mes.get(id);if(m){const volume=isRoot?1:(m.input.pgmGain.gain.value||0);walk(m.a,weight*volume*(all?1:1-m.t));walk(m.b,weight*volume*(all?1:m.t));for(const l of m.layers)if(l.audio&&(all||l.on))walk(l.src,weight*volume*(all?1:l.opacity));}else if(x.kind==='layout'){for(const child of x.layout.srcs||[])walk(child,weight);}else result.set(id,Math.max(result.get(id)||0,weight));path.delete(id);}walk(root,1,true);return result;}
+  function productionConnectReturn(guest,root,mode,index,link){PROD.returnRoutes||=[];for(const id of meLeafWeights(root.id,true).keys()){const leaf=inputs.get(id);if(!leaf||related(leaf,guest))continue;const gain=ac.createGain();gain.gain.value=0;link(leaf.pgmGain,gain);link(gain,guest.retGain);PROD.returnRoutes.push({gain,root,leaf:id,mode,index});}}
+  function productionReturnTick(){const cache=new Map();for(const r of PROD.returnRoutes||[]){if(!cache.has(r.root.id))cache.set(r.root.id,meLeafWeights(r.root.id));const w=cache.get(r.root.id).get(r.leaf)||0,root=r.root;const level=root.pgmGain.gain.value*(r.mode==='program'?(root.afvGain.gain.value*root.retSend.gain.value+root.retSendPre.gain.value):r.mode==='direct'?1:(root.auxS[r.index]?.gain.value||0));r.gain.gain.setTargetAtTime(w*level,ac.currentTime,.01);}}
+  function newME(){if(!productionAllowed())return;if(PROD.mes.size>=8)return toast('最多 8 路 M/E');const x=newInput('ME-'+rnd(6),'me','M/E '+(PROD.mes.size+1));virtualCanvas(x);const m={id:x.id,a:SW.pgm,b:SW.pvw,type:'mix',duration:1000,t:0,anim:0,wdir:'lr',pdir:'l',dipColor:'#000000',border:0,borderColor:'#ffffff',stingCut:.5,stingEl:null,layers:[],input:x,audio:[]};PROD.mes.set(x.id,m);PROD.meOrder=meGraphOrder();wireME(m);renderAll();renderMEPanel();return x;}
+  function wireME(m){for(const c of m.audio){try{c.source.disconnect(c.gain);c.gain.disconnect();}catch{}}m.audio=[];if(!m.node){m.node=ac.createGain();connectAudio(m.input,m.node);}const list=[[m.a,'a'],[m.b,'b'],...m.layers.filter(l=>l.audio).map(l=>[l.src,'layer',l])];for(const [id,role,layer]of list){const target=inputs.get(id),ids=target?.kind==='layout'?(target.layout.srcs||[]).filter(Boolean):[id];for(const child of ids){const source=inputs.get(child)?.pgmGain;if(!source)continue;const gain=ac.createGain();source.connect(gain);gain.connect(m.node);m.audio.push({source,gain,role,layer});}}m.wireSig=JSON.stringify([m.a,m.b,m.layers,PROD.layoutSig]);rebuildReturn();updateTally();}
+  function renderME(m){if(PROD.graphError){m.input.cx.fillStyle='#000';m.input.cx.fillRect(0,0,m.input.canvas.width,m.input.canvas.height);return;}if(PROD.rendering.has(m.id))return;if(m.frame===frameNo)return;PROD.rendering.add(m.id);try{for(const id of [m.a,m.b,...m.layers.map(l=>l.src)])if(PROD.mes.has(id))renderME(PROD.mes.get(id));ensureProductionCanvas(m.input);const g=m.input.cx,W=m.input.canvas.width,H=m.input.canvas.height;if(m.anim){m.t=clamp((performance.now()-m.anim)/m.duration,0,1);if(!m._autoTally){m._autoTally=true;updateTally();}if(m.t>=1){[m.a,m.b]=[m.b,m.a];m.anim=0;m._autoTally=false;m.t=0;wireME(m);softRender('me');}}g.clearRect(0,0,W,H);g.fillStyle='#000';g.fillRect(0,0,W,H);if(m.t>0)renderTrans(g,inputs.get(m.a),inputs.get(m.b),m.t,W,H,m.type,m);else drawSource(g,inputs.get(m.a),0,0,W,H);for(const l of m.layers){if(!l.on)continue;g.save();g.globalAlpha=l.opacity;drawSource(g,inputs.get(l.src),l.x*W,l.y*H,l.w*W,l.h*H);g.restore();}for(const c of m.audio)c.gain.gain.setTargetAtTime(c.role==='a'?1-m.t:c.role==='b'?m.t:(c.layer?.on?c.layer.opacity:0),ac.currentTime,.01);const slider=$(`[data-me="${m.id}"] [data-metbar]`,WIN.me?.body);if(slider&&document.activeElement!==slider)slider.value=m.t;m.frame=frameNo;}finally{PROD.rendering.delete(m.id);}}
+  function renderMEPanel(){const w=WIN.me;if(!w?.open)return;const b=w.body,options=(selected,self)=>'<option value="">黑畫面</option>'+order.filter(id=>id!==self).map(id=>`<option value="${esc(id)}" ${id===selected?'selected':''}>${esc(inputs.get(id).name)}</option>`).join('');b.innerHTML=`<div class="wsec"><h4>多級 M/E · 最多 8 路</h4><p class="note">每路各自 A/B、CUT、AUTO、轉場時間及最多 8 層；M/E 可作為另一級的來源，阻止循環。音訊 A/B 跟隨轉場，圖層聲音可另選。</p><button class="btn primary" id="pmeadd">新增 M/E</button>${[...PROD.mes.values()].map(m=>`<section class="wsec" data-me="${m.id}"><h4>${esc(m.input.name)}</h4><div class="row"><label>A / PGM<select class="field" data-mep="a">${options(m.a,m.id)}</select></label><label>B / PVW<select class="field" data-mep="b">${options(m.b,m.id)}</select></label><select class="field" data-mep="type">${TRANS.map(([id,name])=>`<option value="${id}" ${id===m.type?'selected':''}>${name}</option>`).join('')}</select><input class="field sm" type="number" min="100" max="10000" data-mep="duration" value="${m.duration}"></div><div class="row"><label>WIPE 方向<select class="field" data-mep="wdir">${['lr','rl','tb','bt','circle','box','diag'].map(d=>`<option ${d===m.wdir?'selected':''}>${d}</option>`).join('')}</select></label><label>推移方向<select class="field" data-mep="pdir">${['l','r','u','d'].map(d=>`<option ${d===m.pdir?'selected':''}>${d}</option>`).join('')}</select></label><input type="color" data-mep="dipColor" value="${m.dipColor}"><label class="btn sm">Stinger 影片<input type="file" accept="video/*" hidden data-mesting></label></div><label class="row">M/E T-Bar<input style="flex:1" type="range" min="0" max="1" step=".001" data-metbar value="${m.t}"></label><div class="row"><button class="btn" data-meact="cut">CUT</button><button class="btn" data-meact="auto">AUTO</button><button class="btn" data-meact="pvw">送主台 PREVIEW</button><button class="btn" data-meact="layer">新增圖層</button><button class="btn danger" data-meact="remove">移除 M/E</button></div>${m.layers.map((l,i)=>`<div class="row" data-meli="${i}"><input type="checkbox" data-melp="on" ${l.on?'checked':''}><select class="field" data-melp="src">${options(l.src,m.id)}</select>${['x','y','w','h','opacity'].map(k=>`<label>${k}<input class="field sm" style="width:60px" type="number" step=".01" min="0" max="1" data-melp="${k}" value="${l[k]}"></label>`).join('')}<label><input type="checkbox" data-melp="audio" ${l.audio?'checked':''}>聲音</label><button class="btn sm" data-meldel="${i}">×</button></div>`).join('')}</section>`).join('')}</div>`;$('#pmeadd',b).onclick=newME;$$('[data-me]',b).forEach(row=>{const m=PROD.mes.get(row.dataset.me);const tbar=$('[data-metbar]',row);tbar.oninput=()=>{if(!productionAllowed())return;if(['cut','stinger'].includes(m.type))return toast('這個轉場請使用 AUTO');m.anim=0;m.t=+tbar.value;updateTally();};tbar.onchange=()=>{if(m.t>=.999){[m.a,m.b]=[m.b,m.a];m.t=0;wireME(m);renderMEPanel();}};$('[data-mesting]',row).onchange=e=>{if(!productionAllowed())return;const f=e.target.files[0];if(!f)return;if(m.stingEl)URL.revokeObjectURL(m.stingEl.src);const v=document.createElement('video');v.src=URL.createObjectURL(f);v.muted=true;v.preload='auto';v.onerror=()=>toast('這支 Stinger 無法解碼');m.stingEl=v;};const validate=()=>{PROD.meOrder=meGraphOrder();wireME(m);};$$('[data-mep]',row).forEach(e=>e.onchange=()=>{if(!productionAllowed())return;const key=e.dataset.mep,old=m[key];m[key]=key==='duration'?clamp(+e.value,100,10000):e.value;try{validate();if(key==='type'){m.t=0;m.anim=0;}}catch(error){m[key]=old;toast(error.message);}renderMEPanel();});$$('[data-meact]',row).forEach(e=>e.onclick=()=>{if(!productionAllowed())return;const action=e.dataset.meact;if(action==='cut'){[m.a,m.b]=[m.b,m.a];m.t=0;m.anim=0;wireME(m);}if(action==='auto'){if(m.type==='stinger'){if(!m.stingEl)return toast('請先加入這路 M/E 的 Stinger 影片');m.duration=(m.stingEl.duration||1)*1000;m.stingEl.currentTime=0;m.stingEl.play().catch(e=>toast(e.message));}m.anim=performance.now();}if(action==='pvw')setPvw(m.id);if(action==='layer'&&m.layers.length<8)m.layers.push({src:null,on:true,x:.65,y:.65,w:.3,h:.3,opacity:1,audio:false});if(action==='remove'){if([...PROD.mes.values()].some(other=>other.id!==m.id&&[other.a,other.b,...other.layers.map(l=>l.src)].includes(m.id)))return toast('請先解除下游 M/E 引用');for(const c of m.audio){c.source.disconnect(c.gain);c.gain.disconnect();}if(m.stingEl)URL.revokeObjectURL(m.stingEl.src);PROD.mes.delete(m.id);removeInput(m.id);PROD.meOrder=meGraphOrder();}renderMEPanel();});$$('[data-meli]',row).forEach(lr=>{const l=m.layers[+lr.dataset.meli];$$('[data-melp]',lr).forEach(e=>e.onchange=()=>{if(!productionAllowed())return;const k=e.dataset.melp,old=l[k];l[k]=e.type==='checkbox'?e.checked:k==='src'?e.value:clamp(+e.value,0,1);try{validate();}catch(error){l[k]=old;toast(error.message);renderMEPanel();}});});$$('[data-meldel]',row).forEach(e=>e.onclick=()=>{if(productionAllowed()){m.layers.splice(+e.dataset.meldel,1);validate();renderMEPanel();}});});}
+  function ensureProductionCanvas(x){if(!x.canvas)return;const W=pgmCanvas.width,H=pgmCanvas.height;if(x.canvas.width!==W||x.canvas.height!==H){x.canvas.width=W;x.canvas.height=H;if(x.kind==='image')paintStill(x);}}
+  function trackedPose(id){const binding=PROD.tracking.bindings[id];if(!PROD.tracking.enabled||!binding?.on)return null;const f=PROD.tracking.frames.find(f=>f.camera===+binding.camera);if(!f||f.ageMs+(performance.now()-(PROD.tracking.at||0))>300)return null;return ProductionCore.trackingPose(f,binding);}
+  async function pollTracking(){if(!PROD.tracking.enabled||ended)return;try{const status=await nativeJson('/tracking');PROD.tracking.frames=status.cameras;PROD.tracking.at=performance.now();PROD.tracking.error=status.enabled?'':'本機 Free-d 接收未啟用';const e=$('#ptrackLive',WIN.tracking?.body);if(e)e.textContent=JSON.stringify(status,null,2);}catch(e){PROD.tracking.error=e.message;const s=$('#ptrackLive',WIN.tracking?.body);if(s)s.textContent='追蹤中斷：'+e.message;}PROD.tracking.timer=setTimeout(pollTracking,33);}
+  function renderTracking(){const w=WIN.tracking;if(!w?.open)return;const b=w.body;const sets=[...inputs.values()].filter(x=>x.layout?.type==='vset');b.innerHTML=`<div class="wsec"><h4>實體攝影機追蹤 · Free-d</h4><p class="note">相機／追蹤器將 D1 UDP 封包送到本機引擎的追蹤連接埠。${G3.fail?'此瀏覽器 WebGL 不可用，3D 棚無法套用追蹤。':''}相機必須有實際姿態輸出；只有一般 Webcam 影像無法自動取得精準位置。收到的位置、Pan／Tilt／Roll 與鏡頭校正會驅動 3D 棚；超過 300ms 的資料停止套用。</p><button class="btn ${PROD.tracking.enabled?'danger':'primary'}" id="ptrackToggle">${PROD.tracking.enabled?'停止追蹤':'連線並啟用追蹤'}</button><pre id="ptrackLive" class="note" role="status">${esc(PROD.tracking.error||JSON.stringify(PROD.tracking.frames,null,2))}</pre>${sets.map(x=>{const c=PROD.tracking.bindings[x.id]||{camera:0,on:false,scale:.001,ox:0,oy:1.5,oz:5,fov:50,panSign:1,tiltSign:1,lens:[{zoom:0,fov:60},{zoom:4095,fov:15}]};PROD.tracking.bindings[x.id]=c;return `<section class="wsec" data-trackset="${x.id}"><h4>${esc(x.name)}</h4><label><input type="checkbox" data-trackp="on" ${c.on?'checked':''}> 綁定實體追蹤（3D 模式）</label><div class="prod-property-grid">${['camera','scale','ox','oy','oz','fov','panSign','tiltSign'].map(k=>`<label>${{camera:'Camera ID',scale:'毫米 → 公尺比例',ox:'棚內 X',oy:'棚內 Y',oz:'棚內 Z',fov:'基礎 FOV',panSign:'Pan 正負方向',tiltSign:'Tilt 正負方向'}[k]}<input class="field full" type="number" step="any" data-trackp="${k}" value="${c[k]}"></label>`).join('')}</div><label>鏡頭校正表（Zoom 原始值 / FOV 度數）</label><div>${(c.lens||[]).map((p,i)=>`<div class="row"><input class="field" type="number" data-lens="zoom" data-lensi="${i}" value="${p.zoom}"><input class="field" type="number" data-lens="fov" data-lensi="${i}" value="${p.fov}"></div>`).join('')}</div><button class="btn" data-lensadd>新增鏡頭校正點</button><button class="btn" data-trackzero>以目前姿態校正原點</button></section>`;}).join('')||'<p class="note">請先在「去背／虛擬棚」建立一個 3D 棚來源。</p>'}</div>`;$('#ptrackToggle',b).onclick=()=>{if(!productionAllowed())return;PROD.tracking.enabled=!PROD.tracking.enabled;clearTimeout(PROD.tracking.timer);if(PROD.tracking.enabled)pollTracking();renderTracking();};$$('[data-trackset]',b).forEach(row=>{const id=row.dataset.trackset,c=PROD.tracking.bindings[id],save=()=>store('wc_tracking29',JSON.stringify(PROD.tracking.bindings));$$('[data-trackp]',row).forEach(e=>e.onchange=()=>{if(!productionAllowed())return;c[e.dataset.trackp]=e.type==='checkbox'?e.checked:+e.value;if(c.on)inputs.get(id).layout.vs.mode='3d';save();});$$('[data-lens]',row).forEach(e=>e.onchange=()=>{if(!productionAllowed()||!Number.isFinite(+e.value))return;c.lens[+e.dataset.lensi][e.dataset.lens]=+e.value;save();});$('[data-lensadd]',row).onclick=()=>{if(!productionAllowed())return;if(c.lens.length>=64)return toast('最多64點');c.lens.push({zoom:(c.lens.at(-1)?.zoom||0)+1000,fov:30});save();renderTracking();};$('[data-trackzero]',row).onclick=()=>{if(!productionAllowed())return;const f=PROD.tracking.frames.find(f=>f.camera===+c.camera);if(!f||f.ageMs>300)return toast('尚無新鮮追蹤資料');for(const k of ['pan','tilt','x','y','z'])c[k+'0']=f[k];save();toast('已校正原點，請檢查座標方向與鏡頭視角');};});}
+  function productionTick(){PROD.layoutSig=JSON.stringify([...inputs.values()].filter(x=>x.kind==='layout').map(x=>[x.id,x.layout.srcs]));for(const m of PROD.mes.values())if(m.wireSig!==JSON.stringify([m.a,m.b,m.layers,PROD.layoutSig]))wireME(m);try{PROD.meOrder=meGraphOrder();PROD.graphError='';}catch(e){if(PROD.graphError!==e.message)toast(e.message);PROD.graphError=e.message;PROD.meOrder=[];}productionReturnTick();const now=performance.now();PROD.frames=(PROD.frames||0)+1;if(now-(PROD.fpsAt||0)>1000){PROD.fps=PROD.frames*1000/(now-(PROD.fpsAt||now-1000));PROD.frames=0;PROD.fpsAt=now;}for(const m of PROD.meOrder)if(inputs.has(m.id)&&(m.input.tally!=='off'||REC.has(m.id)||(m.input.slot&&hasOut(m.input.slot))||frameNo%6===0))renderME(m);for(const x of inputs.values()){if(x.kind==='cg'){ensureProductionCanvas(x);const g=x.cx;g.clearRect(0,0,x.canvas.width,x.canvas.height);if(x.tally==='live'&&!x.cgLive)x.cgStart=performance.now();x.cgLive=x.tally==='live';const elapsed=x.cgLive?(performance.now()-x.cgStart)/1000:Math.min(1,x.cgDoc.duration/2);drawCG(g,x.canvas.width,x.canvas.height,Math.min(elapsed,x.cgDoc.duration),x.cgDoc);}}scopeTick();}
+  function productionReleaseInput(x){x.nativeClose?.();if(['me','cg'].includes(x.kind)){x.vtrack?.stop();x.isoTrack?.stop();}for(const n of PROD.mes.values()){if(n.id===x.id)continue;let changed=false;for(const k of ['a','b'])if(n[k]===x.id){n[k]=null;changed=true;}for(const l of n.layers)if(l.src===x.id){l.src=null;changed=true;}if(changed)wireME(n);}delete PROD.tracking.bindings[x.id];const m=PROD.mes.get(x.id);if(m){for(const c of m.audio){try{c.source.disconnect(c.gain);c.gain.disconnect();}catch{}}PROD.mes.delete(x.id);PROD.meOrder=meGraphOrder();}}
+  function productionStop(){PROD.tracking.enabled=false;clearTimeout(PROD.tracking.timer);for(const p of PROD.peers.values())p.clean();for(const m of PROD.mes.values())for(const c of m.audio){try{c.source.disconnect(c.gain);c.gain.disconnect();}catch{}}}
 
   function createLayoutPreferences(){
     const KEY='wc_layout_preferences_v16';
