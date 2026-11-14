@@ -540,7 +540,7 @@ body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 .host.role-view .multiview .ctl,.host.role-view .switcher .tcol,.host.role-view .pipbar,.host.role-view .dskbar,.host.role-view #dock,.host.role-view #panic,.host.role-view #endb,.host.role-view #inv{pointer-events:none;opacity:.4}
 body.role-view .win:not([data-w=ops]):not([data-w=keys]) .wb{pointer-events:none;opacity:.6}
 .host.role-aud .multiview .ctl .seg3,.host.role-aud .multiview [data-a=pvw],.host.role-aud .multiview [data-a=pgm],.host.role-aud .multiview [data-a=slot],.host.role-aud .switcher .tcol,.host.role-aud .pipbar,.host.role-aud .dskbar,.host.role-aud #endb{pointer-events:none;opacity:.4}
-body.role-aud .win:is([data-w=gfx],[data-w=scene],[data-w=aux],[data-w=still],[data-w=lay],[data-w=strm],[data-w=set],[data-w=src],[data-w=out]) .wb{pointer-events:none;opacity:.55}
+body.role-aud .wb:is([data-w=gfx],[data-w=scene],[data-w=aux],[data-w=still],[data-w=lay],[data-w=strm],[data-w=set],[data-w=src],[data-w=out],[data-w=me],[data-w=vset],[data-w=tracking],[data-w=color],[data-w=cgdesigner],[data-w=timer],[data-w=media16],[data-w=replay],[data-w=decode],[data-w=routing],[data-w=ingest],[data-w=pocket],[data-w=capture4k],[data-w=ndi],[data-w=workflow]){pointer-events:none;opacity:.55}
 .ppm{position:relative;height:12px;background:#0a0d12;border:1px solid var(--line2);border-radius:3px;overflow:hidden;min-width:90px}
 .ppm i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#22c55e 0 70%,#f5c518 70% 85%,#ff3b3b 85%);background-size:100% 100%}
 .ppm s{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0}
@@ -3222,13 +3222,13 @@ function Host(sess){
   //   hint＝滑鼠停在按鈕上時顯示的完整名稱（含英文）
   const GROUPS = {
     routingg:{ key:'來賓／訊號', hint:'Inputs｜來賓路數指派、訊號來源、DJI Pocket、外網回傳 RTMP、4K 擷取', title:'INPUTS 來賓／訊號來源', w:780, h:680, direct:true, tabs:['routing','src','pocket','ingest','capture4k'] },
-    ic:   { key: '對講／返送', hint:'Intercom｜對講、IFB／Mix-minus 返送、來賓回傳', title: 'INTERCOM 對講台／IFB 返送／來賓回傳', w: 820, h: 680, tabs: ['ic', 'ifb', 'ret'] },
+    ic:   { key: '對講／返送', hint:'Intercom｜對講、IFB 返送（Mix-minus）、回送畫面給來賓', title: 'INTERCOM 對講／IFB 返送／回送畫面給來賓', w: 820, h: 680, tabs: ['ic', 'ifb', 'ret'] },
     mixg: { key: '混音台', hint:'Audio Console｜推桿與監聽', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix'] },
-    audg: { key: '聲音路由', hint:'Audio Routing｜音訊路由、路由矩陣', title: 'AUDIO ROUTING 聲音路由／路由矩陣', w: 860, h: 720, tabs: ['aud', 'mtx'] },
-    swg:  { key: '切換台', hint:'Production Switcher｜M/E、去背合成、攝影機追蹤、調色、示波器、場景、版型、設定', title: 'SWITCHER 切換台：M/E／去背合成／追蹤／調色／示波器／場景／版型／設定', w: 780, h: 720, tabs: ['me','vset','tracking','color','scopes','scene','lay','set'] },
-    gfxg: { key: '字幕／圖文', hint:'Titles & Graphics｜字幕播出（清單／預覽／上字／唱詞／手排／資料來源）、字幕條與跑馬燈、CG 設計器、圖庫、計時倒數', title: 'TITLES 字幕播出／圖文包裝／CG 設計器／圖庫／計時倒數', w: 1000, h: 760, tabs: ['titles','gfx','cgdesigner','still','timer'] },
+    audg: { key: '聲音路由', hint:'Audio Routing｜音訊路由、路由矩陣', title: 'AUDIO ROUTING 聲音路由／聲音路由矩陣', w: 860, h: 720, tabs: ['aud', 'mtx'] },
+    swg:  { key: '切換台', hint:'Production Switcher｜M/E、去背合成、攝影機追蹤、調色、示波器、場景、版型、設定', title: 'SWITCHER 切換台：M/E／去背合成／追蹤／調色／示波器／場景／子母畫面版型／設定', w: 780, h: 720, tabs: ['me','vset','tracking','color','scopes','scene','lay','set'] },
+    gfxg: { key: '字幕／圖文', hint:'Titles & Graphics｜字幕播出（清單／預覽／上字／唱詞／手排／資料來源／排序表／提詞機）、簡易字幕條與跑馬燈、CG 設計器、圖庫、計時倒數', title: 'TITLES 字幕播出／圖文包裝／CG 設計器／圖庫／計時倒數', w: 1000, h: 760, tabs: ['titles','gfx','cgdesigner','still','timer'] },
     mediag:{ key:'錄影／回放', hint:'Record & Replay｜錄影、錄影恢復、即時回放、16 格素材庫、檔案解碼、雲端儲存', title:'RECORD／REPLAY 錄影／回放／素材／雲端', w:820, h:680, tabs:['rec','recovery','replay','media16','decode','cloud'] },
-    outg: { key: '輸出／串流', hint:'Output｜OBS 輸出、AUX 母線、串流推流、NDI、錄影儲存／推流拉流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流／NDI', w: 800, h: 700, tabs: ['out', 'aux', 'strm', 'ndi', 'workflow'] },
+    outg: { key: '輸出／串流', hint:'Output｜節目輸出（OBS／vMix）、AUX 母線、串流推流、NDI、錄影儲存／推流拉流', title: 'OUTPUT 輸出：節目輸出（OBS／vMix）／AUX 母線／串流／NDI', w: 800, h: 700, tabs: ['out', 'aux', 'strm', 'ndi', 'workflow'] },
     msgq: { key: '互動', hint:'Live Interaction｜訊息、舉手、投票', title: 'LIVE INTERACTION｜訊息、提問與投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
     ctl:  { key: '遠端控制', hint:'Remote Control｜遠端調整來賓設備', tabs: ['ctl'] },
     sysg: { key: '系統', hint:'System｜網路監控、操作員、快捷鍵、原生影音引擎', title: 'SYSTEM 網路監控／操作員／快捷鍵／原生引擎', w: 760, h: 580, tabs: ['noc','ops','keys','native'], tail:true },
@@ -3236,7 +3236,7 @@ function Host(sess){
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
   const PROTAB = new Set(['mtx','lay','aux','strm','noc','me','color','scopes','tracking','cgdesigner','ndi','capture4k']);   // 專業版才顯示的分頁
-  const TABN = {titles:'字幕播出',ingest:'外網回傳／RTMP',native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'錄影儲存／推流拉流',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: '字幕條／跑馬燈', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const TABN = {titles:'字幕播出',ingest:'外網回傳／RTMP',native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'錄影儲存／推流拉流',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '子母畫面版型', rec: '錄影', mix: '混音台', mtx: '聲音路由矩陣', aud: '聲音路由', ic: '對講', ifb: 'IFB 返送（Mix-minus）', ret: '回送畫面給來賓', gfx: '簡易字幕條／跑馬燈', timer: '計時倒數', vset: '去背合成（Chroma Key）', msg: '訊息', qa: '舉手／投票', out: '節目輸出（OBS／vMix）', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 字幕播出（VisTitle／vMix 風格）：狀態只在導播台，遠端控制與透明輸出都從這裡同步 ---------- */
   const TS = TitleCore.load(), CGC = new Set(); let titleUi = null, titleDataAt = 0;
@@ -3271,7 +3271,9 @@ function Host(sess){
     Object.keys(after).forEach(l => { const b = before[l], a = after[l]; if (!b || b.t0 !== a.t0) tlogAdd(by && by.startsWith('自動') ? '自動上字' : '上字', l, a.item, by); else if (b.sig !== a.sig) tlogAdd('更新內容', l, a.item, by); });
   }
   const localOperator = () => info?.me?.name || info?.me?.account || '導播台';
+  const TITLE_AIR_OPS = ['take', 'clear', 'next', 'prev', 'live', 'scoreAdj'];
   function titleCmd(cmd, by){
+    if (!by && TITLE_AIR_OPS.includes(cmd?.op) && !canSw()) { roleDeny(); return; }   // 本機鎖成音控／監看員時不能改播出中的字幕（遠端字幕控制與自動上下字不受影響）
     const before = airMap();
     if (TitleCore.apply(TS, cmd, Date.now())) { tlogDiff(before, by || localOperator()); TitleCore.save(TS); titleSync(); }
   }
@@ -3305,12 +3307,13 @@ function Host(sess){
     } catch {}
   }, 5000);
   function acceptCg(conn, md){
-    const kind = md.role === 'cgout' ? 'out' : 'ctl', ok = kind === 'out' || (!!OPTOK.cg && String(md.t || '') === OPTOK.cg);
+    const t0 = String(md.t || ''), kind = md.role === 'cgout' ? 'out' : (OPTOK.pr && t0 === OPTOK.pr ? 'pr' : 'ctl'), ok = kind === 'out' || kind === 'pr' || (!!OPTOK.cg && t0 === OPTOK.cg);
     const go = () => {
       if (!ok) { try { conn.send({ type: 'deny', error: '字幕控制連結無效或已經更換，請跟導播要新的連結' }); } catch {} setTimeout(() => conn.close(), 400); return; }
       const c = { conn, kind, name: String(md.name || '').slice(0, 20) }; CGC.add(c);
       conn.send({ type: 'cgHello', kind, label: info.label || '' }); sendAssets(c); conn.send({ type: 'cgState', s: TitleCore.snapshot(TS, Date.now()) });
       if (kind === 'ctl') { conn.on('data', d => { if (d?.type === 'cg' && d.cmd) titleCmd(d.cmd, '遠端：' + (c.name || '字幕')); }); toast(`🔤 字幕控制「${c.name || '遠端'}」已連線`); }
+      if (kind === 'pr') { conn.on('data', d => { if (d?.type === 'cg' && d.cmd && /^prompter/.test(String(d.cmd.op || ''))) titleCmd(d.cmd, '提詞：' + (c.name || '提詞機')); }); toast('📜 提詞機控制已連線'); }   // 提詞控制連結只能捲動提詞，不能動字幕
       conn.on('close', () => { CGC.delete(c); try { titleUi?.refresh(); } catch {} });
       try { titleUi?.refresh(); } catch {}
     };
@@ -3321,7 +3324,7 @@ function Host(sess){
     if (titleUi && w.body.contains(titleUi.root)) { titleUi.refresh(); return; }
     titleUi?.destroy(); w.body.innerHTML = ''; const box = document.createElement('div'); w.body.appendChild(box);
     const cloudCall = async body => { const r = await apiCall(Object.assign({ token: sess.token }, body)); if (!r.ok) throw new Error(String(r.error || '雲端操作失敗').replace('SESSION_EXPIRED：', '')); return r; };
-    titleUi = TitleUI(box, { get: () => TS, send: cmd => titleCmd(cmd), canTake: titleCanTake, links: () => ({ ctl: cgCtlUrl(), out: cgOutUrl(), prompter: `${shareBase()}?mode=prompter&o=${roomKey}`, prompterCtl: `${shareBase()}?mode=prompter&o=${roomKey}&t=${OPTOK.cg}`, clock: `${shareBase()}?mode=clock&o=${roomKey}` }),
+    titleUi = TitleUI(box, { get: () => TS, send: cmd => titleCmd(cmd), canTake: titleCanTake, links: () => ({ ctl: cgCtlUrl(), out: cgOutUrl(), prompter: `${shareBase()}?mode=prompter&o=${roomKey}`, prompterCtl: `${shareBase()}?mode=prompter&o=${roomKey}&t=${OPTOK.pr}`, clock: `${shareBase()}?mode=clock&o=${roomKey}` }),
       log: { list: () => TLOG, status: () => ({ pending: TLOG.filter(r => !r.up).length, error: tlogErr }), flush: tlogFlush, clear: () => { TLOG.splice(0, TLOG.length); try { localStorage.removeItem(TLOG_KEY); } catch {} } },
       cloud: {
         list: async () => (await cloudCall({ action: 'titleSets' })).sets || [],
@@ -5241,24 +5244,24 @@ function Host(sess){
     cloud:{title:'Google Drive 雲端儲存',w:700,h:620,render:renderCloud},
     ic:   { title: 'INTERCOM 對講台', w: 380, h: 460, render: renderIC },
     msg:  { title: 'MESSAGE 訊息', w: 380, h: 440, render: renderMsgs },
-    mix:  { title: 'AUDIO MIXER 混音／監聽', w: 560, h: 330, render: renderMix },
-    ctl:  { title: 'GUEST CONTROL 遠端控制', w: 380, h: 560, render: renderCtl },
+    mix:  { title: 'AUDIO MIXER 混音台', w: 560, h: 330, render: renderMix },
+    ctl:  { title: 'GUEST CONTROL 來賓設備遠端控制', w: 380, h: 560, render: renderCtl },
     qa:   { title: 'Q&A 舉手／投票', w: 400, h: 520, render: renderQA },
-    gfx:  { title: 'GRAPHICS 字幕圖層', w: 470, h: 640, render: renderGfx },
+    gfx:  { title: 'GRAPHICS 簡易字幕條／跑馬燈', w: 470, h: 640, render: renderGfx },
     scene:{ title: 'SCENES 場景預設', w: 460, h: 560, render: renderScene },
     timer:{ title: 'TIMER 計時倒數', w: 430, h: 480, render: renderTimer },
     rec:  { title: 'RECORD 錄影備份', w: 420, h: 500, render: renderRec },
     set:  { title: 'SWITCHER 切換台設定', w: 460, h: 640, render: renderSet },
-    ret:  { title: 'RETURN 回傳給來賓', w: 420, h: 420, render: renderRet },
-    out:  { title: 'OUTPUT 輸出給 OBS', w: 420, h: 460, render: renderOut },
+    ret:  { title: 'RETURN 回送畫面給來賓', w: 420, h: 420, render: renderRet },
+    out:  { title: 'OUTPUT 節目輸出（OBS／vMix）', w: 420, h: 460, render: renderOut },
     aud:  { title: 'AUDIO ROUTING 聲音路由', w: 760, h: 760, render: renderAud },
     src:  { title: 'SOURCES 來源', w: 400, h: 640, render: renderSrc },
     keys: { title: 'KEYS 鍵盤快捷鍵', w: 380, h: 470, render: renderKeys },
     aux:  { title: 'AUX BUSES 輔助輸出母線', w: 760, h: 620, render: renderAuxWin },
-    mtx:  { title: 'AUDIO MATRIX 音頻路由矩陣', w: 900, h: 640, render: renderMtx },
+    mtx:  { title: 'AUDIO MATRIX 聲音路由矩陣', w: 900, h: 640, render: renderMtx },
     ifb:  { title: 'IFB 返送（分組／混音比例）', w: 760, h: 560, render: renderIfb },
     still:{ title: 'STILL STORE 圖庫插槽', w: 640, h: 560, render: renderStill },
-    lay:  { title: 'LAYOUTS 版面模板庫', w: 520, h: 560, render: renderLayLib },
+    lay:  { title: 'LAYOUTS 子母畫面版型庫', w: 520, h: 560, render: renderLayLib },
     strm: { title: 'STREAM 串流推流／網路來源', w: 640, h: 680, render: renderStream },
     vset: { title: 'KEYER 去背合成（2D／3D 虛擬攝影棚）', w: 760, h: 640, render: renderVsetWin },
     noc:  { title: 'NETWORK 連線路徑監控', w: 760, h: 460, render: renderNoc },
@@ -5852,11 +5855,11 @@ function Host(sess){
     const K = (k, d) => `<tr><td>${k.split(' ').map(x => `<span class="kbd">${x}</span>`).join(' ')}</td><td>${d}</td></tr>`;
     w.body.innerHTML = `<table class="ktable">
       <tr><td colspan=2 class="note">切換台關閉時：數字＝設為 PVW、Shift＋數字＝ON AIR、Space／Enter＝把 PVW 那一路切成 ON AIR</td></tr>
-      ${K('W', '開啟／關閉切換台')}${K('F1 ~ F12', '叫出場景（Shift＋F1～F12 儲存）')}${K('Y U H V', '字幕條／跑馬燈／台標／CC 字幕 開關')}${K('Z', 'PREV TRANS 轉場預覽')}${K('J', 'PGM 截圖')}${K('Shift M', '全部靜音')}${K('Shift R', '開始／停止錄影')}${K('E F D ,', '字幕播出／場景／計時倒數／切換台設定 視窗')}${K('.', '字幕 TAKE 上字（預覽中的那一則）')}${K('PgDn → ／ PgUp ←', '字幕下一則／上一則（簡報筆可用；唱詞直播時直接上字）')}${K('Delete ／ Shift＋Delete', '字幕下字／全部下字')}${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
+      ${K('W', '開啟／關閉切換台')}${K('F1 ~ F12', '叫出場景（Shift＋F1～F12 儲存）')}${K('Y U H V', '簡易字幕條／跑馬燈／台標／CC 字幕 開關')}${K('Z', 'PREV TRANS 轉場預覽')}${K('J', 'PGM 截圖')}${K('Shift M', '全部靜音')}${K('Shift R', '開始／停止錄影')}${K('E F D ,', '字幕播出／場景／計時倒數／切換台設定 視窗')}${K('.', '字幕 TAKE 上字（預覽中的那一則）')}${K('PgDn → ／ PgUp ←', '字幕下一則／上一則（簡報筆可用；唱詞直播時直接上字）')}${K('Delete ／ Shift＋Delete', '字幕下字／全部下字')}${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
       ${K('Space', 'CUT')}${K('Enter', 'AUTO（依設定的轉場）')}${K('↑ ↓', '手動推 T-Bar')}${K('B', 'FTB 淡出黑畫面')}${K('P', '子母畫面開／關')}
       ${K('T', '按住：對 PREVIEW（或選取）的來賓說話')}${K('A', '按住：群發給所有來賓')}
       ${K('M', 'PREVIEW 那一路靜音／取消')}${K('L', 'PREVIEW 那一路 PFL 監聽')}${K('G', 'PREVIEW 那一路對齊線（導播端）')}
-      ${K('I', 'INTERCOM 對講台')}${K('N', 'MESSAGE 訊息')}${K('X', 'MIXER 混音')}${K('C', 'CONTROL 遠端控制')}${K('Q', 'Q&A 舉手／投票')}${K('R', 'RETURN 回傳')}${K('O', 'OUTPUT 輸出')}${K('S', 'SOURCE 本機來源')}${K('K', '這個說明')}${K('Esc', '關閉最上層視窗')}
+      ${K('I', 'INTERCOM 對講')}${K('N', 'MESSAGE 訊息')}${K('X', 'MIXER 混音台')}${K('C', 'CONTROL 來賓設備遠端控制')}${K('Q', 'Q&A 舉手／投票')}${K('R', 'RETURN 回送畫面給來賓')}${K('O', 'OUTPUT 節目輸出')}${K('S', 'SOURCE 訊號來源')}${K('K', '這個說明')}${K('Esc', '關閉最上層視窗')}
     </table><div class="note">在輸入框打字時快捷鍵不會作用。</div>
     <h3 style="margin:14px 0 8px">自訂快捷鍵</h3>
     <div class="note">點「設定」，再按鍵盤組合鍵。避免使用瀏覽器或作業系統保留的快捷鍵。</div>
@@ -7074,7 +7077,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
 
   // ---------- 多操作員：導播（可切換）／音控（只能調聲音）／監看員（唯讀） ----------
   const OPS = new Set();
-  const OPTOK = (() => { const k = 'wc_optok'; let t = null; try { t = JSON.parse(sstore(k) || 'null'); } catch {} if (!t?.dir) { t = { dir: rnd(14), aud: rnd(14), view: rnd(14) }; sstore(k, JSON.stringify(t)); } if (!t.cg) { t.cg = rnd(14); sstore(k, JSON.stringify(t)); } return t; })();
+  const OPTOK = (() => { const k = 'wc_optok'; let t = null; try { t = JSON.parse(sstore(k) || 'null'); } catch {} if (!t?.dir) { t = { dir: rnd(14), aud: rnd(14), view: rnd(14) }; sstore(k, JSON.stringify(t)); } if (!t.cg) { t.cg = rnd(14); sstore(k, JSON.stringify(t)); } if (!t.pr) { t.pr = rnd(14); sstore(k, JSON.stringify(t)); } return t; })();
   const opUrl = r => `${shareBase()}?mode=op&o=${roomKey}&r=${r}&t=${OPTOK[r]}`;
   function acceptOp(conn, md){
     const r = ['dir', 'aud', 'view'].find(k => k === md.r && String(md.t || '') === OPTOK[k]);
@@ -7145,14 +7148,14 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         <div class="note">${esc(desc[ROLE.local])}。例如導播暫時離開位置、交給音控同事時，鎖成「音控」就不會誤切畫面。</div></div>
       <div class="wsec"><h4>遠端操作員連結 <span>對方用瀏覽器打開即可，不用帳號</span></h4>
         ${['dir', 'aud', 'view'].map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><span class="note" style="margin:0">${esc(desc[r])}</span><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button></div></div>`).join('')}
-        <div class="row" style="margin-top:6px"><button class="btn sm danger" id="oprst">更換所有連結（踢掉目前的操作員）</button></div>
+        <div class="row" style="margin-top:6px"><button class="btn sm danger" id="oprst">更換所有連結（含字幕控制、提詞控制；踢掉目前的操作員）</button></div>
         <div class="note">連結只有這次導播有效；重新開導播台或更換邀請代碼後，請重新複製。請只給信任的同事。</div></div>
       <div class="wsec"><h4>目前連線的操作員 <span>${OPS.size} 位</span></h4>${[...OPS].map(o => `<div class="row" style="margin:3px 0"><span class="tag ${o.r === 'dir' ? 'live' : o.r === 'aud' ? 'pvwt' : 'info'}">${ROLE_NAME[o.r]}</span><span class="grow">${esc(o.name)} <span class="note" style="margin:0">${fmtTime(o.t)} 連線${o.calls.size ? ' · 看 ' + [...o.calls.keys()].join(',').toUpperCase() : ''}</span></span><button class="btn sm danger" data-ok="${o.t}">中斷</button></div>`).join('') || '<div class="note">沒有</div>'}</div>`;
     const B = w.body;
     $$('[data-lr]', B).forEach(b => b.onclick = () => setLocalRole(b.dataset.lr));
     $$('[data-ou]', B).forEach(b => b.onclick = () => copyText(opUrl(b.dataset.ou), `已複製${ROLE_NAME[b.dataset.ou]}連結`));
     $$('[data-oq]', B).forEach(b => b.onclick = () => uiModal(`<h2>${ROLE_NAME[b.dataset.oq]}連結</h2><div class="qr" id="opqr" style="justify-self:center"></div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m => qr($('#opqr', m), opUrl(b.dataset.oq), 220)));
-    $('#oprst', B).onclick = async () => { if (!(await uiConfirm('更換操作員連結', '目前連線的操作員都會被中斷，舊連結會失效。', '更換'))) return; ['dir', 'aud', 'view'].forEach(k => OPTOK[k] = rnd(14)); sstore('wc_optok', JSON.stringify(OPTOK)); OPS.forEach(o => { try { o.conn.send({ type: 'deny', error: '導播已更換操作員連結' }); o.conn.close(); } catch {} }); renderOps(); };
+    $('#oprst', B).onclick = async () => { if (!(await uiConfirm('更換操作員連結', '目前連線的操作員都會被中斷，舊連結會失效。', '更換'))) return; ['dir', 'aud', 'view', 'cg', 'pr'].forEach(k => OPTOK[k] = rnd(14)); sstore('wc_optok', JSON.stringify(OPTOK)); OPS.forEach(o => { try { o.conn.send({ type: 'deny', error: '導播已更換操作員連結' }); o.conn.close(); } catch {} }); CGC.forEach(c => { if (c.kind !== 'out') try { c.conn.send({ type: 'deny', error: '導播已更換字幕／提詞控制連結' }); c.conn.close(); } catch {} }); renderOps(); try { titleUi?.refresh(); } catch {} toast('已更換操作員、字幕控制、提詞控制連結'); };
     $$('[data-ok]', B).forEach(b => b.onclick = () => { const o = [...OPS].find(x => String(x.t) === b.dataset.ok); if (o) { try { o.conn.send({ type: 'deny', error: '導播中斷了你的連線' }); o.conn.close(); } catch {} } });
   }
 
