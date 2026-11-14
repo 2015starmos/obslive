@@ -2,13 +2,33 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1113.3140">
+<meta name="webcall-version" content="2026.1114.2100">
 <script>
-/* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
+/* 版本與自動更新（網頁版與 WebCall.exe 都一樣）：
+ * ・系統管理員在派發平台「系統更新」發布「連線網頁」後，所有人打開時都會自動下載並改用新版。
+ * ・下載好的新版存在這台裝置（localStorage wc_pkg），下次打開直接用，不必等網路。
+ * ・強制更新：沒在連線的人立刻套用，更新完成前不能使用；正在導播／連線的人結束後立刻套用。
+ * ・GitHub 上的 index.html 比發布的版本新時，用 GitHub 的版本。 */
 (function(){
-  window.WC_VER = document.querySelector('meta[name="webcall-version"]')?.content || '2026.1111.2222-metal';
-  window.WC_BUILTIN = true;
-  try { localStorage.removeItem('wc_pkg'); } catch(e) {}
+  var ms = document.querySelectorAll('meta[name="webcall-version"]'), me = ms.length ? ms[ms.length - 1].content : '';
+  window.WC_VER = window.__WC_PKG || me || 'dev';
+  window.WC_BUILTIN = false;
+  window.WC_NEWER = function(a, b){ var x = String(a || '').split(/[.\-]/), y = String(b || '').split(/[.\-]/); for (var i = 0; i < Math.max(x.length, y.length); i++) { var p = parseInt(x[i] || '0', 10) || 0, q = parseInt(y[i] || '0', 10) || 0; if (p !== q) return p > q; } return false; };
+  if (window.__WC_PKG) return;
+  try {
+    if (/[?&]builtin=1/.test(location.search)) return;   // 網址加 ?builtin=1：強制用這個檔案（新版有問題時救援用）
+    var c = JSON.parse(localStorage.getItem('wc_pkg') || 'null');
+    if (!c || !c.html || !c.v) return;
+    if (!window.WC_NEWER(c.v, me)) { localStorage.removeItem('wc_pkg'); return; }   // 這個檔案已經比較新
+    if (localStorage.getItem('wc_badpkg') === c.v) return;
+    var n = +(sessionStorage.getItem('wc_pkgtry') || 0);
+    if (n >= 2) { localStorage.setItem('wc_badpkg', c.v); sessionStorage.removeItem('wc_pkgtry'); return; }   // 連續啟動失敗：這台裝置不再套用這一版
+    sessionStorage.setItem('wc_pkgtry', String(n + 1));
+    window.__WC_PKG = c.v; window.__WC_SWAP = c.html;
+    document.write('<plaintext style="display:none">');   // 停止解析這個檔案剩下的內容，改載入新版
+    var go = function(){ var h = window.__WC_SWAP; window.__WC_SWAP = null; if (!h) return; document.open(); document.write(h); document.close(); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+  } catch (e) {}
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9454,42 +9474,60 @@ let updPending = null;
 function updBanner(a, forced){
   let b = $('#updbar');
   if (!b) { b = document.createElement('div'); b.id = 'updbar'; b.style.cssText = 'position:fixed;left:50%;top:calc(' + (Q.get('mode') === 'guest' ? 56 : 8) + 'px + var(--sat));transform:translateX(-50%);z-index:980;background:#13233f;border:1px solid var(--accent);color:#cfe0ff;padding:8px 12px;border-radius:8px;display:flex;gap:10px;align-items:center;max-width:94vw;box-shadow:0 8px 24px #0008;font-size:12.5px'; document.body.appendChild(b); }
-  b.innerHTML = `<span>⬆ 新版本 v${esc(a.v)} ${forced ? '已強制發布，這次連線結束後自動套用' : '已下載，下次打開自動套用'}${a.notes ? '：' + esc(a.notes.slice(0, 60)) : ''}</span>${wcBusy() ? '' : '<button class="btn sm primary" id="updnow">立即更新</button>'}<button class="btn sm ghost" id="updx">${ic('x')}</button>`;
+  b.innerHTML = `<span>⬆ 新版本 v${esc(a.v)} ${forced ? '已強制發布，這次連線結束後自動套用' : '已下載，下次打開自動套用'}${a.notes ? '：' + esc(a.notes.slice(0, 60)) : ''}</span>${wcBusy() ? '' : '<button class="btn sm primary" id="updnow">立即更新</button>'}${forced ? '' : `<button class="btn sm ghost" id="updx">${ic('x')}</button>`}`;
   $('#updnow', b) && ($('#updnow', b).onclick = () => location.reload());
-  $('#updx', b).onclick = () => b.remove();
+  $('#updx', b) && ($('#updx', b).onclick = () => b.remove());
 }
+// 強制更新還沒套用前擋住畫面（不能使用舊版）
+function updBlock(a, msg, retry){
+  let o = $('#updblock');
+  if (!o) { o = document.createElement('div'); o.id = 'updblock'; o.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#0b0f16f2;display:flex;align-items:center;justify-content:center;padding:20px;color:#e6edf7;font-size:14px'; document.body.appendChild(o); }
+  o.innerHTML = `<div style="max-width:420px;text-align:center;line-height:1.7"><div style="display:inline-flex;width:44px;height:44px;border-radius:10px;background:#ff3b3b;align-items:center;justify-content:center;margin-bottom:12px"><i style="width:16px;height:16px;border-radius:50%;background:#fff;display:block"></i></div><h2 style="margin:0 0 6px;font-size:19px">系統更新中</h2><div>${esc(msg)}</div><div style="color:#8a96a8;font-size:12px;margin-top:6px">新版本 v${esc(a.v)}${a.notes ? '：' + esc(a.notes.slice(0, 80)) : ''}</div>${retry ? '<button class="btn primary" id="updretry" style="margin-top:14px">重試</button>' : '<div style="margin-top:14px;color:#8a96a8;font-size:12px">請稍候，完成後會自動重新開啟</div>'}</div>`;
+  $('#updretry', o) && ($('#updretry', o).onclick = () => { o.remove(); checkAppUpdate().catch(() => {}); });
+}
+let updChecking = false;
 async function checkAppUpdate(){
-  if (!CONFIG.API_URL || window.WC_BUILTIN) return;
-  let r; try { r = await apiCall({ action: 'ver' }); } catch { return; }
-  if (!r?.ok) return;
-  const a = r.app; let cached = null; try { cached = JSON.parse(localStorage.getItem('wc_pkg') || 'null'); } catch {}
-  if (!a) {   // 系統管理員下架了更新 → 回到內建版本
-    if (cached) { try { localStorage.removeItem('wc_pkg'); } catch {} }
-    if (window.__WC_PKG && !wcBusy()) location.reload();
-    return;
-  }
-  if (a.v === window.WC_VER) { updPending = null; return; }
-  if (window.WC_NEWER && !window.WC_NEWER(a.v, window.WC_VER)) { updPending = null; try { localStorage.removeItem('wc_pkg'); } catch {} return; }   // 派發平台上的版本比這個檔案舊：不下載、不套用
-  try { if (localStorage.getItem('wc_badpkg') === a.v) return; } catch {}   // 這個版本在這台裝置啟動失敗過，不再自動套用
-  if (!cached || cached.v !== a.v) {
-    let p; try { p = await apiCall({ action: 'pkg', id: a.id }); } catch { return; }
-    if (!p?.ok || !p.html || (p.sha && await sha256hex(p.html) !== p.sha)) return;
-    try { localStorage.setItem('wc_pkg', JSON.stringify({ v: p.v, id: a.id, html: p.html, t: Date.now() })); }
-    catch { try { ['wc_slate', 'wc_ov'].forEach(k => localStorage.removeItem(k)); localStorage.setItem('wc_pkg', JSON.stringify({ v: p.v, id: a.id, html: p.html, t: Date.now() })); } catch { return; } }
-  }
-  updPending = a;
-  if (a.force && !wcBusy()) { toast(`正在更新到 v${a.v}…`); setTimeout(() => { if (!wcBusy()) location.reload(); }, 900); }
-  else if (Q.get('mode') !== 'out') updBanner(a, a.force);
+  if (!CONFIG.API_URL || updChecking) return;
+  updChecking = true;
+  try {
+    let r; try { r = await apiCall({ action: 'ver' }); } catch { return; }
+    if (!r?.ok) return;
+    const a = r.app; let cached = null; try { cached = JSON.parse(localStorage.getItem('wc_pkg') || 'null'); } catch {}
+    if (!a) {   // 系統管理員下架了更新 → 回到這個檔案本身的版本
+      if (cached) { try { localStorage.removeItem('wc_pkg'); } catch {} }
+      if (window.__WC_PKG && !wcBusy()) location.reload();
+      return;
+    }
+    if (a.v === window.WC_VER) { updPending = null; return; }
+    if (!window.WC_NEWER(a.v, window.WC_VER)) {   // 發布的版本比正在用的舊（例如 GitHub 已經換成更新的檔案）
+      updPending = null; try { localStorage.removeItem('wc_pkg'); } catch {}
+      if (window.__WC_PKG && !wcBusy()) location.reload();
+      return;
+    }
+    try { if (localStorage.getItem('wc_badpkg') === a.v) { if (a.force && !wcBusy()) updBlock(a, '這台裝置套用新版時發生問題，請按重試或聯絡系統管理員。', true); return; } } catch {}
+    const block = a.force && !wcBusy() && Q.get('mode') !== 'out';
+    if (block) updBlock(a, '系統管理員發布了強制更新，正在下載新版本…');
+    if (!cached || cached.v !== a.v) {
+      let p; try { p = await apiCall({ action: 'pkg', id: a.id }); } catch { if (block) updBlock(a, '新版本下載失敗，請確認網路後重試。', true); return; }
+      if (!p?.ok || !p.html || (p.sha && await sha256hex(p.html) !== p.sha)) { if (block) updBlock(a, '新版本下載不完整，請重試。', true); return; }
+      const rec = JSON.stringify({ v: p.v, id: a.id, html: p.html, t: Date.now() });
+      try { localStorage.setItem('wc_pkg', rec); }
+      catch { try { ['wc_slate', 'wc_ov'].forEach(k => localStorage.removeItem(k)); localStorage.setItem('wc_pkg', rec); } catch { if (block) updBlock(a, '這台裝置的儲存空間不足，無法下載新版本。', true); return; } }
+    }
+    updPending = a;
+    if (a.force && !wcBusy()) { if (block) updBlock(a, '下載完成，正在重新開啟…'); setTimeout(() => { if (!wcBusy()) location.reload(); }, 600); }
+    else if (Q.get('mode') !== 'out') updBanner(a, a.force);
+  } finally { updChecking = false; }
 }
-// 導播結束、來賓離開後，如果有強制更新就套用
+// 導播結束、來賓離開後，如果有強制更新就立刻套用
 function wcIdle(){ window.__WC_BUSY = false; if (updPending?.force) setTimeout(() => !wcBusy() && location.reload(), 1500); }
-/* 精簡固定版：停用遠端自動更新 */
-/* 精簡固定版：停用遠端定時更新 */
-/* 精簡固定版：停用返回前景時的遠端版本檢查 */
+/* 網頁版與 EXE 都會自動檢查：打開時馬上檢查一次，之後每 5 分鐘檢查一次 */
+setTimeout(() => checkAppUpdate().catch(() => {}), 300);
+setInterval(() => checkAppUpdate().catch(() => {}), 5 * 60000);
 
 /* ===================== 路由 ===================== */
 function route(){
-  window.__WC_OK = true;
+  window.__WC_OK = true; try { sessionStorage.removeItem('wc_pkgtry'); } catch {}
   if (!window.Peer) {
     app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 函式庫沒有載入，請確認網路可連到 cdnjs.cloudflare.com 或 unpkg.com，然後重新整理。</p></div></div>`;
     return;
