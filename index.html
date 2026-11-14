@@ -8928,8 +8928,9 @@ function Home(msg){
     $('#lgo').disabled = true; $('#lgo').textContent = '登入中…';
     try {
       const rm = $('#lrm').checked; store('wc_rmoff', rm ? null : '1');
-      const r = await apiCall({ action: 'login', account: a, password: pw, remember: rm, client: window.wcShell ? 'EXE 導播台' : '網頁導播台' });
+      let r = await apiCall({ action: 'login', account: a, password: pw, remember: rm, client: window.wcShell ? 'EXE 導播台' : '網頁導播台' });
       if (!r.ok) throw new Error(r.error || '登入失敗');
+      if (r.need2fa) r = await hostTfa(r);   // 這個帳號要 LINE 驗證碼
       store('wc_acc', a); sstore('wc_tok', r.token); sstore('wc_me', JSON.stringify(r.me));
       if (rm) { store('wc_rtok', r.token); store('wc_rme', JSON.stringify(r.me)); } else { store('wc_rtok', null); store('wc_rme', null); }
       HostSetup(r.token, r.me);
@@ -8942,6 +8943,28 @@ function Home(msg){
     location.href = `${baseUrl()}?mode=guest&k=${encodeURIComponent(code)}`;
   };
   $('#ggo').onclick = gg; onEnter($('#gk'), gg);
+}
+// LINE 兩步驟驗證：在登入框下方要驗證碼，驗證成功才回傳登入結果
+function hostTfa(r0){
+  return new Promise((resolve, reject) => {
+    const f = $('#lf'); f.querySelectorAll(':scope > *').forEach(el => el.dataset.tfaHide = el.style.display || '-') ; f.querySelectorAll(':scope > *').forEach(el => el.style.display = 'none');
+    const box = document.createElement('div'); box.className = 'tfa-box';
+    box.innerHTML = `<h3 style="margin:0 0 6px">LINE 驗證</h3><p class="note" style="margin:0 0 10px">${esc(r0.note || '驗證碼已傳到你的 LINE')}</p>
+      <input class="field mono" id="tfc" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 位數驗證碼" style="width:100%;letter-spacing:.4em;font-size:22px;text-align:center">
+      <div class="row" style="margin-top:10px;gap:8px"><button type="button" class="btn" id="tfx">取消</button><button type="button" class="btn" id="tfr">重新傳送</button><button type="button" class="btn primary grow" id="tfo">驗證並登入</button></div>
+      <p class="note" style="margin-top:8px">5 分鐘內有效。沒收到？在 LINE 對 WebCall 官方帳號傳「驗證碼」。</p><div class="err" id="tfe" style="color:var(--bad,#ff6b6b)"></div>`;
+    f.appendChild(box); const inp = $('#tfc'), err = $('#tfe'); inp.focus(); let busy = false;
+    const restore = () => { box.remove(); f.querySelectorAll(':scope > *').forEach(el => { el.style.display = el.dataset.tfaHide === '-' ? '' : el.dataset.tfaHide; delete el.dataset.tfaHide; }); };
+    const go = async () => { if (busy || inp.value.length !== 6) return; busy = true; $('#tfo').disabled = true; err.textContent = '';
+      try { const r = await apiCall({ action: 'login2fa', ticket: r0.ticket, code: inp.value }); if (!r.ok) throw new Error(r.error || '驗證失敗'); restore(); resolve(r); }
+      catch (e) { err.textContent = e.message; inp.value = ''; inp.focus(); if (/過期|太多次|重新登入/.test(e.message)) setTimeout(() => { restore(); reject(e); }, 1500); }
+      finally { busy = false; const o = $('#tfo'); if (o) o.disabled = false; } };
+    inp.oninput = () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 6); if (inp.value.length === 6) go(); };
+    inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+    $('#tfo').onclick = go;
+    $('#tfx').onclick = () => { restore(); reject(new Error('已取消 LINE 驗證')); };
+    $('#tfr').onclick = async () => { try { const x = await apiCall({ action: 'login2faResend', ticket: r0.ticket }); if (!x.ok) throw new Error(x.error); toast(x.note || '已重新傳送'); } catch (e) { err.textContent = e.message; } };
+  });
 }
 function logoutAll(){
   const tok = sstore('wc_tok'); if (tok) apiCall({ action: 'logout', token: tok }).catch(() => {});
