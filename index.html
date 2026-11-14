@@ -540,7 +540,7 @@ body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 .host.role-view .multiview .ctl,.host.role-view .switcher .tcol,.host.role-view .pipbar,.host.role-view .dskbar,.host.role-view #dock,.host.role-view #panic,.host.role-view #endb,.host.role-view #inv{pointer-events:none;opacity:.4}
 body.role-view .win:not([data-w=ops]):not([data-w=keys]) .wb{pointer-events:none;opacity:.6}
 .host.role-aud .multiview .ctl .seg3,.host.role-aud .multiview [data-a=pvw],.host.role-aud .multiview [data-a=pgm],.host.role-aud .multiview [data-a=slot],.host.role-aud .switcher .tcol,.host.role-aud .pipbar,.host.role-aud .dskbar,.host.role-aud #endb{pointer-events:none;opacity:.4}
-body.role-aud .wb:is([data-w=gfx],[data-w=scene],[data-w=aux],[data-w=still],[data-w=lay],[data-w=strm],[data-w=set],[data-w=src],[data-w=out],[data-w=me],[data-w=vset],[data-w=tracking],[data-w=color],[data-w=cgdesigner],[data-w=timer],[data-w=media16],[data-w=replay],[data-w=decode],[data-w=routing],[data-w=ingest],[data-w=pocket],[data-w=capture4k],[data-w=ndi],[data-w=workflow]){pointer-events:none;opacity:.55}
+body.role-aud .wb:is([data-w=gfx],[data-w=scene],[data-w=aux],[data-w=still],[data-w=lay],[data-w=strm],[data-w=set],[data-w=src],[data-w=out],[data-w=me],[data-w=vset],[data-w=tracking],[data-w=color],[data-w=cgdesigner],[data-w=timer],[data-w=media16],[data-w=replay],[data-w=decode],[data-w=routing],[data-w=ingest],[data-w=pocket],[data-w=capture4k],[data-w=camctl],[data-w=ndi],[data-w=workflow]){pointer-events:none;opacity:.55}
 .ppm{position:relative;height:12px;background:#0a0d12;border:1px solid var(--line2);border-radius:3px;overflow:hidden;min-width:90px}
 .ppm i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#22c55e 0 70%,#f5c518 70% 85%,#ff3b3b 85%);background-size:100% 100%}
 .ppm s{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0}
@@ -983,6 +983,10 @@ body.clock-page{margin:0;background:#000;color:#fff;overflow:hidden}.clk{positio
 .tui-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--dim)}
 .tui-form label.chk{flex-direction:row;align-items:center;gap:6px}
 .tui-pr textarea[data-pf="text"]{min-height:180px;resize:vertical}
+.tui-pronly .tui-mon,.tui-pronly .tui-clock,.tui-pronly .tui-ctl,.tui-pronly .tui-air,.tui-pronly .tui-score{display:none!important}
+.tui-aiview{min-height:76px;max-height:160px;overflow:auto;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:#05080c;font-size:18px;line-height:1.5}.tui-aiview .int{color:#8fa3b8}
+.tui-tapbar{padding:7px 10px;border:1px solid #2f6f3a;border-radius:6px;background:#0f2414;color:#bff5c8;font-size:13px}.tui-tapbar.hidden{display:none}.tui-tapbar kbd{font:600 12px var(--mono);padding:1px 5px;border:1px solid #3d7a48;border-radius:4px}
+.prk .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border:1px solid var(--line);border-radius:10px;font-size:12px}.prk .chip button{border:0;background:none;color:inherit;cursor:pointer}
 .prk-d{margin-top:6px;font-size:12px;color:var(--dim)}.prk-d summary{cursor:pointer}.prk{border-collapse:collapse;margin-top:6px;font-size:12px}.prk td{padding:3px 8px;border-bottom:1px solid var(--line);vertical-align:top}.prk kbd{font:600 12px var(--mono);color:var(--fg,#e8edf3);white-space:nowrap}
 .prp-help{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#000c}.prp-help.hidden{display:none}.prp-help>div{max-width:720px;padding:20px 24px;border-radius:10px;background:#15191f;color:#ddd}.prp-help .prk{font-size:15px}.prp-help .prk kbd{font-size:15px}
 .prp-bar .pill{padding:2px 8px;border-radius:10px;background:#3a1012;color:#ffb3b3;font-size:12px}.rd-form textarea{min-height:90px}
@@ -1902,7 +1906,7 @@ const TitleCore = (() => {
     corner:   { grp: 'news', name: '角標（LIVE／現場）', layer: 'corner', fields: [{ k: 'tag', t: '標籤', p: 'LIVE' }, { k: 'l1', t: '地點／說明（選填，可用 {時間}）', p: '台北 {時間}' }] },
     lyric:    { grp: 'event', name: '唱詞', layer: 'lyric', fields: [{ k: 'l1', t: '第一行', p: '' }, { k: 'l2', t: '第二行（選填）', p: '' }] },
     card:     { grp: 'event', name: '全版字卡', layer: 'full', fields: [{ k: 'l1', t: '標題', p: '頒獎典禮' }, { k: 'l2', t: '內容（可多行）', p: '最佳新人獎\n王小明', type: 'area' }, { k: 'bg', t: '背景圖（選填）', type: 'img' }] },
-    free:     { grp: 'event', name: '手排字幕', layer: 'free', fields: [{ k: 'l1', t: '內容（可多行）', p: '', type: 'area' }, { k: 'pos', t: '位置', type: 'select', opts: POS, def: 'bc' }, { k: 'size', t: '字級（1080p 像素）', type: 'number', def: '64' }, { k: 'box', t: '底框', type: 'check' }] },
+    free:     { grp: 'event', name: '手打字幕', layer: 'free', fields: [{ k: 'l1', t: '內容（可多行）', p: '', type: 'area' }, { k: 'pos', t: '位置', type: 'select', opts: POS, def: 'bc' }, { k: 'size', t: '字級（1080p 像素）', type: 'number', def: '64' }, { k: 'box', t: '底框', type: 'check' }] },
     dual:     { grp: 'news', name: '雙人對話名條', layer: 'lower', fields: [{ k: 'l1', t: '左側姓名', p: '王小明' }, { k: 'l2', t: '左側職稱', p: '主持人' }, { k: 'r1', t: '右側姓名', p: '李小華' }, { k: 'r2', t: '右側職稱', p: '立法委員' }] },
     score:    { grp: 'data', name: '比分條', layer: 'score', fields: [{ k: 'ta', t: '隊伍 A', p: '中信兄弟' }, { k: 'sa', t: 'A 比分', p: '0' }, { k: 'tb', t: '隊伍 B', p: '統一獅' }, { k: 'sb', t: 'B 比分', p: '0' }, { k: 'info', t: '局數／節次／時間（選填，可用 {時間}）', p: '7 局上' }] },
     election: { grp: 'data', name: '選舉開票條', layer: 'lower', rows: [{ k: 'name', t: '候選人' }, { k: 'votes', t: '票數' }, { k: 'color', t: '顏色（選填）' }], fields: [{ k: 'title', t: '標題', p: '台北市長 開票' }, { k: 'prog', t: '開票進度（選填）', p: '開票 85%' }, { k: 'list', t: '候選人（每行：姓名|票數|顏色，顏色可省略）', p: 'A 候選人|523456|#1b9431\nB 候選人|498120|#0a4ea8', type: 'area' }, { k: 'win', t: '當選（填姓名，選填）', p: '' }] },
@@ -1986,11 +1990,11 @@ const TitleCore = (() => {
   const promptPos = (S, now) => { const P = S.prompter || {}; return Math.max(0, (P.pos || 0) + (P.playing ? (P.speed || 0) * (now - (P.t0 || now)) / 1000 : 0)); };
   function snapshot(S, now){
     const pgm = {}; Object.keys(S.pgm).forEach(l => { const e = S.pgm[l]; if (e) pgm[l] = { item: e.item, age: now - e.t0 }; });
-    return { theme: S.theme, items: S.items, sel: S.sel, pvw: S.pvw, pgm, leaving: S.leaving.map(e => ({ item: e.item, layer: e.layer, age: now - e.t0, outAge: now - e.out })), opts: S.opts, data: S.data, sources: S.sources || [], prompter: Object.assign({}, S.prompter, { pos: promptPos(S, now), t0: 0 }), rundown: Object.assign({}, S.rundown, { curAge: S.rundown.curStart ? now - S.rundown.curStart : 0 }), check: S.check, assetList: Object.keys(S.assets || {}).map(id => ({ id, name: S.assets[id].name })), rev: S.rev };
+    return { theme: S.theme, items: S.items, sel: S.sel, tapId: S.tapId || null, pvw: S.pvw, pgm, leaving: S.leaving.map(e => ({ item: e.item, layer: e.layer, age: now - e.t0, outAge: now - e.out })), opts: S.opts, data: S.data, sources: S.sources || [], prompter: Object.assign({}, S.prompter, { pos: promptPos(S, now), t0: 0 }), rundown: Object.assign({}, S.rundown, { curAge: S.rundown.curStart ? now - S.rundown.curStart : 0 }), check: S.check, assetList: Object.keys(S.assets || {}).map(id => ({ id, name: S.assets[id].name })), rev: S.rev };
   }
   function fromSnapshot(s, now){
     const S = fresh(); if (!s) return S;
-    Object.assign(S, { theme: s.theme || S.theme, items: s.items || [], sel: s.sel, pvw: s.pvw, opts: Object.assign({}, S.opts, s.opts || {}), data: s.data || S.data, sources: s.sources || [], check: s.check || S.check, assetList: s.assetList || [], rev: s.rev || 0 });
+    Object.assign(S, { theme: s.theme || S.theme, items: s.items || [], sel: s.sel, tapId: s.tapId || null, pvw: s.pvw, opts: Object.assign({}, S.opts, s.opts || {}), data: s.data || S.data, sources: s.sources || [], check: s.check || S.check, assetList: s.assetList || [], rev: s.rev || 0 });
     if (s.prompter) S.prompter = Object.assign({}, s.prompter, { t0: now });
     if (s.rundown) { S.rundown = Object.assign({}, s.rundown); S.rundown.curStart = s.rundown.curAge ? now - s.rundown.curAge : 0; }
     S.pgm = {}; Object.keys(s.pgm || {}).forEach(l => { S.pgm[l] = { item: s.pgm[l].item, t0: now - s.pgm[l].age }; });
@@ -2037,6 +2041,12 @@ const TitleCore = (() => {
         const fromList = !cmd.id && S.pvw && S.pvw.id === S.sel && cur() >= 0;   // 臨時送預覽的字幕不會帶動清單往下
         takeItem(S, it, now);
         if (fromList && S.opts.autoNext) stageIndex(S, cur() + 1);
+        break;
+      }
+      case 'tap': {   // 手拍上字：按一下＝上下一句（第一次按＝上目前這句），預覽換成再下一句
+        const d = cmd.dir < 0 ? -1 : 1, i = cur(), done = i >= 0 && S.tapId === S.sel;   // done：選取的這句已經拍過
+        const j = i < 0 ? 0 : d > 0 ? (done ? i + 1 : i) : i - 1; if (!S.items[j]) return false;
+        stageIndex(S, j); takeItem(S, S.pvw, now); S.tapId = S.sel; const nx = S.items[j + 1]; S.pvw = nx ? clone(nx) : null;
         break;
       }
       case 'next': case 'prev': {
@@ -2621,7 +2631,9 @@ function TitleUI(root, api){
   const C = TitleCore, $q = s => root.querySelector(s), $qa = s => [...root.querySelectorAll(s)];
   // 樣板選單依類別分組：新聞／資料／活動／轉播包裝框
   const tplOpts = v => Object.entries(C.GROUP_NAMES).map(([gk, gn]) => `<optgroup label="${gn}">${Object.entries(C.TEMPLATES).filter(([, t]) => (t.grp || 'news') === gk).map(([k, t]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</optgroup>`).join('');
-  let pane = 'list', listSig = '', editFor = undefined, dataRows = null, raf = 0, dead = false, liveT = 0;
+  const PR_ONLY = api.mode === 'prompter';   // 獨立的「提詞機」視窗：只顯示提詞相關分頁
+  let tapOn = store('wc_tap') === '1';
+  let pane = PR_ONLY ? 'prompter' : 'list', listSig = '', editFor = undefined, dataRows = null, raf = 0, dead = false, liveT = 0;
   const send = cmd => api.send(cmd);
   const guard = () => { if (api.canTake && !api.canTake()) return false; return true; };
   // 上字前檢查：有疑似錯字時先確認（可在「錯字檢查」關閉）
@@ -2642,10 +2654,11 @@ function TitleUI(root, api){
     </div>
     <div class="tui-air" data-air></div>
     <div class="tui-score hidden" data-score><b>比分快速調整</b><span data-scn></span><button type="button" class="btn sm" data-sc="a:-1">A −1</button><button type="button" class="btn sm" data-sc="a:1">A ＋1</button><button type="button" class="btn sm" data-sc="b:-1">B −1</button><button type="button" class="btn sm" data-sc="b:1">B ＋1</button><span class="note">播出中會直接更新畫面</span></div>
-    <div class="tui-tabs" role="tablist">${[['list', '播出清單'], ['edit', '新增／編輯'], ['rundown', '排序表'], ['prompter', '提詞機'], ['lyric', '唱詞'], ['free', '手排'], ['data', '資料來源'], ['images', '圖片'], ['theme', '外觀主題'], ['check', '錯字檢查'], ...(api.log ? [['log', '播出紀錄']] : []), ...(api.cloud ? [['cloud', '雲端清單']] : []), ...(api.links ? [['link', '遠端／輸出']] : [])].map(([k, n]) => `<button type="button" role="tab" data-tab="${k}">${n}</button>`).join('')}</div>
+    <div class="tui-tapbar hidden" data-tapbar>👏 <b>手拍上字開啟中</b>：先點一下這個視窗，再按 <kbd>空白鍵</kbd> 上下一句、<kbd>Shift</kbd>＋<kbd>空白鍵</kbd> 回上一句、<kbd>Esc</kbd> 下字。<span data-tapnext></span></div>
+    <div class="tui-tabs" role="tablist">${((PR_ONLY ? [['prompter', '提詞機'], ['plink', '輸出／遠端'], ['pedal', '腳踏板／按鍵']] : null) || [['list', '播出清單'], ['edit', '新增／編輯'], ['rundown', '排序表'], ['prompter', '提詞機'], ['lyric', '唱詞'], ['free', '手打字幕'], ['ai', 'AI 語音上字'], ['data', '資料來源'], ['images', '圖片'], ['theme', '外觀主題'], ['check', '錯字檢查'], ...(api.log ? [['log', '播出紀錄']] : []), ...(api.cloud ? [['cloud', '雲端清單']] : []), ...(api.links ? [['link', '遠端／輸出']] : [])]).map(([k, n]) => `<button type="button" role="tab" data-tab="${k}">${n}</button>`).join('')}</div>
     <div class="tui-panes">
       <section data-pane="list">
-        <div class="tui-bar"><label><input type="checkbox" data-o="autoNext"> 上字後自動預覽下一則</label><label><input type="checkbox" data-o="lyricLive"> 唱詞直播（下一則＝直接上字）</label><label title="清單裡有設定「跟著畫面」的字幕，切到那個來源時自動上字"><input type="checkbox" data-o="followCut"> 字幕跟著畫面</label><label title="切走時自動撤下跟著畫面的字幕"><input type="checkbox" data-o="followOff"> 切走自動下字</label><label>延遲<select class="field sm" data-o2="followDelay"><option value="0">0 秒</option><option value="0.5">0.5 秒</option><option value="1">1 秒</option><option value="2">2 秒</option><option value="3">3 秒</option></select></label><span class="grow"></span>
+        <div class="tui-bar"><label title="開啟後，在這個視窗裡按空白鍵就上下一句（像拍手一樣一句一句上），適合唱詞、口白、逐句字幕"><input type="checkbox" data-tap> 👏 手拍上字（空白鍵上下一句）</label><label><input type="checkbox" data-o="autoNext"> 上字後自動預覽下一則</label><label><input type="checkbox" data-o="lyricLive"> 唱詞直播（下一則＝直接上字）</label><label title="清單裡有設定「跟著畫面」的字幕，切到那個來源時自動上字"><input type="checkbox" data-o="followCut"> 字幕跟著畫面</label><label title="切走時自動撤下跟著畫面的字幕"><input type="checkbox" data-o="followOff"> 切走自動下字</label><label>延遲<select class="field sm" data-o2="followDelay"><option value="0">0 秒</option><option value="0.5">0.5 秒</option><option value="1">1 秒</option><option value="2">2 秒</option><option value="3">3 秒</option></select></label><span class="grow"></span>
           <button type="button" class="btn sm" data-k="exp">匯出清單</button><label class="btn sm">匯入清單<input type="file" accept=".json,application/json" data-k="imp" hidden></label><button type="button" class="btn sm danger" data-k="clr">清空</button></div>
         <div class="tui-list" data-list></div>
         <p class="note">點一下＝送到預覽；點兩下或 ▶＝直接上字。快捷鍵：<kbd>.</kbd> 上字、<kbd>PgDn</kbd>／<kbd>→</kbd> 下一則、<kbd>PgUp</kbd>／<kbd>←</kbd> 上一則、<kbd>Delete</kbd> 下字、<kbd>Shift</kbd>＋<kbd>Delete</kbd> 全部下字。</p>
@@ -2669,6 +2682,19 @@ function TitleUI(root, api){
           <div class="tui-grid3"><label>位置<select class="field" data-fr="pos">${C.POS.map(([k, n]) => `<option value="${k}" ${k === 'bc' ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>字級<input class="field" type="number" min="16" max="240" value="64" data-fr="size"></label><label class="chk"><input type="checkbox" data-fr="box" checked> 底框</label></div>
           <div class="tui-bar"><label><input type="checkbox" data-fr="live"> 即時更新（已上字時，打字直接改到畫面）</label><span class="grow"></span><button type="button" class="btn" data-k="frpvw">送到預覽</button><button type="button" class="btn primary" data-k="frtake">直接上字</button><button type="button" class="btn danger" data-k="frclr">下手排</button></div></div>
       </section>
+      <section data-pane="ai">
+        <div class="tui-form" data-ai>
+          <p class="note">用麥克風聽打：說話的內容自動變成字幕。使用這台電腦的<b>預設麥克風</b>（Chrome／Edge 才支援；需要連網，語音會送到瀏覽器的語音辨識服務）。</p>
+          <div class="tui-grid3"><label>語言<select class="field" data-ai="lang"><option value="zh-TW">國語（台灣）</option><option value="zh-HK">粵語</option><option value="en-US">英語</option><option value="ja-JP">日語</option><option value="ko-KR">韓語</option></select></label>
+            <label>上字方式<select class="field" data-ai="mode"><option value="live">即時上字（邊說邊出現）</option><option value="sent">整句上字（說完一句才上）</option><option value="list">只加入播出清單（審稿後再上）</option></select></label>
+            <label>字幕樣式<select class="field" data-ai="tpl"><option value="free">手打字幕（底部置中、可多行）</option><option value="lyric">唱詞樣式（兩行）</option></select></label></div>
+          <div class="tui-grid3"><label>字級<input class="field" type="number" min="24" max="160" value="56" data-ai="size"></label><label>保留行數<select class="field" data-ai="lines"><option value="1">1 行</option><option value="2" selected>2 行</option><option value="3">3 行</option></select></label><label>沒聲音幾秒後下字<select class="field" data-ai="idle"><option value="0">不自動下字</option><option value="4">4 秒</option><option value="6" selected>6 秒</option><option value="10">10 秒</option></select></label></div>
+          <div class="tui-bar"><button type="button" class="btn primary" data-ai="start">🎙 開始聽打</button><button type="button" class="btn" data-ai="stop" disabled>■ 停止</button><span class="note" data-ai="st" style="margin:0">尚未開始</span></div>
+          <div class="tui-aiview" data-ai="view"><span class="note">說話的內容會顯示在這裡</span></div>
+          <h4 style="margin:10px 0 4px">已辨識的句子（點「加入清單」可之後再上）</h4><div class="tui-list" data-ai="hist" style="max-height:180px"></div>
+          <p class="note">要聽<b>來賓</b>說話並上字：在「簡易字幕條／跑馬燈 → 即時語音字幕（CC）」開啟來賓端 CC；或把這台電腦的預設錄音裝置設成混音器輸出（虛擬音效線）。</p>
+        </div>
+      </section>
       <section data-pane="data">
         <div class="tui-form"><label>Google 試算表或 CSV 網址<div class="tui-bar" style="margin:0"><input class="field grow" data-d="url" placeholder="https://docs.google.com/spreadsheets/d/…（需設為知道連結的任何人可檢視）"><button type="button" class="btn" data-k="dload">讀取</button></div></label>
           <div class="tui-bar"><label class="btn sm">選擇 CSV 檔<input type="file" accept=".csv,text/csv,.tsv,text/plain" data-k="dfile" hidden></label><span class="note">或把 Excel／試算表內容直接複製貼到下面</span></div>
@@ -2681,6 +2707,7 @@ function TitleUI(root, api){
       <section data-pane="images"><div data-img></div></section>
       <section data-pane="check"><div data-chk></div></section>
       ${api.links ? '<section data-pane="link"><div data-link></div></section>' : ''}
+      ${PR_ONLY ? '<section data-pane="plink"><div data-plink></div></section><section data-pane="pedal"><div data-pedal></div></section>' : ''}
       ${api.log ? '<section data-pane="log"><div data-log></div></section>' : ''}
       ${api.cloud ? '<section data-pane="cloud"><div data-cloud></div></section>' : ''}
     </div>`;
@@ -2697,6 +2724,9 @@ function TitleUI(root, api){
   };
   $qa('.tui-ctl [data-k]').forEach(b => b.onclick = () => act(b.dataset.k));
   $qa('.tui-tabs [data-tab]').forEach(b => b.onclick = () => { pane = b.dataset.tab; paintPane(); });
+  if (PR_ONLY) root.classList.add('tui-pronly');
+  const tapBox = $q('[data-tap]'); if (tapBox) { tapBox.checked = tapOn; tapBox.onchange = () => { tapOn = tapBox.checked; store('wc_tap', tapOn ? '1' : '0'); paintTap(); if (tapOn) toast('手拍上字：點一下字幕視窗後，按空白鍵就上下一句'); }; }
+  function paintTap(){ const bar = $q('[data-tapbar]'); if (!bar) return; bar.classList.toggle('hidden', !tapOn || PR_ONLY); const S = api.get(), i = S.items.findIndex(x => x.id === S.sel), on = i >= 0 && S.tapId === S.sel, nx = S.items[i < 0 ? 0 : on ? i + 1 : i]; $q('[data-tapnext]').textContent = nx ? '　下一句：' + C.summary(nx).slice(0, 30) : '　（已經是最後一句）'; }
   root.addEventListener('click', e => { const x = e.target.closest('[data-airx]'); if (x && guard()) send({ op: 'clear', layer: x.dataset.airx }); const sc = e.target.closest('[data-sc]'); if (sc && guard()) { const [team, d] = sc.dataset.sc.split(':'); send({ op: 'scoreAdj', team, d: +d }); } });
 
   /* ---------- 播出清單 ---------- */
@@ -2763,6 +2793,40 @@ function TitleUI(root, api){
   $q('[data-k="frpvw"]').onclick = () => send({ op: 'stage', item: readFree() });
   $q('[data-k="frtake"]').onclick = () => { if (!guard()) return; send({ op: 'stage', item: readFree() }); send({ op: 'take' }); };
   $q('[data-k="frclr"]').onclick = () => { if (guard()) send({ op: 'clear', layer: 'free' }); };
+  /* ---------- AI 語音上字（瀏覽器語音辨識） ---------- */
+  const AI = { rec: null, want: false, lines: [], interim: '', idleT: 0, sendT: 0, hist: [] };
+  const aq = k => $q(`[data-ai="${k}"]`);
+  const aiCfg = () => ({ lang: aq('lang').value, mode: aq('mode').value, tpl: aq('tpl').value, size: aq('size').value || '56', lines: +aq('lines').value || 2, idle: +aq('idle').value || 0 });
+  const aiItem = (text, c) => c.tpl === 'lyric' ? (() => { const ls = text.split('\n'); return { tpl: 'lyric', f: { l1: ls[ls.length - 2] && ls.length > 1 ? ls[ls.length - 2] : ls[0] || '', l2: ls.length > 1 ? ls[ls.length - 1] : '' } }; })() : { tpl: 'free', f: { l1: text, pos: 'bc', size: String(c.size), box: '1' } };
+  function aiShow(text, c){
+    if (c.mode === 'list') return;
+    const it = aiItem(text, c), S = api.get(), layer = c.tpl === 'lyric' ? 'lyric' : 'free', onAir = S.pgm && S.pgm[layer] && S.pgm[layer].item.tpl === it.tpl;
+    send({ op: 'live', item: it }); if (!onAir) send({ op: 'take' });
+    clearTimeout(AI.idleT); if (c.idle) AI.idleT = setTimeout(() => { send({ op: 'clear', layer }); AI.lines = []; }, c.idle * 1000);
+  }
+  function aiPaint(){ const v = aq('view'); if (!v) return; v.innerHTML = AI.lines.map(l => `<div>${esc(l)}</div>`).join('') + (AI.interim ? `<div class="int">${esc(AI.interim)}</div>` : '') || '<span class="note">說話的內容會顯示在這裡</span>';
+    aq('hist').innerHTML = AI.hist.slice().reverse().map((h, i) => `<div class="tui-row"><span class="grow">${esc(h)}</span><button type="button" class="btn sm" data-aiadd="${AI.hist.length - 1 - i}">加入清單</button></div>`).join('') || '<div class="note" style="padding:8px">還沒有句子</div>'; }
+  function aiStart(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return toast('這個瀏覽器不支援語音辨識，請用 Chrome 或 Edge');
+    const c = aiCfg(); AI.want = true; AI.lines = []; AI.interim = '';
+    const r = new SR(); r.lang = c.lang; r.continuous = true; r.interimResults = true; AI.rec = r;
+    r.onresult = e => { const c2 = aiCfg(); let fin = '', inter = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript.trim(); if (e.results[i].isFinal) fin += t; else inter += t; }
+      if (fin) { AI.lines.push(fin); AI.lines = AI.lines.slice(-c2.lines); AI.hist.push(fin); AI.hist = AI.hist.slice(-50); AI.interim = '';
+        if (c2.mode === 'list') send({ op: 'add', tpl: c2.tpl, f: aiItem(fin, c2).f }); else aiShow(AI.lines.join('\n'), c2); }
+      else { AI.interim = inter; if (c2.mode === 'live') { clearTimeout(AI.sendT); AI.sendT = setTimeout(() => aiShow(AI.lines.concat(inter).slice(-c2.lines).join('\n'), c2), 250); } }
+      aiPaint(); };
+    r.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { AI.want = false; toast('沒有麥克風權限，或瀏覽器不允許語音辨識'); } else if (e.error === 'network') aq('st').textContent = '語音辨識需要連網，重新連線中…'; };
+    r.onend = () => { AI.rec = null; if (AI.want) setTimeout(() => AI.want && aiStart(), 300); else aiUi(); };
+    try { r.start(); } catch {} aiUi();
+  }
+  function aiStop(){ AI.want = false; clearTimeout(AI.sendT); try { AI.rec?.stop(); } catch {} AI.rec = null; aiUi(); }
+  function aiUi(){ if (!aq('start')) return; aq('start').disabled = !!AI.want; aq('stop').disabled = !AI.want; aq('st').textContent = AI.want ? '🔴 聽打中…（' + aq('lang').selectedOptions[0].textContent + '）' : '尚未開始'; }
+  aq('start').onclick = () => { if (aiCfg().mode !== 'list' && !guard()) return; aiStart(); };
+  aq('stop').onclick = aiStop;
+  aq('hist').addEventListener('click', e => { const b = e.target.closest('[data-aiadd]'); if (!b) return; const c = aiCfg(); send({ op: 'add', tpl: c.tpl, f: aiItem(AI.hist[+b.dataset.aiadd], c).f }); toast('已加入播出清單'); });
+  aiPaint();
   $qa('[data-fr]').forEach(i => i.addEventListener('input', () => { if (!$q('[data-fr="live"]').checked || i.dataset.fr === 'live') return; clearTimeout(liveT); liveT = setTimeout(() => send({ op: 'live', item: readFree() }), 120); }));
 
   /* ---------- 資料來源 ---------- */
@@ -2952,10 +3016,32 @@ function TitleUI(root, api){
     } catch (e) { const el = box.querySelector('[data-cllist]'); if (el) el.textContent = '讀取失敗：' + e.message; }
   }
 
+  /* ---------- 提詞機視窗：輸出／遠端 ---------- */
+  function paintPLink(){
+    const box = $q('[data-plink]'); if (!box || box.contains(document.activeElement) || !api.links) return; const L = api.links();
+    const mir = store('wc_pr_mirror') === '1', view = L.prompter + (mir ? '&mirror=1' : '');
+    box.innerHTML = `<div class="tui-form">
+      <h4>主播／記者看的提詞畫面</h4><p class="note">平板或提詞螢幕打開這個網址，就會跟著這裡同步捲動（只能看、不能操作）。</p>
+      <div class="tui-bar"><label><input type="checkbox" data-pm ${mir ? 'checked' : ''}> 左右鏡像（提詞玻璃用）</label></div>
+      <div class="tui-bar"><input class="field grow mono" readonly value="${esc(view)}"><button type="button" class="btn" data-k="pv1">複製</button><button type="button" class="btn" data-k="pv2">開新視窗</button></div><div class="tui-qr" data-pq1></div>
+      <h4 style="margin-top:14px">提詞控制（給操作提詞的人）</h4><p class="note">在另一台電腦／平板打開，就能用鍵盤、簡報筆、<b>腳踏板</b>、遊戲手把或滑鼠滾輪控制捲動；也可以直接接在提詞平板上讓主播自己踩。這個連結只能捲動提詞，不能動字幕；按「系統 → 操作員 → 更換所有連結」可以讓舊連結失效。</p>
+      <div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.prompterCtl)}"><button type="button" class="btn" data-k="pc1">複製</button></div><div class="tui-qr" data-pq2></div>
+      <h4 style="margin-top:14px">節目時鐘（現場螢幕）</h4><p class="note">大字顯示現在時間、節目剩餘、本段剩餘與下一條。</p>
+      <div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.clock)}"><button type="button" class="btn" data-k="ck1">複製</button></div></div>`;
+    try { qr(box.querySelector('[data-pq1]'), view, 112); qr(box.querySelector('[data-pq2]'), L.prompterCtl, 112); } catch {}
+    box.querySelector('[data-pm]').onchange = e => { store('wc_pr_mirror', e.target.checked ? '1' : '0'); e.target.blur(); paintPLink(); };
+    box.querySelector('[data-k="pv1"]').onclick = () => copyText(view, '已複製提詞畫面網址');
+    box.querySelector('[data-k="pv2"]').onclick = () => window.open(view, '_blank', 'noopener,width=1024,height=640');
+    box.querySelector('[data-k="pc1"]').onclick = () => copyText(L.prompterCtl, '已複製提詞控制網址');
+    box.querySelector('[data-k="ck1"]').onclick = () => copyText(L.clock, '已複製節目時鐘網址');
+  }
+  function paintPedal(){ const box = $q('[data-pedal]'); if (box) prompterPedalPane(box); }
+
   /* ---------- 畫面更新 ---------- */
   function paintPane(){
     $qa('.tui-tabs [data-tab]').forEach(b => { b.classList.toggle('on', b.dataset.tab === pane); b.setAttribute('aria-selected', String(b.dataset.tab === pane)); });
     $qa('[data-pane]').forEach(p => p.classList.toggle('hidden', p.dataset.pane !== pane));
+    if (pane === 'plink') paintPLink(); if (pane === 'pedal') paintPedal();
     if (pane === 'list') paintList(true); if (pane === 'edit') loadEditor(true); if (pane === 'theme') paintTheme(); if (pane === 'link') paintLink(); if (pane === 'log') paintLog(); if (pane === 'cloud') paintCloud(); if (pane === 'rundown') paintRundown(); if (pane === 'prompter') paintPrompter(); if (pane === 'images') paintImages(); if (pane === 'check') paintCheck();
     if (pane === 'data') { const S = api.get(); if (!$q('[data-d="url"]').value) $q('[data-d="url"]').value = S.data.url || ''; paintMap(false); }
   }
@@ -2968,7 +3054,7 @@ function TitleUI(root, api){
   }
   let logSeen = -1;
   let rdSig = '', imgSig = '';
-  function refresh(){ if (dead) return; paintAir(); { const S = api.get(); if (pane === 'rundown') { const sg = JSON.stringify([S.rundown.rows, S.rundown.cur, S.rundown.showEnd, S.items.length, S.sources]); if (sg !== rdSig) { rdSig = sg; paintRundown(); } } if (pane === 'prompter') paintPrompter(); if (pane === 'images') { const sg = JSON.stringify(S.assetList || Object.keys(S.assets || {})); if (sg !== imgSig) { imgSig = sg; paintImages(); } } } if (pane === 'list') paintList(false); if (pane === 'edit') { loadEditor(false); if (!root.contains(document.activeElement) || !document.activeElement.closest('[data-pane="edit"]')) fillFollow($q('[data-e="follow"]').value); } if (pane === 'link') paintLink(); if (pane === 'log' && api.log && api.log.list().length !== logSeen) { logSeen = api.log.list().length; paintLog(); } }
+  function refresh(){ if (dead) return; paintAir(); paintTap(); { const S = api.get(); if (pane === 'rundown') { const sg = JSON.stringify([S.rundown.rows, S.rundown.cur, S.rundown.showEnd, S.items.length, S.sources]); if (sg !== rdSig) { rdSig = sg; paintRundown(); } } if (pane === 'prompter') paintPrompter(); if (pane === 'images') { const sg = JSON.stringify(S.assetList || Object.keys(S.assets || {})); if (sg !== imgSig) { imgSig = sg; paintImages(); } } } if (pane === 'list') paintList(false); if (pane === 'edit') { loadEditor(false); if (!root.contains(document.activeElement) || !document.activeElement.closest('[data-pane="edit"]')) fillFollow($q('[data-e="follow"]').value); } if (pane === 'link') paintLink(); if (pane === 'log' && api.log && api.log.list().length !== logSeen) { logSeen = api.log.list().length; paintLog(); } }
   const cvs = { pvw: $q('[data-c="pvw"]'), pgm: $q('[data-c="pgm"]') };
   function frame(){
     if (dead || !root.isConnected) { dead = true; return; }
@@ -2979,9 +3065,10 @@ function TitleUI(root, api){
   }
   paintPane(); refresh(); raf = requestAnimationFrame(frame);
   // 提詞機分頁開著、而且最後點的是這個視窗時，鍵盤／簡報筆／搖桿改控制提詞機
-  const pad = PrompterPad(send, api.get, () => pane === 'prompter' && root.isConnected && !document.hidden, n => { const el = $q('[data-padn]'); if (el) el.textContent = n ? '　🎮 已偵測到手把：' + n : ''; });
-  let lastInside = false; const md = e => { lastInside = root.contains(e.target); }; document.addEventListener('pointerdown', md, true);
-  return { root, refresh, tab: () => pane, prompterKeysOn: () => pane === 'prompter' && lastInside && root.isConnected, destroy(){ dead = true; cancelAnimationFrame(raf); pad.destroy(); document.removeEventListener('pointerdown', md, true); } };
+  const prPane = () => pane === 'prompter' || (PR_ONLY && root.isConnected);
+  const pad = PrompterPad(send, api.get, () => prPane() && root.isConnected && root.offsetParent !== null && !document.hidden && (window.__prPadOwner === root || !window.__prPadOwner || !window.__prPadOwner.isConnected || window.__prPadOwner.offsetParent === null), n => { const el = $q('[data-padn]'); if (el) el.textContent = n ? '　🎮 已偵測到手把：' + n : ''; });
+  let lastInside = false; const md = e => { lastInside = root.contains(e.target); if (lastInside) window.__prPadOwner = root; }; document.addEventListener('pointerdown', md, true);
+  return { root, refresh, tab: () => pane, prompterKeysOn: () => prPane() && lastInside && root.isConnected, tapKeysOn: () => tapOn && !PR_ONLY && pane !== 'prompter' && lastInside && root.isConnected, destroy(){ dead = true; try { aiStop(); } catch {} cancelAnimationFrame(raf); pad.destroy(); document.removeEventListener('pointerdown', md, true); } };
 }
 // 字幕快捷鍵（導播台與遠端控制頁共用）；回傳 true 表示已處理
 function titleHotkey(e, send, getState, canTake){
@@ -3020,8 +3107,19 @@ function shrinkImage(file, max){
 
 /* ===== 提詞機外部控制：鍵盤、簡報筆（翻頁器）、遊戲手把／搖桿、滑鼠滾輪 ===== */
 const PROMPTER_KEYS_HELP = [['空白鍵／Enter／簡報筆「開始」', '開始／暫停'], ['↑ ↓', '減速／加速（按住 Shift 一次 30）'], ['PageUp／PageDown（簡報筆上一頁／下一頁）', '往回／往前約半個畫面'], ['← →', '往回／往前一行'], ['1～9', '直接設定速度（1 最慢、9 最快）'], ['0', '速度歸零（停住）'], ['R 或 -', '反向（倒捲）'], ['Home', '回開頭'], ['Esc', '暫停']];
+// 自訂按鍵（腳踏板學習）：存在這台裝置；{ 'KeyB': 'play', 'pad:0': 'hold', … }
+const PR_ACTIONS = [['hold', '按住捲動（放開就停，腳踏板最常用）'], ['play', '開始／暫停'], ['faster', '加速'], ['slower', '減速'], ['fwd', '往前約半個畫面'], ['back', '往回約半個畫面'], ['line', '往前一行'], ['lineBack', '往回一行'], ['top', '回開頭'], ['rev', '反向（倒捲）']];
+const prKeyMap = () => { try { return JSON.parse(localStorage.getItem('wc_prkeys') || '{}') || {}; } catch { return {}; } };
+function prActionCmd(a, getS, down){
+  const P = getS().prompter || {}, line = (P.size || 64) * 1.45;
+  return ({ hold: { op: 'prompterPlay', play: down !== false }, play: { op: 'prompterPlay' }, faster: { op: 'prompterSpeed', delta: 10 }, slower: { op: 'prompterSpeed', delta: -10 }, fwd: { op: 'prompterSeek', delta: 300 }, back: { op: 'prompterSeek', delta: -300 },
+    line: { op: 'prompterSeek', delta: line }, lineBack: { op: 'prompterSeek', delta: -line }, top: { op: 'prompterSeek', pos: 0 }, rev: { op: 'prompterSpeed', value: -(P.speed || 60) } })[a] || null;
+}
+function prompterKeyUp(e, send, getS){ const a = prKeyMap()[e.code]; if (a === 'hold') { e.preventDefault(); send(prActionCmd('hold', getS, false)); return true; } return false; }
 function prompterKeys(e, send, getS){
   const tg = e.target; if (tg?.closest && tg.closest('input,select,textarea,[contenteditable]')) return false;
+  if (window.__prLearning) return false;
+  const ca = prKeyMap()[e.code]; if (ca) { e.preventDefault(); if (!e.repeat) { const c = prActionCmd(ca, getS, true); if (c) send(c); } return true; }   // 自訂按鍵優先（腳踏板常送 F 鍵或少見的按鍵）
   if (e.ctrlKey || e.metaKey || e.altKey) return false;
   const k = e.code, P = getS().prompter || {}, step = e.shiftKey ? 30 : 10;
   let cmd = null;
@@ -3048,14 +3146,17 @@ function PrompterPad(send, getS, active, onName){
     const pads = [...(navigator.getGamepads() || [])].filter(Boolean), g = pads[0];
     const nm = g ? g.id.replace(/\(.*?\)/g, '').trim().slice(0, 40) : ''; if (nm !== name) { name = nm; onName?.(nm); }
     if (!g || !active()) { prev = {}; return; }
-    const btn = i => !!g.buttons[i]?.pressed, edge = i => btn(i) && !prev[i];
-    if (edge(0) || edge(9)) send({ op: 'prompterPlay' });
-    if (edge(1)) send({ op: 'prompterPlay', play: false });
-    if (edge(12)) send({ op: 'prompterSpeed', delta: -10 });
-    if (edge(13)) send({ op: 'prompterSpeed', delta: 10 });
-    if (edge(14) || edge(4)) send({ op: 'prompterSeek', delta: edge(4) ? -300 : -(getS().prompter?.size || 64) * 1.45 });
-    if (edge(15) || edge(5)) send({ op: 'prompterSeek', delta: edge(5) ? 300 : (getS().prompter?.size || 64) * 1.45 });
-    if (edge(3)) send({ op: 'prompterSeek', pos: 0 });
+    const btn = i => !!g.buttons[i]?.pressed, edge = i => btn(i) && !prev[i], up = i => !btn(i) && prev[i];
+    if (window.__prLearning) { prev = {}; g.buttons.forEach((b, i) => prev[i] = b.pressed); return; }
+    const M = prKeyMap(), custom = new Set(); Object.entries(M).forEach(([k, a]) => { if (!k.startsWith('pad:')) return; const i = +k.slice(4); custom.add(i); if (edge(i)) { const c = prActionCmd(a, getS, true); if (c) send(c); } else if (a === 'hold' && up(i)) send(prActionCmd('hold', getS, false)); });
+    const edgeD = edge; const edge2 = i => !custom.has(i) && edgeD(i);
+    if (edge2(0) || edge2(9)) send({ op: 'prompterPlay' });
+    if (edge2(1)) send({ op: 'prompterPlay', play: false });
+    if (edge2(12)) send({ op: 'prompterSpeed', delta: -10 });
+    if (edge2(13)) send({ op: 'prompterSpeed', delta: 10 });
+    if (edge2(14) || edge2(4)) send({ op: 'prompterSeek', delta: edge2(4) ? -300 : -(getS().prompter?.size || 64) * 1.45 });
+    if (edge2(15) || edge2(5)) send({ op: 'prompterSeek', delta: edge2(5) ? 300 : (getS().prompter?.size || 64) * 1.45 });
+    if (edge2(3)) send({ op: 'prompterSeek', pos: 0 });
     prev = {}; g.buttons.forEach((b, i) => prev[i] = b.pressed);
     // 搖桿：取左右搖桿 Y 軸中推得比較多的那支；往下推＝往前捲
     const ax = [g.axes[1] || 0, g.axes[3] || 0].sort((a, b) => Math.abs(b) - Math.abs(a))[0], dead = .18;
@@ -3075,6 +3176,38 @@ function prompterWheel(el, send){
 }
 function prompterHelpHtml(){ return `<table class="prk">${PROMPTER_KEYS_HELP.map(([k, v]) => `<tr><td><kbd>${esc(k)}</kbd></td><td>${esc(v)}</td></tr>`).join('')}<tr><td><kbd>遊戲手把／搖桿</kbd></td><td>A 開始暫停、B 暫停、十字鍵上下變速、左右一行、LB／RB 半頁、Y 回開頭；搖桿推多少捲多快，放開恢復</td></tr><tr><td><kbd>滑鼠滾輪</kbd></td><td>在提詞畫面上滾動＝往前／往回</td></tr></table>`; }
 
+// 腳踏板／按鍵設定畫面（導播台提詞機視窗與提詞控制頁共用）：按「設定」後踩一下踏板或按一個鍵就記住
+function prompterPedalPane(box){
+  const M = prKeyMap(), name = k => k.startsWith('pad:') ? '🎮 手把／踏板按鈕 ' + (+k.slice(4) + 1) : '⌨ ' + k.replace(/^Key/, '').replace(/^Digit/, '').replace(/^Numpad/, '數字鍵盤 ').replace('ArrowUp', '↑').replace('ArrowDown', '↓').replace('ArrowLeft', '←').replace('ArrowRight', '→').replace('Space', '空白鍵');
+  box.innerHTML = `<div class="tui-form"><h4>腳踏板／自訂按鍵</h4>
+    <p class="note">大部分 USB 腳踏板、簡報筆插上就會被當成鍵盤或手把，不用裝驅動。按下面的「設定」，再踩一下踏板（或按一個鍵），就會記住。<b>「按住捲動」</b>最接近專業提詞踏板：踩著就捲、放開就停。設定存在這台電腦，提詞控制頁也可以各自設定。</p>
+    <table class="prk">${PR_ACTIONS.map(([a, n]) => { const ks = Object.keys(M).filter(k => M[k] === a); return `<tr><td>${esc(n)}</td><td>${ks.length ? ks.map(k => `<span class="chip">${esc(name(k))} <button type="button" data-pdx="${esc(k)}" title="移除">×</button></span>`).join(' ') : '<span class="note">（未設定，用預設按鍵）</span>'}</td><td><button type="button" class="btn sm" data-pdl="${a}">設定</button></td></tr>`; }).join('')}</table>
+    <div class="tui-bar"><span data-pdst class="note"></span><span class="grow"></span><button type="button" class="btn sm danger" data-pdr>全部清除（回到預設按鍵）</button></div>
+    <details><summary class="note">預設按鍵（沒有自訂時）</summary>${prompterHelpHtml()}</details></div>`;
+  const st = box.querySelector('[data-pdst]'), save = m => { try { localStorage.setItem('wc_prkeys', JSON.stringify(m)); } catch {} };
+  box.querySelectorAll('[data-pdx]').forEach(b => b.onclick = () => { const m = prKeyMap(); delete m[b.dataset.pdx]; save(m); prompterPedalPane(box); });
+  box.querySelector('[data-pdr]').onclick = () => { if (confirm('清除所有自訂按鍵？')) { save({}); prompterPedalPane(box); } };
+  box.querySelectorAll('[data-pdl]').forEach(b => b.onclick = () => {
+    const a = b.dataset.pdl; st.textContent = '請在 10 秒內踩一下腳踏板或按一個鍵…（Esc 取消）'; st.style.color = '#ffc24a'; window.__prLearning = true;
+    let prevPad = null, timer = 0, iv = 0;
+    const done = k => { window.__prLearning = false; clearTimeout(timer); clearInterval(iv); removeEventListener('keydown', kd, true); if (k) { const m = prKeyMap(); m[k] = a; save(m); toast('已設定：' + name(k)); } prompterPedalPane(box); };
+    const kd = e => { e.preventDefault(); e.stopPropagation(); if (e.code === 'Escape') return done(null); if (['ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'MetaLeft', 'MetaRight'].includes(e.code)) return; done(e.code); };
+    addEventListener('keydown', kd, true);
+    iv = setInterval(() => { const g = [...(navigator.getGamepads?.() || [])].find(Boolean); if (!g) return; const now = g.buttons.map(x => x.pressed); if (prevPad) { const i = now.findIndex((p, j) => p && !prevPad[j]); if (i >= 0) return done('pad:' + i); } prevPad = now; }, 40);
+    timer = setTimeout(() => done(null), 10000);
+  });
+}
+// 手拍上字：空白鍵上下一句，Shift＋空白鍵回上一句，Esc 下字
+function tapKeys(e, send, getS, canTake){
+  const tg = e.target; if (tg?.closest && tg.closest('input,select,textarea,[contenteditable]')) return false;
+  if (e.ctrlKey || e.metaKey || e.altKey) return false;
+  if (e.code !== 'Space' && e.code !== 'Escape' && e.code !== 'Backspace') return false;
+  e.preventDefault(); if (e.repeat) return true; if (canTake && !canTake()) return true;
+  if (e.code === 'Escape') { const S = getS(), l = Object.keys(S.pgm).sort((a, b) => S.pgm[b].t0 - S.pgm[a].t0)[0]; if (l) send({ op: 'clear', layer: l }); }
+  else send({ op: 'tap', dir: e.shiftKey || e.code === 'Backspace' ? -1 : 1 });
+  return true;
+}
+
 /* ===================== 遠端字幕控制頁（?mode=cgctl）===================== */
 function TitleRemote(){
   const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), tok = Q.get('t') || '';
@@ -3084,7 +3217,8 @@ function TitleRemote(){
   const st = (cls, t) => { $('#cgs').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`; };
   const send = cmd => { if (conn?.open) conn.send({ type: 'cg', cmd }); else toast('尚未連上導播台，指令沒有送出'); };
   const ui = TitleUI($('#cgui'), { get: () => S, send });
-  addEventListener('keydown', e => { if (ui.prompterKeysOn() && prompterKeys(e, send, () => S)) return; titleHotkey(e, send, () => S); });
+  addEventListener('keydown', e => { if (ui.prompterKeysOn() && prompterKeys(e, send, () => S)) return; if (ui.tapKeysOn() && tapKeys(e, send, () => S)) return; titleHotkey(e, send, () => S); });
+  addEventListener('keyup', e => { if (ui.prompterKeysOn()) prompterKeyUp(e, send, () => S); });
   $('#cgn').onchange = e => store('wc_opname', e.target.value.trim());
   if (!roomKey || !tok) { st('bad', '網址不完整，請跟導播要字幕控制連結'); return; }
   const retry = () => { if (denied) return; clearTimeout(retryT); retryT = setTimeout(dial, 3000); };
@@ -3172,11 +3306,13 @@ function TitlePrompter(){
   let ctl = !!tok; if (!ctl) return;
   // 控制模式（網址帶 &t=）：這台可以用鍵盤、簡報筆、遊戲手把、滑鼠滾輪控制捲動
   $('#prb .note').textContent = '';
-  $('#prb .grow').insertAdjacentHTML('afterend', `<span class="pill">控制模式</span><span id="prsp" class="mono"></span><span id="prpad" class="note"></span><button type="button" class="btn sm" id="prhelp">按鍵說明</button>`);
-  app.insertAdjacentHTML('beforeend', `<div class="prp-help hidden" id="prh"><div><h3>提詞機控制</h3>${prompterHelpHtml()}<p class="note">點任何地方關閉</p></div></div>`);
+  $('#prb .grow').insertAdjacentHTML('afterend', `<span class="pill">控制模式</span><span id="prsp" class="mono"></span><span id="prpad" class="note"></span><button type="button" class="btn sm" id="prhelp">按鍵說明</button><button type="button" class="btn sm" id="prpedal">腳踏板設定</button>`);
+  app.insertAdjacentHTML('beforeend', `<div class="prp-help hidden" id="prh"><div><h3>提詞機控制</h3>${prompterHelpHtml()}<p class="note">點任何地方關閉</p></div></div><div class="prp-help hidden" id="prpd"><div style="max-height:90vh;overflow:auto"><div id="prpdb"></div><div class="tui-bar"><span class="grow"></span><button type="button" class="btn" id="prpdx">關閉</button></div></div></div>`);
+  $('#prpedal').onclick = e => { e.stopPropagation(); prompterPedalPane($('#prpdb')); $('#prpd').classList.remove('hidden'); }; $('#prpdx').onclick = () => $('#prpd').classList.add('hidden');
   $('#prhelp').onclick = e => { e.stopPropagation(); $('#prh').classList.remove('hidden'); }; $('#prh').onclick = () => $('#prh').classList.add('hidden');
   const send = cmd => { if (ctl) V.send(cmd); };
-  addEventListener('keydown', e => { if (e.code === 'Slash' && e.shiftKey) { $('#prh').classList.toggle('hidden'); return; } prompterKeys(e, send, () => S); });
+  addEventListener('keydown', e => { if (window.__prLearning) return; if (e.code === 'Slash' && e.shiftKey) { $('#prh').classList.toggle('hidden'); return; } prompterKeys(e, send, () => S); });
+  addEventListener('keyup', e => prompterKeyUp(e, send, () => S));
   prompterWheel($('#prv'), send);
   PrompterPad(send, () => S, () => !document.hidden, n => { $('#prpad').textContent = n ? '🎮 ' + n : ''; });
   setInterval(() => { const P = S.prompter || {}; $('#prsp').textContent = (P.playing ? '▶ ' : '⏸ ') + (P.speed < 0 ? '倒捲 ' + -P.speed : '速度 ' + (P.speed || 0)); }, 200);
@@ -3221,12 +3357,13 @@ function Host(sess){
   // 2026.1114 重新分類：依直播時的使用頻率排序；每項功能只出現在一個地方
   //   hint＝滑鼠停在按鈕上時顯示的完整名稱（含英文）
   const GROUPS = {
-    routingg:{ key:'來賓／訊號', hint:'Inputs｜來賓路數指派、訊號來源、DJI Pocket、外網回傳 RTMP、4K 擷取', title:'INPUTS 來賓／訊號來源', w:780, h:680, direct:true, tabs:['routing','src','pocket','ingest','capture4k'] },
+    routingg:{ key:'來賓／訊號', hint:'Inputs｜來賓路數指派、訊號來源、外部訊號擷取（自動偵測解析度）、相機控制（變焦／雲台／對焦）、DJI Pocket、外網回傳 RTMP', title:'INPUTS 來賓／訊號來源', w:820, h:700, direct:true, tabs:['routing','src','capture4k','camctl','pocket','ingest'] },
     ic:   { key: '對講／返送', hint:'Intercom｜對講、IFB 返送（Mix-minus）、回送畫面給來賓', title: 'INTERCOM 對講／IFB 返送／回送畫面給來賓', w: 820, h: 680, tabs: ['ic', 'ifb', 'ret'] },
     mixg: { key: '混音台', hint:'Audio Console｜推桿與監聽', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix'] },
     audg: { key: '聲音路由', hint:'Audio Routing｜音訊路由、路由矩陣', title: 'AUDIO ROUTING 聲音路由／聲音路由矩陣', w: 860, h: 720, tabs: ['aud', 'mtx'] },
     swg:  { key: '切換台', hint:'Production Switcher｜M/E、去背合成、攝影機追蹤、調色、示波器、場景、版型、設定', title: 'SWITCHER 切換台：M/E／去背合成／追蹤／調色／示波器／場景／子母畫面版型／設定', w: 780, h: 720, tabs: ['me','vset','tracking','color','scopes','scene','lay','set'] },
-    gfxg: { key: '字幕／圖文', hint:'Titles & Graphics｜字幕播出（清單／預覽／上字／唱詞／手排／資料來源／排序表／提詞機）、簡易字幕條與跑馬燈、CG 設計器、圖庫、計時倒數', title: 'TITLES 字幕播出／圖文包裝／CG 設計器／圖庫／計時倒數', w: 1000, h: 760, tabs: ['titles','gfx','cgdesigner','still','timer'] },
+    gfxg: { key: '字幕／圖文', hint:'Titles & Graphics｜字幕播出（清單／預覽／上字／手拍上字／唱詞／手打字幕／資料來源／排序表）、簡易字幕條與跑馬燈、CG 設計器、圖庫、計時倒數', title: 'TITLES 字幕播出／圖文包裝／CG 設計器／圖庫／計時倒數', w: 1000, h: 760, tabs: ['titles','gfx','cgdesigner','still','timer'] },
+    prompterg:{ key:'提詞機', hint:'Prompter｜提詞稿、捲動速度、腳踏板／鍵盤設定、主播平板與提詞控制網址、節目時鐘（Shift＋E）', title:'PROMPTER 提詞機', w:920, h:720, tabs:['prompter'] },
     mediag:{ key:'錄影／回放', hint:'Record & Replay｜錄影、錄影恢復、即時回放、16 格素材庫、檔案解碼、雲端儲存', title:'RECORD／REPLAY 錄影／回放／素材／雲端', w:820, h:680, tabs:['rec','recovery','replay','media16','decode','cloud'] },
     outg: { key: '輸出／串流', hint:'Output｜節目輸出（OBS／vMix）、AUX 母線、串流推流、NDI、錄影儲存／推流拉流', title: 'OUTPUT 輸出：節目輸出（OBS／vMix）／AUX 母線／串流／NDI', w: 800, h: 700, tabs: ['out', 'aux', 'strm', 'ndi', 'workflow'] },
     msgq: { key: '互動', hint:'Live Interaction｜訊息、舉手、投票', title: 'LIVE INTERACTION｜訊息、提問與投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
@@ -3235,11 +3372,11 @@ function Host(sess){
   };
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
-  const PROTAB = new Set(['mtx','lay','aux','strm','noc','me','color','scopes','tracking','cgdesigner','ndi','capture4k']);   // 專業版才顯示的分頁
-  const TABN = {titles:'字幕播出',ingest:'外網回傳／RTMP',native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'錄影儲存／推流拉流',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '子母畫面版型', rec: '錄影', mix: '混音台', mtx: '聲音路由矩陣', aud: '聲音路由', ic: '對講', ifb: 'IFB 返送（Mix-minus）', ret: '回送畫面給來賓', gfx: '簡易字幕條／跑馬燈', timer: '計時倒數', vset: '去背合成（Chroma Key）', msg: '訊息', qa: '舉手／投票', out: '節目輸出（OBS／vMix）', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const PROTAB = new Set(['mtx','lay','aux','strm','noc','me','color','scopes','tracking','cgdesigner','ndi']);   // 專業版才顯示的分頁
+  const TABN = {titles:'字幕播出',ingest:'外網回傳／RTMP',native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'外部訊號擷取',camctl:'相機控制（PTZ）',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'錄影儲存／推流拉流',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '子母畫面版型', rec: '錄影', mix: '混音台', mtx: '聲音路由矩陣', aud: '聲音路由', ic: '對講', ifb: 'IFB 返送（Mix-minus）', ret: '回送畫面給來賓', gfx: '簡易字幕條／跑馬燈', timer: '計時倒數', vset: '去背合成（Chroma Key）', msg: '訊息', qa: '舉手／投票', out: '節目輸出（OBS／vMix）', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
 
   /* ---------- 字幕播出（VisTitle／vMix 風格）：狀態只在導播台，遠端控制與透明輸出都從這裡同步 ---------- */
-  const TS = TitleCore.load(), CGC = new Set(); let titleUi = null, titleDataAt = 0;
+  const TS = TitleCore.load(), CGC = new Set(); let titleUi = null, prompterUi = null, titleDataAt = 0;
   const cgCtlUrl = () => `${shareBase()}?mode=cgctl&o=${roomKey}&t=${OPTOK.cg}`;
   const cgOutUrl = () => `${shareBase()}?mode=cgout&o=${roomKey}`;
   let assetSent = TS.assetRev || 0;
@@ -3271,7 +3408,7 @@ function Host(sess){
     Object.keys(after).forEach(l => { const b = before[l], a = after[l]; if (!b || b.t0 !== a.t0) tlogAdd(by && by.startsWith('自動') ? '自動上字' : '上字', l, a.item, by); else if (b.sig !== a.sig) tlogAdd('更新內容', l, a.item, by); });
   }
   const localOperator = () => info?.me?.name || info?.me?.account || '導播台';
-  const TITLE_AIR_OPS = ['take', 'clear', 'next', 'prev', 'live', 'scoreAdj'];
+  const TITLE_AIR_OPS = ['take', 'clear', 'next', 'prev', 'live', 'scoreAdj', 'tap'];
   function titleCmd(cmd, by){
     if (!by && TITLE_AIR_OPS.includes(cmd?.op) && !canSw()) { roleDeny(); return; }   // 本機鎖成音控／監看員時不能改播出中的字幕（遠端字幕控制與自動上下字不受影響）
     const before = airMap();
@@ -3318,6 +3455,13 @@ function Host(sess){
       try { titleUi?.refresh(); } catch {}
     };
     if (conn.open) go(); else conn.on('open', go);
+  }
+  // 獨立的提詞機視窗（跟字幕播出共用同一份提詞稿與捲動狀態）
+  function renderPrompterWin(){
+    const w = WIN.prompter; if (!w?.open) return;
+    if (prompterUi && w.body.contains(prompterUi.root)) { prompterUi.refresh(); return; }
+    prompterUi?.destroy(); w.body.innerHTML = ''; const box = document.createElement('div'); w.body.appendChild(box);
+    prompterUi = TitleUI(box, { mode: 'prompter', get: () => TS, send: cmd => titleCmd(cmd), links: () => ({ ctl: cgCtlUrl(), out: cgOutUrl(), prompter: `${shareBase()}?mode=prompter&o=${roomKey}`, prompterCtl: `${shareBase()}?mode=prompter&o=${roomKey}&t=${OPTOK.pr}`, clock: `${shareBase()}?mode=clock&o=${roomKey}` }) });
   }
   function renderTitles(){
     const w = WIN.titles; if (!w?.open) return;
@@ -5234,7 +5378,7 @@ function Host(sess){
   async function scanPocket(){if(!navigator.mediaDevices?.getUserMedia)throw Error('請使用 HTTPS 開啟並確認瀏覽器支援相機');const temp=await navigator.mediaDevices.getUserMedia({video:true,audio:false});temp.getTracks().forEach(t=>t.stop());POCKET_DEVICES=await navigator.mediaDevices.enumerateDevices();renderPocket();}
   function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const oldVideo=$('#pocketVideo',w.body),oldAudio=$('#pocketAudio',w.body);if(oldVideo)POCKET_PICK.video=oldVideo.value;if(oldAudio)POCKET_PICK.audio=oldAudio.value;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div id="pocketControlPanel"></div><div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 4／Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 4／Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${(POCKET_PICK.video?POCKET_PICK.video===d.deviceId:/pocket|osmo|dji/i.test(d.label))?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}" ${POCKET_PICK.audio===d.deviceId?'selected':''}>${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播（含 Pocket 4）</h4><button class="btn primary" id="pocketManaged">開啟後台管理的外網回傳頻道</button><div class="note">Pocket 4／Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};renderPocketControlPanel(b);$('#pocketAudio',b).onchange=e=>{POCKET_PICK.audio=e.target.value;};$('#pocketVideo',b).onchange=e=>{POCKET_PICK.video=e.target.value;};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;POCKET_PICK.video=video;POCKET_PICK.audio=aud;await ac.resume();if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?pocketAudioConstraints(aud):false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;x.usbAudioDeviceId=aud;x.usbProbe={started:Date.now(),peak:0};setPvw(x.id);renderAll();toast(stream.getAudioTracks().length?'Pocket 已加入；請在收音診斷確認實際裝置與音量':'Pocket 已加入，但未取得音訊軌');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');$('#pocketManaged',b).onclick=()=>{openWin('ingest');loadIngest().catch(e=>toast(e.message));};}
 
-  const WDEF = {titles:{title:'TITLES 字幕播出',w:1000,h:760,render:renderTitles},native:{title:'原生影音引擎',w:640,h:470,render:renderNative},decode:{title:'專業檔案解碼／轉碼',w:760,h:560,render:renderDecode},capture4k:{title:'4K 擷取與製播',w:760,h:560,render:renderCapture4k},ndi:{title:'原生 NDI 收送',w:760,h:580,render:renderNdi},me:{title:'多級 M/E',w:1100,h:720,render:renderMEPanel},cgdesigner:{title:'CG 動態標題設計器',w:1150,h:850,render:renderCgDesigner},color:{title:'色輪調色',w:940,h:620,render:renderColor},scopes:{title:'影像示波器',w:1000,h:540,render:renderScopes},tracking:{title:'實體攝影機追蹤',w:900,h:700,render:renderTracking}, routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
+  const WDEF = {titles:{title:'TITLES 字幕播出',w:1000,h:760,render:renderTitles},prompter:{title:'PROMPTER 提詞機',w:920,h:720,render:renderPrompterWin},native:{title:'原生影音引擎',w:640,h:470,render:renderNative},decode:{title:'專業檔案解碼／轉碼',w:760,h:560,render:renderDecode},capture4k:{title:'CAPTURE 外部訊號擷取',w:760,h:600,render:renderCapture4k},camctl:{title:'CAMERA 相機控制（PTZ）',w:760,h:600,render:renderCamCtl},ndi:{title:'原生 NDI 收送',w:760,h:580,render:renderNdi},me:{title:'多級 M/E',w:1100,h:720,render:renderMEPanel},cgdesigner:{title:'CG 動態標題設計器',w:1150,h:850,render:renderCgDesigner},color:{title:'色輪調色',w:940,h:620,render:renderColor},scopes:{title:'影像示波器',w:1000,h:540,render:renderScopes},tracking:{title:'實體攝影機追蹤',w:900,h:700,render:renderTracking}, routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
     recovery:{title:'錄影恢復／待續上傳',w:760,h:640,render:renderRecovery},
     ingest:{title:'Pocket／外網 RTMP 回傳',w:740,h:640,render:renderIngest},
     pocket:{title:'DJI Pocket USB／網路訊號',w:720,h:640,render:renderPocket},
@@ -5762,38 +5906,10 @@ function Host(sess){
         <label class="btn sm grow">${ic('image')}加入圖卡（圖片，可多選）<input type="file" accept="image/*" multiple id="sim" hidden></label>
         <label class="btn sm grow">${ic('film')}加入影片（MP4，含聲音）<input type="file" accept="video/*,audio/*" multiple id="smd" hidden></label></div>
         <div class="note">標題卡、地圖、照片、新聞帶都可以。影片按 ON AIR 會自動播放。</div></div>
-      <div class="wsec"><h4>加入擷取卡／外接相機 <span class="grow"></span><button class="btn ghost sm" data-r>重新整理</button></h4>
-        <span class="lbl">影像裝置</span><select class="field full" id="sv"></select>
-        <div class="grid2" style="margin-top:8px"><div><span class="lbl">解析度</span><select class="field full" id="sr"><option value="1280x720">720p</option><option value="1920x1080" selected>1080p</option><option value="3840x2160">4K</option></select></div>
-          <div><span class="lbl">影格</span><select class="field full" id="sf"><option>30</option><option>60</option><option>25</option><option>50</option></select></div></div>
-        <span class="lbl" style="margin-top:8px">聲音（擷取卡聲音或外接麥克風）</span><select class="field full" id="sa"></select>
-        <span class="lbl" style="margin-top:8px">名稱</span><input class="field full" id="sn" placeholder="例：攝影機 1">
-        <button class="btn primary" id="sadd" style="width:100%;margin-top:10px">${ic('plus')}加入來源</button>
-        <div class="note">擷取卡（Elgato、AVerMedia、UVC 擷取盒）在系統裡就是一個「攝影機」，選它即可。第一次使用需要允許瀏覽器存取相機。</div></div>
+      <div data-capweb2></div>
       <div class="wsec"><h4>螢幕畫面</h4><button class="btn" id="sscr" style="width:100%">${ic('screen')}擷取螢幕／視窗</button></div>
       <div class="wsec"><h4>目前的本機來源</h4>${locals.length ? locals.map(id => `<div class="row" style="margin:3px 0"><span class="mono">${numOf(inputs.get(id))}</span><span class="grow">${esc(inputs.get(id).name)}</span><button class="btn sm danger" data-del="${id}">移除</button></div>`).join('') : '<div class="note">沒有</div>'}</div>`;
-    const fill = async () => {
-      let vs = await devices('videoinput');
-      if (vs.length && !vs[0].label) { try { const s = await navigator.mediaDevices.getUserMedia({ video: true }); s.getTracks().forEach(t => t.stop()); vs = await devices('videoinput'); } catch {} }
-      const as = await devices('audioinput');
-      const sv = $('#sv', w.body), sa = $('#sa', w.body); if (!sv) return;
-      sv.innerHTML = vs.map((d, i) => `<option value="${d.deviceId}">${esc(d.label || '攝影機 ' + (i + 1))}</option>`).join('') || '<option value="">找不到影像裝置</option>';
-      sa.innerHTML = '<option value="">不要聲音</option>' + as.map((d, i) => `<option value="${d.deviceId}">${esc(d.label || '麥克風 ' + (i + 1))}</option>`).join('');
-    };
-    fill();
-    $('[data-r]', w.body).onclick = fill;
-    $('#sadd', w.body).onclick = async () => {
-      const [W, H] = $('#sr', w.body).value.split('x').map(Number), fps = +$('#sf', w.body).value, vid = $('#sv', w.body).value, aid = $('#sa', w.body).value;
-      const name = $('#sn', w.body).value.trim() || $('#sv', w.body).selectedOptions[0]?.textContent || '本機來源';
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: { deviceId: vid ? { exact: vid } : undefined, width: { ideal: W }, height: { ideal: H }, frameRate: { ideal: fps } },
-          audio: aid ? { deviceId: { exact: aid }, echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false });
-        const inp = newInput('L-' + rnd(6), 'local', name);
-        inp.cameraOrientation = localCameraOrientation(s); setStream(inp, inp.cameraOrientation.stream);
-        s.getVideoTracks()[0].onended = () => removeInput(inp.id);
-        toast('已加入「' + name + '」'); renderAll();
-      } catch (e) { toast('無法開啟：' + e.message); }
-    };
+    captureWebPane($('[data-capweb2]', w.body), { title: '加入攝影機／擷取卡' });
     $('#sscr', w.body).onclick = async () => {
       try {
         const s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: true });
@@ -5855,7 +5971,7 @@ function Host(sess){
     const K = (k, d) => `<tr><td>${k.split(' ').map(x => `<span class="kbd">${x}</span>`).join(' ')}</td><td>${d}</td></tr>`;
     w.body.innerHTML = `<table class="ktable">
       <tr><td colspan=2 class="note">切換台關閉時：數字＝設為 PVW、Shift＋數字＝ON AIR、Space／Enter＝把 PVW 那一路切成 ON AIR</td></tr>
-      ${K('W', '開啟／關閉切換台')}${K('F1 ~ F12', '叫出場景（Shift＋F1～F12 儲存）')}${K('Y U H V', '簡易字幕條／跑馬燈／台標／CC 字幕 開關')}${K('Z', 'PREV TRANS 轉場預覽')}${K('J', 'PGM 截圖')}${K('Shift M', '全部靜音')}${K('Shift R', '開始／停止錄影')}${K('E F D ,', '字幕播出／場景／計時倒數／切換台設定 視窗')}${K('.', '字幕 TAKE 上字（預覽中的那一則）')}${K('PgDn → ／ PgUp ←', '字幕下一則／上一則（簡報筆可用；唱詞直播時直接上字）')}${K('Delete ／ Shift＋Delete', '字幕下字／全部下字')}${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
+      ${K('W', '開啟／關閉切換台')}${K('F1 ~ F12', '叫出場景（Shift＋F1～F12 儲存）')}${K('Y U H V', '簡易字幕條／跑馬燈／台標／CC 字幕 開關')}${K('Z', 'PREV TRANS 轉場預覽')}${K('J', 'PGM 截圖')}${K('Shift M', '全部靜音')}${K('Shift R', '開始／停止錄影')}${K('E F D ,', '字幕播出／場景／計時倒數／切換台設定 視窗')}${K('Shift E', '提詞機視窗')}${K('.', '字幕 TAKE 上字（預覽中的那一則）')}${K('PgDn → ／ PgUp ←', '字幕下一則／上一則（簡報筆可用；唱詞直播時直接上字）')}${K('Delete ／ Shift＋Delete', '字幕下字／全部下字')}${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
       ${K('Space', 'CUT')}${K('Enter', 'AUTO（依設定的轉場）')}${K('↑ ↓', '手動推 T-Bar')}${K('B', 'FTB 淡出黑畫面')}${K('P', '子母畫面開／關')}
       ${K('T', '按住：對 PREVIEW（或選取）的來賓說話')}${K('A', '按住：群發給所有來賓')}
       ${K('M', 'PREVIEW 那一路靜音／取消')}${K('L', 'PREVIEW 那一路 PFL 監聽')}${K('G', 'PREVIEW 那一路對齊線（導播端）')}
@@ -5895,7 +6011,8 @@ function Host(sess){
     if (e.repeat && (e.code === 'KeyT' || e.code === 'KeyA')) return;
     if (ROLE.local === 'view' && e.code !== 'Escape') return;
     if (ROLE.local === 'aud' && !['KeyM', 'KeyL', 'KeyX', 'Escape', 'KeyK', 'Slash'].includes(e.code)) return;
-    if (titleUi?.prompterKeysOn() && prompterKeys(e, titleCmd, () => TS)) return;   // 提詞機分頁使用中：鍵盤／簡報筆改控制提詞機
+    if ((titleUi?.prompterKeysOn() || prompterUi?.prompterKeysOn()) && prompterKeys(e, titleCmd, () => TS)) return;   // 提詞機使用中：鍵盤／簡報筆／腳踏板改控制提詞機
+    if (titleUi?.tapKeysOn() && tapKeys(e, titleCmd, () => TS, titleCanTake)) return;   // 手拍上字：空白鍵上下一句
     if (titleHotkey(e, titleCmd, () => TS, titleCanTake)) return;   // 字幕：. 上字／PgDn → 下一則／PgUp ← 上一則／Delete 下字
     const m = /^Digit(\d)$/.exec(e.code);
     if (m) { const n = +m[1] || 10; const id = order[n - 1]; if (!id) return; e.preventDefault(); if (!UI.sw) setManual(inputs.get(id), e.shiftKey ? 'live' : 'pvw'); else e.shiftKey ? cutTo(id) : setPvw(id); return; }
@@ -5910,7 +6027,7 @@ function Host(sess){
       KeyT: () => { if (pv?.kind === 'guest' && !pv.talk) { held.add('T:' + pv.id); setTalk(pv, true); } },
       KeyA: () => { if (!IC.all) { held.add('A'); setTalkAll(true); } },
       KeyY: () => toggleOV('lt'), KeyU: () => toggleOV('tk'), KeyH: () => toggleOV('bug'), KeyV: () => toggleOV('cc'), KeyJ: () => snapshot('pgm'), KeyZ: () => setPrevTrans(!SW.prevTrans),
-      KeyE: () => toggleWin('titles'), KeyF: () => toggleWin('scene'), KeyD: () => toggleWin('timer'), Comma: () => toggleWin('set'),
+      KeyE: () => toggleWin(e.shiftKey ? 'prompter' : 'titles'), KeyF: () => toggleWin('scene'), KeyD: () => toggleWin('timer'), Comma: () => toggleWin('set'),
       KeyM: () => { if (pv) { pv.mute = !pv.mute; applyGains(pv); updateTile(pv); renderMix(); toast(pv.mute ? `${pv.name} 靜音` : `${pv.name} 取消靜音`); } },
       KeyL: () => { if (pv) { pv.pfl = !pv.pfl; applyGains(pv); renderMix(); toast(pv.pfl ? `監聽 ${pv.name}` : '關閉監聽'); } },
       KeyG: () => pv && $('[data-a="gd"]', pv.el).click(),
@@ -5920,6 +6037,7 @@ function Host(sess){
     if (map[e.code]) { e.preventDefault(); map[e.code](); }
   });
   addEventListener('keyup', e => {
+    if (titleUi?.prompterKeysOn() || prompterUi?.prompterKeysOn()) prompterKeyUp(e, titleCmd, () => TS);   // 腳踏板「按住捲動」放開就停
     if (e.code === 'KeyT') held.forEach(h => { if (h.startsWith('T:')) { const g = inputs.get(h.slice(2)); if (g) setTalk(g, false); held.delete(h); } });
     if (e.code === 'KeyA' && held.has('A')) { held.delete('A'); setTalkAll(false); }
   });
@@ -7588,7 +7706,124 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     }catch(e){if(createdInput&&inputs.has(createdInput.id)){createdInput.nativeClose=null;removeInput(createdInput.id);}await clean();throw e;}
   }
   function renderNdi(){const w=WIN.ndi;if(!w?.open)return;const b=w.body;b.innerHTML=`<div class="wsec"><h4>原生 NDI 收送</h4><p class="note">需要官方 NDI SDK 編譯的 webcall-ndi 與本機引擎。音訊與影像一併處理；瀏覽器連接使用 WebRTC，不是端到端無損 NDI。</p><button class="btn" id="pndiscan">掃描 NDI 來源</button><div id="pndilist"></div><hr><input class="field" id="pndiname" value="WebCall PGM"><button class="btn primary" id="pndisend">將目前 PGM 送出 NDI</button><div id="pndiactive">${[...PROD.peers].map(([id,p])=>`<p>${esc(p.kind)} · ${esc(p.name||'')}<button class="btn sm" data-pndistop="${id}">停止</button></p>`).join('')}</div><p class="note" id="pndierror" role="status"></p></div>`;const run=fn=>async()=>{try{await fn();}catch(e){$('#pndierror',b).textContent=e.message;}};$('#pndiscan',b).onclick=run(async()=>{const rows=await nativeJson('/ndi/sources');$('#pndilist',b).innerHTML=rows.map((x,i)=>`<button class="btn" data-pndi="${i}">${esc(x.name)}</button>`).join('')||'未找到 NDI 來源';$$('[data-pndi]',b).forEach(button=>button.onclick=run(async()=>{await nativeRtc('ndi-recv',{name:rows[+button.dataset.pndi].name});renderNdi();}));});$('#pndisend',b).onclick=run(async()=>{await nativeRtc('ndi-send',{name:$('#pndiname',b).value,fps:PGMFPS},programStream);renderNdi();});$$('[data-pndistop]',b).forEach(e=>e.onclick=run(async()=>{await PROD.peers.get(e.dataset.pndistop)?.clean();renderNdi();}));}
-  function renderCapture4k(){const w=WIN.capture4k;if(!w?.open)return;const b=w.body;b.innerHTML=`<div class="wsec"><h4>4K 實體擷取與製播</h4><p class="note">瀏覽器擷取可從原有「訊號來源」選 4K；此處用本機 FFmpeg/PyAV 驅動。裝置名稱必須在本機 capture 設定檔登錄。可用性依硬體／驅動；不是安裝選單就能讓不支援的裝置變成 4K。</p><button class="btn" id="pcscan">讀取已設定的擷取卡</button><select class="field full" id="pcdevice"></select><select class="field" id="pcfps"><option>25</option><option selected>30</option><option>50</option><option>60</option></select><button class="btn" id="pcadd">以 3840×2160 開啟</button><button class="btn" id="pcpgm">PGM 設為 4K</button><pre id="pcactual" class="note">目前製播 ${pgmCanvas.width}×${pgmCanvas.height} · 最近繪製 ${(PROD.fps||0).toFixed(1)} fps（非編碼器效能保證）\n${[...inputs.values()].map(x=>x.name+': '+srcDims(srcEl(x)).join('×')).join('\n')}</pre></div>`;const run=fn=>async()=>{try{await fn();}catch(e){$('#pcactual',b).textContent=e.message;}};$('#pcscan',b).onclick=run(async()=>{const rows=await nativeJson('/capture/devices');$('#pcdevice',b).innerHTML=rows.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');});$('#pcadd',b).onclick=run(async()=>{const x=await nativeRtc('capture',{device:$('#pcdevice',b).value,name:$('#pcdevice',b).selectedOptions[0]?.textContent,width:3840,height:2160,fps:+$('#pcfps',b).value});toast('來源已加入；請確認實際影像尺寸，不以要求值冒充實際 4K');renderCapture4k();});$('#pcpgm',b).onclick=run(()=>applyProductionResolution('2160'));}
+  /* ===== 本機影像裝置：解析度自動偵測、聲音跟隨裝置、實體相機控制（PTZ）===== */
+  const STD_MODES = [[3840, 2160, '2160p（4K）'], [2560, 1440, '1440p'], [1920, 1080, '1080p'], [1600, 900, '900p'], [1280, 720, '720p'], [1024, 576, '576p'], [854, 480, '480p'], [640, 360, '360p']];
+  async function camList(){
+    let vs = await devices('videoinput');
+    if (vs.length && !vs[0].label) { for (const c of [{ video: true, audio: true }, { video: true }]) { try { const t = await navigator.mediaDevices.getUserMedia(c); t.getTracks().forEach(x => x.stop()); break; } catch {} } vs = await devices('videoinput'); }
+    return { vs, as: (await devices('audioinput')).filter(a => a.deviceId !== 'communications') };
+  }
+  // 找跟影像裝置同一台機器的聲音（相機／擷取卡內建聲音）：先比 groupId，再比名稱
+  function pairAudio(v, as){
+    if (!v) return '';
+    const g = as.find(a => a.groupId && a.groupId === v.groupId && a.deviceId !== 'default'); if (g) return g.deviceId;
+    const words = String(v.label || '').toLowerCase().replace(/\([^)]*\)/g, ' ').split(/[\s\-_]+/).filter(w => w.length >= 3 && !/^(usb|video|camera|webcam|hd|capture|device|integrated|front|back)$/.test(w));
+    const m = as.find(a => a.deviceId !== 'default' && words.some(w => String(a.label || '').toLowerCase().includes(w))); return m ? m.deviceId : '';
+  }
+  async function probeCam(deviceId){
+    const s = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId }, width: { ideal: 7680 }, height: { ideal: 4320 }, frameRate: { ideal: 120 } } });
+    const t = s.getVideoTracks()[0], c = t.getCapabilities ? t.getCapabilities() : {}, st = t.getSettings(); s.getTracks().forEach(x => x.stop());
+    return { maxW: c.width?.max || st.width, maxH: c.height?.max || st.height, maxFps: Math.round(c.frameRate?.max || st.frameRate || 30), curW: st.width, curH: st.height, curFps: Math.round((st.frameRate || 0) * 100) / 100,
+      ctl: ['zoom', 'pan', 'tilt', 'focusDistance', 'exposureCompensation', 'colorTemperature'].filter(k => c[k] && c[k].max > c[k].min) };
+  }
+  async function openLocalCam(o){
+    const v = { deviceId: o.vid ? { exact: o.vid } : undefined }; if (o.W) { v.width = { ideal: o.W }; v.height = { ideal: o.H }; } if (o.fps) v.frameRate = { ideal: o.fps };
+    const a = o.aid ? { deviceId: { exact: o.aid }, echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false;
+    let s; try { s = await navigator.mediaDevices.getUserMedia({ video: Object.assign({ pan: true, tilt: true, zoom: true }, v), audio: a }); }   // 要求「移動相機」權限：支援的相機才能用實體變焦／雲台
+    catch (e) { s = await navigator.mediaDevices.getUserMedia({ video: v, audio: a }); }
+    const inp = newInput('L-' + rnd(6), 'local', o.name); inp.camTrack = s.getVideoTracks()[0]; inp.camLabel = inp.camTrack.label;
+    inp.cameraOrientation = localCameraOrientation(s); setStream(inp, inp.cameraOrientation.stream);
+    inp.camTrack.onended = () => removeInput(inp.id);
+    const st = inp.camTrack.getSettings(), at = s.getAudioTracks()[0];
+    toast(`已加入「${o.name}」${st.width}×${st.height} @ ${Math.round(st.frameRate || 0)} fps${at ? '・聲音：' + at.label : '・沒有聲音'}`); renderAll(); return inp;
+  }
+  // 加入攝影機／擷取卡（「訊號來源」與「外部訊號擷取」共用）
+  const CAPW = { list: null, probes: {}, form: {} };   // 快取：畫面重繪時不要重新開相機偵測
+  function captureWebPane(el, opt = {}){
+    if (!el) return; const fk = opt.title || 'cap', F = CAPW.form[fk] || (CAPW.form[fk] = {}); let list = CAPW.list || { vs: [], as: [] }, probe = null;
+    el.innerHTML = `<div class="wsec"><h4>${opt.title || '外部訊號擷取（攝影機、擷取卡、HDMI／SDI 擷取盒）'} <span class="grow"></span><button class="btn sm" data-cw="scan">重新偵測裝置</button></h4>
+      <span class="lbl">影像裝置</span><select class="field full" data-cw="v"></select>
+      <div class="note" data-cw="info" style="margin:6px 0;white-space:pre-line">選擇裝置後會自動偵測它支援的解析度。</div>
+      <div class="grid2"><div><span class="lbl">解析度</span><select class="field full" data-cw="mode"></select></div><div><span class="lbl">影格（fps）</span><select class="field full" data-cw="fps"></select></div></div>
+      <div class="grid2 hidden" data-cw="custom" style="margin-top:6px"><div><span class="lbl">自訂寬×高</span><div class="row"><input class="field" type="number" data-cw="cw" min="160" max="7680" step="2" placeholder="1920"><span>×</span><input class="field" type="number" data-cw="ch" min="90" max="4320" step="2" placeholder="1080"></div></div><div><span class="lbl">自訂影格</span><input class="field full" type="number" data-cw="cf" min="1" max="120" step="0.01" placeholder="29.97"></div></div>
+      <span class="lbl" style="margin-top:8px">聲音</span><select class="field full" data-cw="a"></select>
+      <span class="lbl" style="margin-top:8px">名稱</span><input class="field full" data-cw="n" placeholder="例：攝影機 1">
+      <button class="btn primary" data-cw="add" style="width:100%;margin-top:10px">${ic('plus')}加入來源</button>
+      <div class="note">擷取卡在系統裡就是一個「攝影機」。「自動」會用裝置回報的最高解析度開啟；擷取卡回報的是它能輸出的格式，實際畫面跟著接進來的訊號。第一次使用要允許瀏覽器存取相機與「移動相機」。</div></div>`;
+    const q = k => el.querySelector(`[data-cw="${k}"]`);
+    const audioOpts = vid => { const v = list.vs.find(x => x.deviceId === vid), pa = pairAudio(v, list.as), pl = list.as.find(a => a.deviceId === pa);
+      q('a').innerHTML = (pa ? `<option value="${pa}">跟隨此裝置的聲音（${esc(pl.label)}）</option>` : '') + '<option value="">不要聲音</option>' + list.as.filter(a => a.deviceId !== pa).map((d, i) => `<option value="${d.deviceId}">${esc(d.label || '麥克風 ' + (i + 1))}${d.deviceId === 'default' ? '（電腦預設）' : ''}</option>`).join(''); };
+    const modes = () => { const mw = probe?.maxW || 3840, mh = probe?.maxH || 2160, mf = probe?.maxFps || 60;
+      q('mode').innerHTML = `<option value="auto">自動（裝置最高${probe ? ' ' + mw + '×' + mh : ''}）</option>` + STD_MODES.filter(([w, h]) => w <= mw && h <= mh).map(([w, h, n]) => `<option value="${w}x${h}">${n}　${w}×${h}</option>`).join('') + '<option value="custom">自訂…</option>';
+      q('fps').innerHTML = `<option value="auto">自動（最高 ${mf}）</option>` + [60, 59.94, 50, 30, 29.97, 25, 24, 23.976].filter(f => f <= mf + .01).map(f => `<option value="${f}">${f}</option>`).join('');
+      if (!probe) { q('mode').value = '1920x1080'; if (!q('mode').value) q('mode').value = 'auto'; } };
+    const showProbe = () => { q('info').textContent = `偵測到：最高 ${probe.maxW}×${probe.maxH}、最高 ${probe.maxFps} fps（目前輸出 ${probe.curW}×${probe.curH} @ ${probe.curFps} fps）${probe.ctl.length ? '\n可控制：' + probe.ctl.map(k => ({ zoom: '變焦', pan: '水平轉動', tilt: '上下轉動', focusDistance: '對焦', exposureCompensation: '曝光', colorTemperature: '白平衡' })[k]).join('、') + '（加入後到「相機控制（PTZ）」操作）' : '\n這台裝置沒有開放相機控制（變焦等只能用數位方式）'}`; };
+    const doProbe = async (force) => { const vid = q('v').value; F.v = vid; probe = null; modes(); audioOpts(vid); if (!vid) return;
+      if (!force && CAPW.probes[vid]) { probe = CAPW.probes[vid]; modes(); q('mode').value = F.mode || 'auto'; q('fps').value = F.fps || 'auto'; if (!q('mode').value) q('mode').value = 'auto'; if (!q('fps').value) q('fps').value = 'auto'; q('custom').classList.toggle('hidden', q('mode').value !== 'custom'); if (F.a != null && [...q('a').options].some(o => o.value === F.a)) q('a').value = F.a; showProbe(); return; }
+      q('info').textContent = '偵測中…';
+      try { probe = CAPW.probes[vid] = await probeCam(vid); if (q('v').value !== vid) return; modes(); q('mode').value = 'auto';
+        showProbe(); }
+      catch (e) { q('info').textContent = '偵測失敗：' + (e.name === 'NotReadableError' ? '裝置被其他程式占用（OBS、視訊軟體）' : e.message); } };
+    const scan = async (force) => { if (force || !CAPW.list) { list = CAPW.list = await camList(); if (force) CAPW.probes = {}; } else list = CAPW.list; if (!el.isConnected) return; q('v').innerHTML = list.vs.map((d, i) => `<option value="${d.deviceId}">${esc(d.label || '攝影機 ' + (i + 1))}</option>`).join('') || '<option value="">找不到影像裝置</option>'; if (F.v && list.vs.some(d => d.deviceId === F.v)) q('v').value = F.v; await doProbe(force); };
+    q('v').onchange = () => { F.mode = F.fps = F.a = null; doProbe(); }; q('scan').onclick = () => scan(true);
+    q('mode').onchange = () => { F.mode = q('mode').value; q('custom').classList.toggle('hidden', q('mode').value !== 'custom'); };
+    q('fps').onchange = () => F.fps = q('fps').value; q('a').onchange = () => F.a = q('a').value; q('n').value = F.n || ''; q('n').oninput = () => F.n = q('n').value;
+    q('add').onclick = async () => {
+      const m = q('mode').value, f = q('fps').value; let W = 0, H = 0, fps = 0;
+      if (m === 'auto') { W = probe?.maxW || 3840; H = probe?.maxH || 2160; } else if (m === 'custom') { W = +q('cw').value; H = +q('ch').value; if (!(W >= 160 && H >= 90)) return toast('請輸入自訂解析度，例如 1920 × 1080'); } else [W, H] = m.split('x').map(Number);
+      fps = f === 'auto' ? (probe?.maxFps || 60) : +f; if (m === 'custom' && +q('cf').value) fps = +q('cf').value;
+      const name = q('n').value.trim() || q('v').selectedOptions[0]?.textContent || '本機來源';
+      try { q('add').disabled = true; await openLocalCam({ vid: q('v').value, aid: q('a').value, W, H, fps, name }); F.n = ''; }
+      catch (e) { toast('無法開啟：' + (e.name === 'NotReadableError' ? '裝置被其他程式占用' : e.name === 'OverconstrainedError' ? '裝置不支援這個解析度，請改用「自動」' : e.message)); }
+      finally { q('add').disabled = false; }
+    };
+    modes(); scan(false);
+  }
+  /* 相機控制：用瀏覽器的相機控制介面（UVC）真的去動相機的變焦、雲台、對焦、曝光、白平衡 */
+  const CAMCTL = { sel: null, speed: 5, hold: 0 };
+  const CAMK = { zoom: '變焦', pan: '水平轉動（Pan）', tilt: '上下轉動（Tilt）', focusDistance: '對焦距離', exposureCompensation: '曝光補償', exposureTime: '快門（曝光時間）', colorTemperature: '色溫（白平衡）', brightness: '亮度', contrast: '對比', saturation: '飽和度', sharpness: '銳利度' };
+  function camApply(t, o){ return t.applyConstraints({ advanced: [o] }).catch(e => toast('相機不接受這個設定：' + e.message)); }
+  function renderCamCtl(force){
+    const w = WIN.camctl; if (!w?.open) return; const b = w.body;
+    if (force !== true && (CAMCTL.hold || (b.contains(document.activeElement) && document.activeElement.matches('input,select')))) return;   // 正在按住移動或拖拉時不要重畫
+    const cams = [...inputs.values()].filter(x => x.camTrack && x.camTrack.readyState === 'live');
+    if (!cams.length) { b.innerHTML = `<div class="wsec"><h4>相機控制（PTZ）</h4><p class="note">還沒有接在這台電腦上的攝影機。先到「訊號來源」或「外部訊號擷取」加入攝影機，支援控制的相機（PTZ 攝影機、可變焦的 USB 攝影機）就會出現在這裡，可以真的控制鏡頭的變焦、轉動、對焦。</p>
+      <p class="note">・<b>來賓手機</b>的變焦在「遠端控制」視窗調整（手機支援光學／硬體變焦時會用硬體變焦）。<br>・透過<b>擷取卡</b>接進來的攝影機（HDMI／SDI），擷取卡只傳畫面，沒辦法控制後面那台攝影機的鏡頭。<br>・DJI Pocket 等相機用 USB 當網路攝影機時，若相機沒有開放 UVC 變焦，就只能數位變焦。</p></div>`; return; }
+    if (!cams.find(x => x.id === CAMCTL.sel)) CAMCTL.sel = cams[0].id;
+    const inp = inputs.get(CAMCTL.sel), t = inp.camTrack, c = t.getCapabilities ? t.getCapabilities() : {}, st = t.getSettings();
+    const has = k => c[k] && typeof c[k].max === 'number' && c[k].max > c[k].min;
+    const slider = k => has(k) ? `<div class="row" style="margin:5px 0"><span style="width:140px">${CAMK[k]}</span><input type="range" class="grow" data-ck="${k}" min="${c[k].min}" max="${c[k].max}" step="${c[k].step || (c[k].max - c[k].min) / 100}" value="${st[k] ?? c[k].min}"><span class="mono" data-cv="${k}" style="width:64px;text-align:right">${(+(st[k] ?? c[k].min)).toFixed(k === 'zoom' ? 2 : 0)}</span></div>` : '';
+    const modeSel = (k, n) => Array.isArray(c[k]) && c[k].length > 1 ? `<div class="row" style="margin:5px 0"><span style="width:140px">${n}</span><select class="field sm" data-cm="${k}">${c[k].map(m => `<option value="${m}" ${st[k] === m ? 'selected' : ''}>${({ continuous: '自動', manual: '手動', 'single-shot': '單次自動', none: '關閉' })[m] || m}</option>`).join('')}</select></div>` : '';
+    const ptz = has('zoom') || has('pan') || has('tilt'), key = 'wc_campre_' + (inp.camLabel || inp.name), pre = (() => { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; } })();
+    b.innerHTML = `<div class="wsec"><h4>相機控制（PTZ）<span class="grow"></span><select class="field sm" data-csel style="width:auto">${cams.map(x => `<option value="${x.id}" ${x.id === inp.id ? 'selected' : ''}>${numOf(x)} ${esc(x.name)}</option>`).join('')}</select></h4>
+      <div class="note">${esc(inp.camLabel || '')}　${ptz ? '✅ 這台相機開放鏡頭控制，下面的操作會真的動到相機' : '⚠ 這台相機沒有開放變焦／雲台控制（擷取卡、多數內建鏡頭、部分運動相機都是這樣）'}</div></div>
+      ${ptz ? `<div class="wsec"><h4>變焦與雲台（按住移動，放開停止）</h4>
+        <div class="row" style="gap:16px;align-items:center;flex-wrap:wrap">
+          ${has('zoom') ? `<div style="text-align:center"><div class="note">變焦</div><div class="row" style="gap:6px"><button class="btn" data-hold="zoom:-1">－ 拉遠</button><button class="btn" data-hold="zoom:1">＋ 推近</button></div></div>` : ''}
+          ${has('pan') || has('tilt') ? `<div style="display:grid;grid-template-columns:repeat(3,44px);gap:4px;text-align:center"><span></span><button class="btn" data-hold="tilt:1" ${has('tilt') ? '' : 'disabled'}>▲</button><span></span><button class="btn" data-hold="pan:-1" ${has('pan') ? '' : 'disabled'}>◀</button><button class="btn" data-home title="回中間">●</button><button class="btn" data-hold="pan:1" ${has('pan') ? '' : 'disabled'}>▶</button><span></span><button class="btn" data-hold="tilt:-1" ${has('tilt') ? '' : 'disabled'}>▼</button><span></span></div>` : ''}
+          <div style="min-width:160px"><div class="note">移動速度</div><input type="range" min="1" max="10" value="${CAMCTL.speed}" data-cspd style="width:100%"></div></div>
+        ${slider('zoom')}${slider('pan')}${slider('tilt')}
+        <div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><span class="note" style="margin:0">位置預設：點一下叫出，按住 1 秒存目前位置</span>${[1, 2, 3, 4, 5, 6].map(n => `<button class="btn sm ${pre[n] ? 'primary' : ''}" data-pre="${n}">${n}</button>`).join('')}</div></div>` : ''}
+      <div class="wsec"><h4>對焦、曝光、白平衡、畫質</h4>
+        ${modeSel('focusMode', '對焦模式')}${slider('focusDistance')}${modeSel('exposureMode', '曝光模式')}${slider('exposureCompensation')}${slider('exposureTime')}${modeSel('whiteBalanceMode', '白平衡模式')}${slider('colorTemperature')}${slider('brightness')}${slider('contrast')}${slider('saturation')}${slider('sharpness')}
+        ${['focusMode', 'exposureMode', 'whiteBalanceMode', 'focusDistance', 'exposureCompensation', 'colorTemperature', 'brightness', 'contrast', 'saturation', 'sharpness', 'exposureTime'].some(k => has(k) || (Array.isArray(c[k]) && c[k].length > 1)) ? '<div class="note">手動調整對焦距離、快門、色溫前，先把對應的模式改成「手動」。</div>' : '<div class="note">這台相機沒有開放這些設定。</div>'}</div>`;
+    b.querySelector('[data-csel]').onchange = e => { CAMCTL.sel = e.target.value; e.target.blur(); renderCamCtl(true); };
+    b.querySelectorAll('[data-ck]').forEach(r => r.oninput = () => { const k = r.dataset.ck; b.querySelector(`[data-cv="${k}"]`).textContent = (+r.value).toFixed(k === 'zoom' ? 2 : 0); camApply(t, { [k]: +r.value }); });
+    b.querySelectorAll('[data-cm]').forEach(sel => sel.onchange = () => { camApply(t, { [sel.dataset.cm]: sel.value }).then(() => setTimeout(() => renderCamCtl(true), 200)); });
+    b.querySelector('[data-cspd]')?.addEventListener('input', e => CAMCTL.speed = +e.target.value);
+    const stopHold = () => { clearInterval(CAMCTL.hold); CAMCTL.hold = 0; };
+    b.querySelectorAll('[data-hold]').forEach(btn => {
+      const [k, dir] = btn.dataset.hold.split(':');
+      const go = e => { e.preventDefault(); stopHold(); const tick = () => { const cc = t.getCapabilities(), cur = t.getSettings()[k] ?? cc[k].min, span = cc[k].max - cc[k].min, v = Math.max(cc[k].min, Math.min(cc[k].max, cur + dir * span * CAMCTL.speed / 400)); camApply(t, { [k]: v }); const r = b.querySelector(`[data-ck="${k}"]`); if (r) { r.value = v; b.querySelector(`[data-cv="${k}"]`).textContent = v.toFixed(k === 'zoom' ? 2 : 0); } }; tick(); CAMCTL.hold = setInterval(tick, 80); };
+      btn.addEventListener('pointerdown', go); ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stopHold));
+    });
+    b.querySelector('[data-home]')?.addEventListener('click', () => { const o = {}; ['pan', 'tilt'].forEach(k => { if (has(k)) o[k] = Math.max(c[k].min, Math.min(c[k].max, 0)); }); camApply(t, o).then(() => setTimeout(() => renderCamCtl(true), 200)); });
+    b.querySelectorAll('[data-pre]').forEach(btn => { let lt = 0, long = false;
+      btn.addEventListener('pointerdown', () => { long = false; lt = setTimeout(() => { long = true; const s2 = t.getSettings(), o = {}; ['zoom', 'pan', 'tilt', 'focusDistance'].forEach(k => { if (has(k) && s2[k] != null) o[k] = s2[k]; }); pre[btn.dataset.pre] = o; try { localStorage.setItem(key, JSON.stringify(pre)); } catch {} toast('已存成位置 ' + btn.dataset.pre); renderCamCtl(true); }, 900); });
+      btn.addEventListener('pointerup', () => { clearTimeout(lt); if (!long) { const o = pre[btn.dataset.pre]; if (!o) return toast('位置 ' + btn.dataset.pre + ' 還沒存（按住 1 秒存目前位置）'); camApply(t, o).then(() => setTimeout(() => renderCamCtl(true), 300)); } });
+      btn.addEventListener('pointerleave', () => clearTimeout(lt)); });
+  }
+  function renderCapture4k(){const w=WIN.capture4k;if(!w?.open)return;const b=w.body;b.innerHTML=`<div data-capweb></div><details class="wsec"><summary><b>進階：本機擷取程式（EXE／FFmpeg）</b></summary><h4>本機原生擷取</h4><p class="note">瀏覽器擷取可從原有「訊號來源」選 4K；此處用本機 FFmpeg/PyAV 驅動。裝置名稱必須在本機 capture 設定檔登錄。可用性依硬體／驅動；不是安裝選單就能讓不支援的裝置變成 4K。</p><button class="btn" id="pcscan">讀取已設定的擷取卡</button><select class="field full" id="pcdevice"></select><select class="field" id="pcfps"><option>25</option><option selected>30</option><option>50</option><option>60</option></select><button class="btn" id="pcadd">以 3840×2160 開啟</button><button class="btn" id="pcpgm">PGM 設為 4K</button><pre id="pcactual" class="note">目前製播 ${pgmCanvas.width}×${pgmCanvas.height} · 最近繪製 ${(PROD.fps||0).toFixed(1)} fps（非編碼器效能保證）\n${[...inputs.values()].map(x=>x.name+': '+srcDims(srcEl(x)).join('×')).join('\n')}</pre></details>`;captureWebPane($('[data-capweb]',b));const run=fn=>async()=>{try{await fn();}catch(e){$('#pcactual',b).textContent=e.message;}};$('#pcscan',b).onclick=run(async()=>{const rows=await nativeJson('/capture/devices');$('#pcdevice',b).innerHTML=rows.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('');});$('#pcadd',b).onclick=run(async()=>{const x=await nativeRtc('capture',{device:$('#pcdevice',b).value,name:$('#pcdevice',b).selectedOptions[0]?.textContent,width:3840,height:2160,fps:+$('#pcfps',b).value});toast('來源已加入；請確認實際影像尺寸，不以要求值冒充實際 4K');renderCapture4k();});$('#pcpgm',b).onclick=run(()=>applyProductionResolution('2160'));}
   let gradeGpu=null;
   function gpuProgram(gl,vertex,fragment){const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};const p=gl.createProgram();gl.attachShader(p,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(p,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;}
   function cpuGrade(inp,el,w,h){const c=inp.grade,sig=JSON.stringify(c);if(inp._gradeSig===sig&&inp._gradeInput===el&&inp._gradeCanvas&&(inp._gradeFrame===frameNo||(inp.kind==='image'&&el===inp.img)))return inp._gradeCanvas;const out=inp._gradeCanvas||(inp._gradeCanvas=document.createElement('canvas'));if(out.width!==w||out.height!==h){out.width=w;out.height=h;}const g=out.getContext('2d',{willReadFrequently:true});g.clearRect(0,0,w,h);g.drawImage(el,0,0,w,h);const data=g.getImageData(0,0,w,h),tables=[0,1,2].map(channel=>Uint8Array.from({length:256},(_,v)=>Math.round(ProductionCore.grade([v/255,v/255,v/255],c.lift,c.gamma,c.gain)[channel]*255)));for(let i=0;i<data.data.length;i+=4)for(let channel=0;channel<3;channel++)data.data[i+channel]=tables[channel][data.data[i+channel]];g.putImageData(data,0,0);inp._gradeFrame=frameNo;inp._gradeInput=el;inp._gradeSig=sig;return out;}
@@ -8982,7 +9217,7 @@ function HostSetup(tok, me, msg){
   app.innerHTML = `
   <div class="home"><div class="box">
     ${brand()}
-    <div class="who"><div><b>${esc(me.name)}</b> <span class="mono" style="color:var(--mute)">${esc(me.account)}</span><div style="color:var(--dim);font-size:12px">${esc(me.roleName)}${me.unit ? ' · ' + esc(me.unit) : ''} · 最多 ${me.maxLines} 路${me.end ? ' · 帳號到期 ' + fmtDate(me.end) : ''}</div></div>
+    <div class="who"><div><b>${esc(me.name)}</b> <span class="mono" style="color:var(--mute)">${esc(me.account)}</span><div style="color:var(--dim);font-size:12px">${esc(me.roleName)}${me.unit ? ' · ' + esc(me.unit) : ''} · 最多 ${me.maxLines} 路${me.end ? ' · 帳號到期 ' + fmtDate(me.end) : ''}</div>${me.line?.ready ? `<div style="font-size:12px;margin-top:3px;color:${me.line.active ? 'var(--pvw,#3ddc84)' : me.line.bound ? 'var(--dim)' : '#ffc24a'}">${me.line.active ? '✅ LINE 驗證：已綁定' + (me.line.name ? '（' + esc(me.line.name) + '）' : '') : me.line.bound ? 'LINE 已綁定（目前不要求驗證）' : '⚠ LINE 驗證：尚未綁定' + (me.line.required ? '，請聯絡管理員綁定' : '')}</div>` : ''}</div>
       <button class="btn ghost sm" id="lo">${ic('logout')}登出</button></div>
     <div class="card">
       <span class="lbl">1 · 房間代碼（派發平台發給你的 12～30 位代碼）</span>
