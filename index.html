@@ -57,9 +57,9 @@
   });
 })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
-<script>window.Peer || document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>')</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- v2026.1113 修正：外部函式庫改為 defer，不再擋住第一個畫面；PeerJS 備用來源改在主程式內動態載入（document.write 在慢速網路會被 Chrome 擋掉） -->
+<script defer crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script defer crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
   --bg:#0b0d10; --s1:#12151a; --s2:#191d24; --s3:#222731; --s4:#2a303b; --line:#2a303b; --line2:#363d4a;
@@ -883,6 +883,127 @@ body.opp{overflow:hidden}
 #hroot.layout-preset .compact.compact-narrow .tbar{grid-column:1 / span 2!important;grid-row:6!important;width:42px!important;justify-self:center}
 
 .prod-wheels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.prod-wheels canvas{width:100%;max-width:180px;display:block;touch-action:none}.prod-scopes{display:grid;grid-template-columns:1.5fr 1fr;gap:15px}.prod-scopes canvas{width:100%;background:#071014;border:1px solid #395366}.prod-cg-canvas{display:block;width:100%;height:auto;max-height:44vh;object-fit:contain;background:repeating-conic-gradient(#202c35 0% 25%,#15202a 0% 50%) 50% / 24px 24px;touch-action:none}.prod-property-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}.win .wtabs{overflow:auto;flex-wrap:wrap;max-height:100px}.win .wb{min-width:0}.win pre{white-space:pre-wrap;overflow-wrap:anywhere}.prod-wheels section{min-width:0}.prod-wheels .row{flex-wrap:wrap}@media(max-width:700px){.prod-wheels,.prod-scopes{grid-template-columns:1fr}.prod-wheels section{display:flex;flex-wrap:wrap;gap:8px}.prod-wheels canvas{max-width:130px}}
+
+/* ===== v2026.1113 RWD 修正（放在最後，覆蓋前面的版面規則） ===== */
+/* 功能列：不再固定高度＋裁切（手機直拿原本有 7 顆按鈕被藏起來），改成單排橫向捲動 */
+#hroot .keybar,#hroot.host.layout-preset .keybar{flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;max-height:none!important;-webkit-overflow-scrolling:touch;scrollbar-width:thin;overscroll-behavior-x:contain}
+#hroot .keybar>*{flex:none!important}
+#hroot .keybar>:empty{display:none!important}
+/* PGM/PVW 按鍵：數字與小字不再壓到按鍵外框 */
+.cc-key{padding:6px 4px}
+.cc-key b{line-height:1}
+.cc-key small{line-height:1.15;max-width:calc(100% - 14px)!important}
+.host.studio.hardware-console .cc-key{gap:2px}
+.host.studio.hardware-console .cc-key::before{inset:4px}
+.cc-key:disabled small{display:none}
+/* 手機直拿：PREVIEW／PROGRAM 保持 16:9，不被拉成直長條 */
+@media (max-width:700px) and (orientation:portrait){
+  #hroot .switcher{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-content:start!important;align-items:start!important}
+  #hroot .switcher>.mon{height:auto!important;flex:none!important;grid-column:1!important}
+  #hroot .switcher>.mon.pvw{grid-row:1!important}
+  #hroot .switcher>.mon.pgm{grid-row:2!important}
+  #hroot .switcher>.tcol{display:none!important}
+  /* 監看畫面與切換鍵依內容排列，超出時整區上下捲動（不再把子母畫面列裁掉） */
+  #hroot .hmain{grid-template-rows:max-content max-content!important;overflow-y:auto!important;align-content:start!important;align-items:start!important;-webkit-overflow-scrolling:touch}
+  #hroot .switcher{height:auto!important}
+  #hroot .switcher>.mon{overflow:visible!important;max-height:none!important;min-height:0!important}
+  #hroot .switcher>.mon .screen{flex:none!important;height:auto!important;aspect-ratio:16/9!important}
+}
+/* 來賓設定面板：橫拿時「加入連線」固定在面板底部，不用捲動找按鈕 */
+.sheet #join{position:sticky;bottom:0;z-index:3;box-shadow:0 -12px 18px var(--s1)}
+/* 觸控裝置：輸入框 16px，避免 iPhone Safari 點下去自動放大；主要按鈕加大點擊範圍 */
+@media (pointer:coarse){
+  input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]),select,textarea{font-size:16px!important}
+  .sheet .btn,.home .btn,.sheet .seg button{min-height:44px}
+  #hroot .keybar button{min-height:34px}
+}
+
+/* 2026.1114 功能列重新分類 */
+#hroot .keybar #routeSlots{font-weight:700}
+.layout-menu{position:fixed;z-index:4000;min-width:230px;display:flex;flex-direction:column;gap:8px;padding:10px;background:#11181e;border:1px solid #3a4854;border-radius:8px;box-shadow:0 12px 32px #000c}
+.layout-menu.hidden{display:none!important}
+.layout-menu #layoutPrefsButton{width:100%;height:34px!important;min-width:0;font-size:12px!important}
+.layout-menu .layout-menu-row{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--dim)}
+.layout-menu .studio-view-select{width:100%!important;max-width:none!important;height:32px!important}
+.layout-menu #swk{width:100%;height:34px;justify-content:flex-start;padding:0 10px}
+.host.studio.keyboard-only>.keybar>#layoutMenuKey{display:flex!important}
+.host.studio.keyboard-only>.keybar>#layoutMenu:not(.hidden){display:flex!important}
+
+/* ===== 字幕播出（TitleUI）===== */
+.tui{display:flex;flex-direction:column;gap:8px;min-height:0;font-size:13px}
+.tui .hidden{display:none!important}
+.tui-mon{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tui-mon figure{margin:0;background:#0b0f14;border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:0}
+.tui-mon figcaption{display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tui-mon figcaption b{font:700 10px var(--mono);padding:1px 6px;border-radius:3px;color:#fff}.tui-mon .pv{background:#15803d}.tui-mon .pg{background:#c8102e}
+.tui-mon canvas{display:block;width:100%;aspect-ratio:16/9;height:auto}
+.tui-ctl{display:grid;grid-template-columns:1fr 1.6fr 1fr 1fr 1fr;gap:6px}
+.tui-ctl .btn{height:44px;justify-content:center;font-weight:700}
+.tui-ctl .take{background:#c8102e;border-color:#ff5a6e;color:#fff;font-size:16px;letter-spacing:.06em}
+.tui-ctl .take:hover{background:#e0233f}
+.tui-air{display:flex;flex-wrap:wrap;gap:6px;min-height:26px;align-items:center}
+.tui-air .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 9px;border-radius:13px;background:#3a1012;border:1px solid #7a1d24;color:#ffd3d3;font-size:12px}
+.tui-score{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;border:1px solid #2c4a6b;border-radius:6px;background:#0f1d2c}.tui-score b{font-size:12px;color:#9cc2ff}.tui-score [data-scn]{font:700 13px var(--mono);margin-right:6px}
+.tui-clock{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:#0b1016;font-size:12px;color:var(--dim)}.tui-clock b{color:var(--fg,#e8edf3);font-size:14px}.tui-clock .warn b{color:#ffc24a}.tui-clock .bad b,.tui-clock .bad{color:#ff5a6e}.tui-clock .grow{flex:1;min-width:120px}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tui-warn:empty{display:none}.tui-warn{padding:6px 9px;border:1px solid #8a6a1a;border-radius:6px;background:#2a2108;color:#ffd77a;font-size:12px;line-height:1.6}
+.tui .wn{font-style:normal;color:#ffc24a;margin-right:4px;cursor:help}
+.tui-row.done{opacity:.5}
+.rd-titles{display:flex;flex-direction:column;gap:2px;max-height:150px;overflow:auto;padding:6px;border:1px solid var(--line);border-radius:6px;font-weight:400}
+.tui-pr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}@media(max-width:760px){.tui-pr{grid-template-columns:1fr}}
+.tui-prview{position:relative;min-height:260px;aspect-ratio:16/10;border-radius:6px;border:1px solid var(--line)}
+.prv{position:relative;overflow:hidden;background:#000;color:#fff}.prv-wrap{position:absolute;left:0;top:0;width:1000px;transform-origin:0 0;will-change:transform}
+.prv-text{white-space:pre-wrap;word-break:break-word;line-height:1.45;font-weight:600;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.prv-line{position:absolute;left:0;right:0;top:35%;height:0;border-top:3px solid #ffd400;box-shadow:0 0 8px #ffd40088;pointer-events:none}.prv-line:before{content:'▶';position:absolute;left:4px;top:-14px;color:#ffd400;font-size:18px}
+.tui-imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}.tui-imgs figure{margin:0;padding:6px;border:1px solid var(--line);border-radius:6px;background:repeating-conic-gradient(#222 0 25%,#2c2c2c 0 50%) 0 0/16px 16px}.tui-imgs img{display:block;width:100%;height:90px;object-fit:contain}.tui-imgs figcaption{display:flex;gap:4px;margin-top:6px}.tui-imgs figcaption .field{flex:1;min-width:0}
+body.prompter-page{margin:0;background:#000;overflow:hidden}.prp{position:fixed;inset:0;display:flex;flex-direction:column}.prp-view{flex:1;cursor:pointer}.prp-bar{display:flex;align-items:center;gap:12px;padding:6px 12px;background:#111;color:#ccc;font-size:14px}.prp-bar.hidden{display:none}.prp-bar .grow{flex:1}
+body.clock-page{margin:0;background:#000;color:#fff;overflow:hidden}.clk{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:3vh 4vw;text-align:center}
+.clk-time{font-size:min(22vw,30vh);font-weight:700;line-height:1;letter-spacing:.02em}.clk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3vw;width:100%}.clk-grid div{display:flex;flex-direction:column;gap:1vh;padding:2vh 1vw;border:1px solid #333;border-radius:12px}.clk-grid span{font-size:min(3vw,4vh);color:#aaa}.clk-grid b{font-size:min(8vw,11vh);line-height:1}.clk-grid b.warn{color:#ffc24a}.clk-grid b.bad{color:#ff4d5e}
+.clk-now{font-size:min(5vw,7vh);font-weight:700;color:#ffd400;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.clk-next{font-size:min(3.4vw,5vh);color:#bbb}.clk-st{position:fixed;right:12px;bottom:8px;font-size:12px;color:#666}
+@media(orientation:portrait){.clk-grid{grid-template-columns:1fr}.clk-grid b{font-size:9vh}}
+.tui-air .chip button{border:0;background:#0003;color:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer}
+.tui .onair{font-style:normal;color:#ff4d5e;margin-right:4px;font-weight:700}
+.tui-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
+.tui-tabs button{flex:none;height:32px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:none;color:var(--dim);cursor:pointer;font:inherit;font-weight:600}
+.tui-tabs button.on{color:#fff;border-bottom-color:#c8102e}
+.tui-panes{min-height:0}
+.tui-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0}
+.tui-bar label{display:inline-flex;align-items:center;gap:5px;color:var(--dim);font-size:12px}
+.tui-list{max-height:min(46vh,420px);overflow:auto;border:1px solid var(--line);border-radius:6px;background:#0e1318}
+.tui-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-bottom:1px solid #1d252e;cursor:pointer;min-width:0}
+.tui-row:hover{background:#151c24}.tui-row.sel{background:#12301f;box-shadow:inset 3px 0 #22c55e}.tui-row.air{box-shadow:inset -3px 0 #ff3b3b}
+.tui-row .n{width:26px;flex:none;font:600 11px var(--mono);color:var(--mute);text-align:right}
+.tui-row .tp{flex:none;font-size:11px;padding:1px 6px;border-radius:3px;background:var(--s3);color:var(--dim)}
+.tui-row .sm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tui-row .g{flex:none;font-size:11px;color:var(--mute)}.tui-row .fl{color:#7cc4ff}
+.tui-row .acts{display:flex;gap:2px;flex:none}
+.tui-row .acts button{width:28px;height:28px;border:1px solid var(--line2);background:var(--s2);color:var(--dim);border-radius:4px;cursor:pointer}
+.tui-row .acts button[data-a=take]{color:#ff8a96}
+.tui-form{display:flex;flex-direction:column;gap:8px}
+.tui-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--dim)}
+.tui-form label.chk{flex-direction:row;align-items:center;gap:6px}
+.tui-pr textarea[data-pf="text"]{min-height:180px;resize:vertical}.rd-form textarea{min-height:90px}
+.tui-form h4{margin:4px 0 0}
+.tui-fields,.tui-grid2,.tui-grid3{display:grid;gap:8px}
+.tui-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.tui-fields .full{grid-column:1/-1}
+.tui-grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.tui-grid3{grid-template-columns:repeat(3,minmax(0,1fr));align-items:end}
+.tui input[type=color]{width:100%;height:32px;border:1px solid var(--line2);border-radius:6px;background:none;padding:2px}
+.tui-prev{overflow:auto;border:1px solid var(--line);border-radius:6px;margin-top:8px}
+.tui-prev table{border-collapse:collapse;font-size:12px;width:100%}.tui-prev td{padding:4px 8px;border-bottom:1px solid #1d252e;white-space:nowrap}.tui-prev tr.h td{color:var(--warn);font-weight:700}
+.tui-qr{background:#fff;padding:8px;border-radius:6px;width:max-content}.tui-qr:empty{display:none}
+.tui kbd{font:600 11px var(--mono);padding:1px 5px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;background:var(--s2);color:var(--text)}
+@media(max-width:700px){.tui-ctl{grid-template-columns:repeat(3,1fr)}.tui-ctl .take{grid-column:1/-1;order:-1;height:52px}.tui-ctl [data-k=clearAll]{grid-column:1/-1}.tui-fields,.tui-grid2,.tui-grid3{grid-template-columns:minmax(0,1fr)}.tui-mon{grid-template-columns:minmax(0,1fr)}}
+/* 遠端字幕控制頁 */
+body.cgctl{overflow:auto}
+.cgctl-page{max-width:1100px;margin:0 auto;padding:10px 12px 40px}
+.cgctl-page header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0 12px}
+.cgctl-page header .grow{flex:1;min-width:0}
+/* 透明字幕輸出：OBS 瀏覽器來源直接疊加 */
+html.cgout-root,html.cgout-root body.cgout{background:transparent!important;margin:0;overflow:hidden}
+body.cgout #app{background:transparent!important}
+body.cgout #cgc{position:fixed;inset:0;width:100vw;height:100vh;object-fit:contain}
+body.cgout #cgdbg{position:fixed;left:8px;bottom:8px;font:12px var(--mono);color:#fff;background:#000a;padding:4px 8px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -907,7 +1028,7 @@ const CONFIG = {
 const PEER_OPTS = { config: { iceServers: CONFIG.ICE_SERVERS }, debug: 1 };
 const CONN_OPTS = { reliable: true, serialization: 'json' };
 const PREFIX = 'webcall-tw2-';
-const BUILD = 'v29-production-rc-20261113';   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
+const BUILD = 'v' + (window.WC_VER || document.querySelector('meta[name="webcall-version"]')?.content || 'dev');   // 版本：來賓加入畫面與設定會顯示，用來確認手機載入的是不是新版
 const QUALITY = {
   '360':  { w: 640,  h: 360,  kbps: 700,  label: '360p' },
   '480':  { w: 854,  h: 480,  kbps: 1200, label: '480p' },
@@ -1182,8 +1303,10 @@ function beep(f = 880, ms = 160, vol = .08){ try { const ac = audioCtx(), o = ac
 function blackTrack(w = 320, h = 180){
   const c = Object.assign(document.createElement('canvas'), { width: w, height: h });
   const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
-  const s = c.captureStream(1); setInterval(() => { g.fillRect(0, 0, 1, 1); }, 1000);
-  return s.getVideoTracks()[0];
+  const s = c.captureStream(1), tr = s.getVideoTracks()[0];
+  // track 結束後停止重繪，避免計時器與畫布一直留在記憶體
+  const iv = setInterval(() => { if (tr.readyState === 'ended') { clearInterval(iv); c.width = c.height = 0; return; } g.fillRect(0, 0, 1, 1); }, 1000);
+  return tr;
 }
 function setBitrate(pc, kbps){
   if (!pc) return;
@@ -1747,6 +1870,1251 @@ const ProductionCore=(()=>{
  return {grade,order,cg,animate,trackingPose,clamp};
 })();
 
+/* ===================== 字幕系統（VisTitle／vMix 風格）=====================
+ * TitleCore：樣板、主題、狀態操作、canvas 繪製。導播台、遠端字幕控制頁、透明字幕輸出共用同一份程式，
+ * 所以三邊看到的字幕一模一樣。狀態只由導播台持有；遠端送指令，導播台處理後廣播最新狀態。 */
+const TitleCore = (() => {
+  const FONTS = [
+    ['"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif', '黑體（預設）'],
+    ['"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif', '微軟正黑體'],
+    ['"Noto Serif TC","PMingLiU","MingLiU",serif', '明體'],
+    ['"DFKai-SB","BiauKai","KaiTi",serif', '楷體'],
+    ['Arial,"Noto Sans TC",sans-serif', 'Arial'],
+  ];
+  const BASE = { font: FONTS[0][0], weight: 900, opacity: .96, scale: 1, anim: 'slide', speed: .45, safe: .05 };
+  const THEMES = {
+    newsRed:  Object.assign({}, BASE, { name: '新聞紅', primary: '#c8102e', secondary: '#0d1b2e', accent: '#ffd200', text: '#ffffff', text2: '#ffffff' }),
+    newsBlue: Object.assign({}, BASE, { name: '新聞藍', primary: '#0a4ea8', secondary: '#06152b', accent: '#ffcc00', text: '#ffffff', text2: '#ffffff' }),
+    gold:     Object.assign({}, BASE, { name: '典禮金', primary: '#a97a22', secondary: '#1b130a', accent: '#f6e3a1', text: '#ffffff', text2: '#f6e3a1', font: FONTS[2][0], weight: 700, anim: 'fade', speed: .6 }),
+    clean:    Object.assign({}, BASE, { name: '極簡白', primary: '#ffffff', secondary: '#111111', accent: '#e11d48', text: '#111111', text2: '#ffffff', weight: 700 }),
+  };
+  const POS = [['tl', '左上'], ['tc', '上中'], ['tr', '右上'], ['ml', '左中'], ['mc', '正中'], ['mr', '右中'], ['bl', '左下'], ['bc', '下中'], ['br', '右下']];
+  // 樣板欄位：k＝欄位鍵、t＝標籤、p＝提示、type＝text/area/select/number/check
+  const TEMPLATES = {
+    name:     { grp: 'news', name: '名條（姓名／職稱）', layer: 'lower', fields: [{ k: 'l1', t: '姓名', p: '王小明' }, { k: 'l2', t: '職稱／說明', p: '台北市政府發言人' }] },
+    place:    { grp: 'news', name: '地點條', layer: 'lower', fields: [{ k: 'l1', t: '地點', p: '台北市信義區' }, { k: 'l2', t: '記者／攝影（選填）', p: '記者 王小明' }] },
+    headline: { grp: 'news', name: '主副標題', layer: 'lower', fields: [{ k: 'l1', t: '主標', p: '颱風逼近 北部今晚起強風豪雨' }, { k: 'l2', t: '副標（選填）', p: '氣象署：明晚發布停班停課' }] },
+    breaking: { grp: 'news', name: '快訊橫幅', layer: 'upper', fields: [{ k: 'tag', t: '標籤', p: '快訊' }, { k: 'l1', t: '內容（太長會自動捲動）', p: '國道一號南下 120K 多車追撞 內線封閉' }] },
+    credit:   { grp: 'news', name: '畫面提供', layer: 'credit', fields: [{ k: 'l1', t: '文字', p: '畫面提供：民眾' }] },
+    corner:   { grp: 'news', name: '角標（LIVE／現場）', layer: 'corner', fields: [{ k: 'tag', t: '標籤', p: 'LIVE' }, { k: 'l1', t: '地點／說明（選填，可用 {時間}）', p: '台北 {時間}' }] },
+    lyric:    { grp: 'event', name: '唱詞', layer: 'lyric', fields: [{ k: 'l1', t: '第一行', p: '' }, { k: 'l2', t: '第二行（選填）', p: '' }] },
+    card:     { grp: 'event', name: '全版字卡', layer: 'full', fields: [{ k: 'l1', t: '標題', p: '頒獎典禮' }, { k: 'l2', t: '內容（可多行）', p: '最佳新人獎\n王小明', type: 'area' }, { k: 'bg', t: '背景圖（選填）', type: 'img' }] },
+    free:     { grp: 'event', name: '手排字幕', layer: 'free', fields: [{ k: 'l1', t: '內容（可多行）', p: '', type: 'area' }, { k: 'pos', t: '位置', type: 'select', opts: POS, def: 'bc' }, { k: 'size', t: '字級（1080p 像素）', type: 'number', def: '64' }, { k: 'box', t: '底框', type: 'check' }] },
+    dual:     { grp: 'news', name: '雙人對話名條', layer: 'lower', fields: [{ k: 'l1', t: '左側姓名', p: '王小明' }, { k: 'l2', t: '左側職稱', p: '主持人' }, { k: 'r1', t: '右側姓名', p: '李小華' }, { k: 'r2', t: '右側職稱', p: '立法委員' }] },
+    score:    { grp: 'data', name: '比分條', layer: 'score', fields: [{ k: 'ta', t: '隊伍 A', p: '中信兄弟' }, { k: 'sa', t: 'A 比分', p: '0' }, { k: 'tb', t: '隊伍 B', p: '統一獅' }, { k: 'sb', t: 'B 比分', p: '0' }, { k: 'info', t: '局數／節次／時間（選填，可用 {時間}）', p: '7 局上' }] },
+    election: { grp: 'data', name: '選舉開票條', layer: 'lower', rows: [{ k: 'name', t: '候選人' }, { k: 'votes', t: '票數' }, { k: 'color', t: '顏色（選填）' }], fields: [{ k: 'title', t: '標題', p: '台北市長 開票' }, { k: 'prog', t: '開票進度（選填）', p: '開票 85%' }, { k: 'list', t: '候選人（每行：姓名|票數|顏色，顏色可省略）', p: 'A 候選人|523456|#1b9431\nB 候選人|498120|#0a4ea8', type: 'area' }, { k: 'win', t: '當選（填姓名，選填）', p: '' }] },
+    stock:    { grp: 'data', name: '股市行情條', layer: 'crawl', rows: [{ k: 'name', t: '名稱' }, { k: 'price', t: '價格' }, { k: 'chg', t: '漲跌' }], fields: [{ k: 'title', t: '標題', p: '台股盤勢' }, { k: 'list', t: '行情（每行：名稱|價格|漲跌，用 | 分隔）', p: '加權指數|23,456.78|+123.45\n台積電|1,050|-5\n櫃買指數|265.30|+1.20', type: 'area' }, { k: 'scheme', t: '顏色慣例', type: 'select', opts: [['tw', '漲紅跌綠（台股）'], ['us', '漲綠跌紅（美股）']], def: 'tw' }] },
+    phone:    { grp: 'news', name: '電話連線條', layer: 'lower', fields: [{ k: 'tag', t: '標籤', p: '電話連線' }, { k: 'name', t: '姓名', p: '王小明' }, { k: 'role', t: '身分／職稱', p: '本台記者' }, { k: 'place', t: '地點（選填）', p: '花蓮縣秀林鄉' }, { k: 'img', t: '照片（選填）', type: 'img' }] },
+    poll:     { grp: 'data', name: '民調／投票結果', layer: 'info', rows: [{ k: 'opt', t: '選項' }, { k: 'val', t: '數值' }], fields: [{ k: 'title', t: '題目', p: '是否支持延長營業時間？' }, { k: 'list', t: '選項（每行：選項|數值）', p: '支持|62\n反對|28\n沒意見|10', type: 'area' }, { k: 'unit', t: '單位', p: '%' }, { k: 'src', t: '資料來源（選填）', p: '本台民調 n=1,068' }] },
+    bullets:  { grp: 'event', name: '重點條列', layer: 'side', rows: [{ k: 'text', t: '重點' }], fields: [{ k: 'title', t: '標題', p: '颱風重點整理' }, { k: 'list', t: '重點（每行一點，最多 6 點）', p: '北部今晚起風雨增強\n山區留意豪雨\n明晚評估停班停課', type: 'area' }] },
+    social:   { grp: 'event', name: '觀眾留言／社群', layer: 'info', fields: [{ k: 'user', t: '暱稱', p: '小明' }, { k: 'text', t: '留言', p: '主播辛苦了！', type: 'area' }, { k: 'src', t: '平台', type: 'select', opts: [['yt', 'YouTube'], ['fb', 'Facebook'], ['ig', 'Instagram'], ['line', 'LINE'], ['x', 'X'], ['web', '網友']], def: 'yt' }] },
+    slate:    { grp: 'event', name: '開場／休息字卡（可倒數）', layer: 'full', fields: [{ k: 'title', t: '活動名稱', p: '2026 年度頒獎典禮' }, { k: 'status', t: '狀態', type: 'select', opts: [['soon', '即將開始'], ['break', '中場休息'], ['back', '稍後回來'], ['end', '感謝收看'], ['custom', '自訂（用下面的副標）']], def: 'soon' }, { k: 'sub', t: '副標／時間地點（選填）', p: '台北國際會議中心　19:00' }, { k: 'cd', t: '倒數到（HH:MM，選填）', p: '19:00' }] },
+    agenda:   { grp: 'event', name: '議程／節目表', layer: 'side', rows: [{ k: 'time', t: '時間' }, { k: 'item', t: '項目' }, { k: 'who', t: '講者／表演者' }], fields: [{ k: 'title', t: '標題', p: '今日議程' }, { k: 'list', t: '議程（每行：時間|項目|講者，依時間自動標示進行中）', p: '19:00|開幕致詞|主辦單位\n19:20|主題演講|王小明\n20:00|頒獎典禮|\n21:00|閉幕', type: 'area' }] },
+    speaker:  { grp: 'event', name: '講者介紹', layer: 'lower', fields: [{ k: 'name', t: '姓名', p: '王小明' }, { k: 'title', t: '職稱／單位', p: '台灣大學 資訊工程學系教授' }, { k: 'topic', t: '講題（選填）', p: 'AI 如何改變新聞產製' }, { k: 'img', t: '照片（選填）', type: 'img' }] },
+    logo:     { grp: 'event', name: '台標／Logo 角標', layer: 'logo', fields: [{ k: 'img', t: '圖片', type: 'img' }, { k: 'pos', t: '位置', type: 'select', opts: [['tr', '右上'], ['tl', '左上'], ['br', '右下'], ['bl', '左下']], def: 'tr' }, { k: 'size', t: '高度（1080p 像素）', type: 'number', def: '110' }, { k: 'alpha', t: '不透明度（%）', type: 'number', def: '90' }] },
+    image:    { grp: 'event', name: '圖片疊加（QR Code／海報）', layer: 'image', fields: [{ k: 'img', t: '圖片', type: 'img' }, { k: 'pos', t: '位置', type: 'select', opts: POS, def: 'br' }, { k: 'size', t: '寬度（畫面 %）', type: 'number', def: '25' }, { k: 'alpha', t: '不透明度（%）', type: 'number', def: '100' }, { k: 'cap', t: '說明文字（選填）', p: '掃描報名' }] },
+    award:    { grp: 'event', name: '頒獎／得獎', layer: 'lower', fields: [{ k: 'award', t: '獎項', p: '最佳新人獎' }, { k: 'winner', t: '得獎者', p: '王小明' }, { k: 'work', t: '作品／單位（選填）', p: '《夜空中最亮的星》' }] },
+    sponsor:  { grp: 'event', name: '感謝贊助（輪播）', layer: 'info', rows: [{ k: 'name', t: '贊助單位' }], fields: [{ k: 'title', t: '標題', p: '感謝贊助' }, { k: 'list', t: '贊助單位（每行一個；填「圖片」分頁裡的圖片名稱會顯示 Logo）', p: '台灣好公司\n未來科技\n城市文化基金會', type: 'area' }, { k: 'sec', t: '每個停留秒數', type: 'number', def: '4' }] },
+    quote:    { grp: 'event', name: '金句／引言', layer: 'side', fields: [{ k: 'text', t: '內容', p: '把每一次直播，都當作第一次。', type: 'area' }, { k: 'author', t: '出處／說話者（選填）', p: '王小明' }] },
+    infobar:  { grp: 'event', name: '資訊條（報名／網址／電話）', layer: 'credit', fields: [{ k: 'tag', t: '標籤', p: '線上報名' }, { k: 'text', t: '內容', p: 'example.com/join' }] },
+    frBorder: { grp: 'frame', name: '活動外框（上下標題條）', layer: 'frame', fields: [{ k: 'title', t: '上方活動名稱', p: '2026 年度頒獎典禮' }, { k: 'sub', t: '下方文字（選填，可用 {時間}）', p: '#頒獎典禮　現場直播' }] },
+    frL:      { grp: 'frame', name: 'L 型包裝（右側欄＋底條）', layer: 'frame', fields: [{ k: 'title', t: '側欄標題', p: '今日重點' }, { k: 'side', t: '側欄內容（可多行）', p: '19:00 開幕\n19:20 主題演講\n20:00 頒獎', type: 'area' }, { k: 'bottom', t: '底條文字（太長會捲動）', p: '歡迎在留言區與我們互動' }] },
+    frSplit2: { grp: 'frame', name: '雙框（對齊版型：左右對切）', layer: 'frame', box: 'split2', fields: [{ k: 'a', t: '左框標籤', p: '台北現場' }, { k: 'b', t: '右框標籤', p: '高雄現場' }, { k: 'title', t: '上方標題（選填）', p: '' }] },
+    frSplit2v:{ grp: 'frame', name: '上下雙框（對齊版型：上下對切）', layer: 'frame', box: 'split2v', fields: [{ k: 'a', t: '上框標籤', p: '主持人' }, { k: 'b', t: '下框標籤', p: '來賓' }, { k: 'title', t: '上方標題（選填）', p: '' }] },
+    frTri:    { grp: 'frame', name: '三框一大二小（對齊版型）', layer: 'frame', box: 'tri', fields: [{ k: 'a', t: '大框標籤', p: '主畫面' }, { k: 'b', t: '右上標籤', p: '來賓 A' }, { k: 'c', t: '右下標籤', p: '來賓 B' }, { k: 'title', t: '上方標題（選填）', p: '' }] },
+    frTri3:   { grp: 'frame', name: '三框並排（對齊版型）', layer: 'frame', box: 'tri3', fields: [{ k: 'a', t: '左框標籤', p: '來賓 A' }, { k: 'b', t: '中框標籤', p: '主持人' }, { k: 'c', t: '右框標籤', p: '來賓 B' }, { k: 'title', t: '上方標題（選填）', p: '' }] },
+    frQuad:   { grp: 'frame', name: '四宮格（對齊版型）', layer: 'frame', box: 'quad', fields: [{ k: 'a', t: '左上標籤', p: '台北' }, { k: 'b', t: '右上標籤', p: '台中' }, { k: 'c', t: '左下標籤', p: '台南' }, { k: 'd', t: '右下標籤', p: '高雄' }, { k: 'title', t: '上方標題（選填）', p: '' }] },
+    frMain3:  { grp: 'frame', name: '主畫面＋三小（對齊版型）', layer: 'frame', box: 'main3', fields: [{ k: 'a', t: '主畫面標籤', p: '舞台' }, { k: 'b', t: '小框 1', p: '評審 A' }, { k: 'c', t: '小框 2', p: '評審 B' }, { k: 'd', t: '小框 3', p: '評審 C' }, { k: 'title', t: '上方標題（選填）', p: '' }] },
+    frPip:    { grp: 'frame', name: '子母框（對齊版型：左下小）', layer: 'frame', box: 'pipL', fields: [{ k: 'a', t: '主畫面標籤（選填）', p: '' }, { k: 'b', t: '小窗標籤', p: '手語翻譯' }] },
+    weather:  { grp: 'data', name: '天氣條', layer: 'info', fields: [{ k: 'loc', t: '地點', p: '台北' }, { k: 'temp', t: '溫度', p: '18–24°C' }, { k: 'cond', t: '天氣', p: '晴時多雲' }, { k: 'rain', t: '降雨機率（選填）', p: '20%' }, { k: 'icon', t: '圖示', type: 'select', opts: [['auto', '依天氣文字自動'], ['sun', '晴'], ['partly', '晴時多雲'], ['cloud', '多雲／陰'], ['rain', '雨'], ['storm', '雷雨'], ['snow', '雪']], def: 'auto' }] },
+  };
+  const LAYERS = ['frame', 'full', 'lower', 'info', 'side', 'lyric', 'free', 'image', 'crawl', 'upper', 'score', 'credit', 'corner', 'logo'];   // 由下往上的繪製順序
+  const GROUP_NAMES = { news: '新聞', data: '資料／運動', event: '活動', frame: '轉播包裝框' };
+  const LAYER_NAMES = { image: '圖片', logo: '台標', frame: '包裝框', full: '全版', lower: '下方條', info: '右側資訊', side: '左側條列', crawl: '底部行情', lyric: '唱詞', free: '手排', upper: '上方橫幅', score: '比分', credit: '畫面提供', corner: '角標' };
+  const STORE_KEY = 'wc_titles_v1';
+  const uid = () => 'T' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const pad2 = n => String(n).padStart(2, '0');
+  const tokens = s => { const d = new Date(); return String(s ?? '').replace(/\{時間\}/g, pad2(d.getHours()) + ':' + pad2(d.getMinutes())).replace(/\{秒\}/g, pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds())).replace(/\{日期\}/g, d.getFullYear() + '/' + pad2(d.getMonth() + 1) + '/' + pad2(d.getDate())); };
+  // 倒數到今天某個時間（HH:MM 或 HH:MM:SS），過了就顯示 00:00
+  const countdown = t => { const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(t || '').trim()); if (!m) return ''; const d = new Date(), tg = new Date(d); tg.setHours(+m[1], +m[2], +(m[3] || 0), 0); let sec = Math.max(0, Math.round((tg - d) / 1000)); const h = Math.floor(sec / 3600); sec %= 3600; return (h ? h + ':' + pad2(Math.floor(sec / 60)) : pad2(Math.floor(sec / 60))) + ':' + pad2(sec % 60); };
+  const defaults = tpl => { const f = {}; (TEMPLATES[tpl]?.fields || []).forEach(x => { f[x.k] = x.type === 'check' ? '1' : x.type === 'select' ? (x.def ?? x.opts?.[0]?.[0] ?? '') : x.type === 'number' ? (x.def ?? '64') : x.type === 'img' ? '' : ''; }); if (tpl === 'breaking') f.tag = '快訊'; if (tpl === 'corner') f.tag = 'LIVE'; if (tpl === 'score') { f.sa = '0'; f.sb = '0'; } if (tpl === 'phone') f.tag = '電話連線'; if (tpl === 'poll') f.unit = '%'; if (tpl === 'sponsor') f.title = '感謝贊助'; if (tpl === 'infobar') f.tag = '線上報名'; return f; };
+  const mkItem = (tpl, f, extra) => Object.assign({ id: uid(), tpl: TEMPLATES[tpl] ? tpl : 'name', f: Object.assign(defaults(tpl), f || {}), dur: 0, g: '' }, extra || {});
+  // 多行清單：每行用 | 或 Tab 分隔欄位（沒有 | 時才用逗號，避免「23,456」被切開）
+  const parseList = t => String(t || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => (l.includes('|') ? l.split('|') : l.includes('\t') ? l.split('\t') : l.split(/[,，]/)).map(x => x.trim()));
+  const num = v => +String(v ?? '').replace(/[^\d.\-]/g, '') || 0;
+  const wrap = (g, text, maxW, maxLines) => { const out = []; let line = ''; const src = String(text || ''); for (const ch of src) { if (ch === '\n') { out.push(line); line = ''; continue; } if (g.measureText(line + ch).width > maxW && line) { out.push(line); line = ch; } else line += ch; } if (line) out.push(line); if (out.length > maxLines) { const cut = out.slice(0, maxLines); cut[maxLines - 1] = cut[maxLines - 1].slice(0, -1) + '…'; return cut; } return out; };
+  const summary = it => {
+    const f = it?.f || {};
+    if (TEMPLATES[it?.tpl]?.rows) return [f.title, parseList(f.list).map(r => r.slice(0, 2).join(' ')).join('、')].filter(Boolean).join('｜').slice(0, 80) || '（空白）';
+    if (it?.tpl === 'phone') return [f.tag, f.name, f.role].filter(Boolean).join('｜');
+    if (it?.tpl === 'social') return `${f.user || '網友'}：${String(f.text || '').replace(/\n/g, ' ')}`.slice(0, 80);
+    if (it?.tpl === 'score') return `${f.ta || 'A'} ${f.sa || 0} : ${f.sb || 0} ${f.tb || 'B'}${f.info ? '｜' + f.info : ''}`;
+    if (it?.tpl === 'dual') return `${f.l1 || ''}／${f.r1 || ''}`;
+    if (it?.tpl === 'logo' || it?.tpl === 'image') return (it.tpl === 'logo' ? '台標' : '圖片') + (it.f?.cap ? '｜' + it.f.cap : '');
+    const keys = (TEMPLATES[it?.tpl]?.fields || []).filter(x => !['select', 'number', 'check', 'img'].includes(x.type)).map(x => x.k);
+    return keys.map(k => f[k]).filter(Boolean).join('｜').replace(/\n/g, ' ').slice(0, 80) || '（空白）';
+  };
+
+  function fresh(){
+    return { v: 1, theme: clone(THEMES.newsRed), items: [], sel: null, pvw: null, pgm: {}, leaving: [], opts: { autoNext: true, lyricLive: false, followCut: true, followOff: true, followDelay: 1 }, sources: [], assets: {},
+      prompter: { text: '', size: 64, speed: 60, mirror: false, margin: 8, playing: false, pos: 0, t0: 0 },
+      rundown: { rows: [], cur: -1, curStart: 0, showEnd: '' },
+      check: { on: true, confirm: true, words: '', names: '' }, data: { url: '', tpl: 'name', map: {}, auto: false, sec: 30 }, rev: 0 };
+  }
+  function load(){
+    const S = fresh();
+    try { const o = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (o) { Object.assign(S.theme, o.theme || {}); S.items = Array.isArray(o.items) ? o.items.filter(x => x && TEMPLATES[x.tpl]) : []; S.sel = o.sel || null; Object.assign(S.opts, o.opts || {}); Object.assign(S.data, o.data || {}); Object.assign(S.prompter, o.prompter || {}, { playing: false }); if (o.rundown) Object.assign(S.rundown, o.rundown); Object.assign(S.check, o.check || {}); } } catch {}
+    try { S.assets = JSON.parse(localStorage.getItem(STORE_KEY + '_assets') || '{}') || {}; } catch { S.assets = {}; }
+    const it = S.items.find(x => x.id === S.sel); S.pvw = it ? clone(it) : null;
+    // 導播台重新整理／當掉重開：30 分鐘內的播出狀態直接恢復（不重播進場動畫）
+    try { const a = JSON.parse(localStorage.getItem(STORE_KEY + '_air') || 'null'); if (a && Date.now() - a.at < 30 * 60 * 1000) { const t0 = Date.now() - 60000; Object.keys(a.pgm || {}).forEach(l => { if (a.pgm[l] && TEMPLATES[a.pgm[l].tpl]) S.pgm[l] = { item: a.pgm[l], t0 }; }); if (a.pvw && TEMPLATES[a.pvw.tpl]) S.pvw = a.pvw; S.restored = Object.keys(S.pgm).length; } } catch {}
+    return S;
+  }
+  function save(S){
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ theme: S.theme, items: S.items, sel: S.sel, opts: S.opts, data: S.data, prompter: Object.assign({}, S.prompter, { pos: promptPos(S, Date.now()), playing: false }), rundown: S.rundown, check: S.check })); } catch {}
+    try { const pgm = {}; Object.keys(S.pgm).forEach(l => { if (S.pgm[l]) pgm[l] = S.pgm[l].item; }); localStorage.setItem(STORE_KEY + '_air', JSON.stringify({ at: Date.now(), pgm, pvw: S.pvw })); } catch {}
+  }
+
+  // 廣播用快照：把時間換成「已經過幾毫秒」，接收端用自己的時鐘換回來，不受兩台電腦時間差影響
+  function saveAssets(S){ try { localStorage.setItem(STORE_KEY + '_assets', JSON.stringify(S.assets || {})); return true; } catch { return false; } }
+  // 提詞機目前捲到哪裡（虛擬像素）：播放中＝起點＋速度×經過時間
+  const promptPos = (S, now) => { const P = S.prompter || {}; return Math.max(0, (P.pos || 0) + (P.playing ? (P.speed || 0) * (now - (P.t0 || now)) / 1000 : 0)); };
+  function snapshot(S, now){
+    const pgm = {}; Object.keys(S.pgm).forEach(l => { const e = S.pgm[l]; if (e) pgm[l] = { item: e.item, age: now - e.t0 }; });
+    return { theme: S.theme, items: S.items, sel: S.sel, pvw: S.pvw, pgm, leaving: S.leaving.map(e => ({ item: e.item, layer: e.layer, age: now - e.t0, outAge: now - e.out })), opts: S.opts, data: S.data, sources: S.sources || [], prompter: Object.assign({}, S.prompter, { pos: promptPos(S, now), t0: 0 }), rundown: Object.assign({}, S.rundown, { curAge: S.rundown.curStart ? now - S.rundown.curStart : 0 }), check: S.check, assetList: Object.keys(S.assets || {}).map(id => ({ id, name: S.assets[id].name })), rev: S.rev };
+  }
+  function fromSnapshot(s, now){
+    const S = fresh(); if (!s) return S;
+    Object.assign(S, { theme: s.theme || S.theme, items: s.items || [], sel: s.sel, pvw: s.pvw, opts: Object.assign({}, S.opts, s.opts || {}), data: s.data || S.data, sources: s.sources || [], check: s.check || S.check, assetList: s.assetList || [], rev: s.rev || 0 });
+    if (s.prompter) S.prompter = Object.assign({}, s.prompter, { t0: now });
+    if (s.rundown) { S.rundown = Object.assign({}, s.rundown); S.rundown.curStart = s.rundown.curAge ? now - s.rundown.curAge : 0; }
+    S.pgm = {}; Object.keys(s.pgm || {}).forEach(l => { S.pgm[l] = { item: s.pgm[l].item, t0: now - s.pgm[l].age }; });
+    S.leaving = (s.leaving || []).map(e => ({ item: e.item, layer: e.layer, t0: now - e.age, out: now - e.outAge }));
+    return S;
+  }
+
+  const layerOf = it => TEMPLATES[it?.tpl]?.layer || 'lower';
+  function takeOff(S, layer, now){ const e = S.pgm[layer]; if (!e) return; S.leaving.push({ item: e.item, layer, t0: e.t0, out: now }); delete S.pgm[layer]; }
+  function stageIndex(S, i){ const it = S.items[i]; if (!it) return false; S.sel = it.id; S.pvw = clone(it); return true; }
+  function takeItem(S, it, now){ const l = layerOf(it); takeOff(S, l, now); S.pgm[l] = { item: clone(it), t0: now }; }
+
+  // 所有操作都經過這裡（本機按鈕、快捷鍵、遠端控制頁一樣）；回傳 true 表示狀態有變
+  function apply(S, cmd, now){
+    if (!cmd || typeof cmd !== 'object') return false;
+    const idx = id => S.items.findIndex(x => x.id === id);
+    const cur = () => idx(S.sel);
+    switch (cmd.op) {
+      case 'add': { const it = mkItem(cmd.tpl, cmd.f, { dur: +cmd.dur || 0, g: String(cmd.g || '').slice(0, 40), follow: String(cmd.follow || '').slice(0, 60) }); const at = cmd.after ? idx(cmd.after) + 1 : S.items.length; S.items.splice(at > 0 ? at : S.items.length, 0, it); if (cmd.stage) { S.sel = it.id; S.pvw = clone(it); } break; }
+      case 'update': { const it = S.items[idx(cmd.id)]; if (!it) return false; if (cmd.tpl && TEMPLATES[cmd.tpl]) it.tpl = cmd.tpl; if (cmd.f) it.f = Object.assign({}, it.f, cmd.f); if (cmd.dur != null) it.dur = Math.max(0, +cmd.dur || 0); if (cmd.g != null) it.g = String(cmd.g).slice(0, 40); if (cmd.follow != null) it.follow = String(cmd.follow).slice(0, 60); if (S.sel === it.id) S.pvw = clone(it); break; }
+      case 'remove': { const i = idx(cmd.id); if (i < 0) return false; S.items.splice(i, 1); if (S.sel === cmd.id) { S.sel = null; S.pvw = null; } break; }
+      case 'move': { const i = idx(cmd.id), j = i + (cmd.dir < 0 ? -1 : 1); if (i < 0 || j < 0 || j >= S.items.length) return false; [S.items[i], S.items[j]] = [S.items[j], S.items[i]]; break; }
+      case 'dup': { const i = idx(cmd.id); if (i < 0) return false; const c = clone(S.items[i]); c.id = uid(); S.items.splice(i + 1, 0, c); break; }
+      case 'clearList': S.items = cmd.source ? S.items.filter(x => x.src !== cmd.source) : []; if (!S.items.some(x => x.id === S.sel)) { S.sel = null; S.pvw = null; } break;
+      case 'import': {
+        const list = (cmd.items || []).slice(0, 2000).map(x => mkItem(x.tpl, x.f, { g: String(x.g || '').slice(0, 40), src: cmd.source || '' }));
+        if (cmd.source) {   // 重新匯入同一個資料來源：放回原位置，並保留「預覽到第幾則」
+          const old = S.items.filter(x => x.src === cmd.source), selAt = old.findIndex(x => x.id === S.sel), first = S.items.findIndex(x => x.src === cmd.source);
+          // 同位置、同樣板：保留沒有對應到欄位的內容（例如開票條的標題），只更新資料欄位
+          list.forEach((it, i) => { const o = old[i]; if (o && o.tpl === it.tpl) { it.f = Object.assign({}, o.f, cmd.items[i]?.f || {}); it.dur = o.dur; it.g = o.g || it.g; } });
+          S.items = S.items.filter(x => x.src !== cmd.source); S.items.splice(first >= 0 ? first : S.items.length, 0, ...list);
+          if (selAt >= 0 && list[Math.min(selAt, list.length - 1)]) { const it = list[Math.min(selAt, list.length - 1)]; S.sel = it.id; S.pvw = clone(it); }
+          // 正在播出的資料字幕（開票、行情等）直接換成新數字，不重播進場動畫
+          Object.keys(S.pgm).forEach(l => { const e = S.pgm[l], oi = old.findIndex(x => x.id === e.item.id); if (oi >= 0 && list[oi] && list[oi].tpl === e.item.tpl) { const keepId = e.item.id; e.item = clone(list[oi]); e.item.id = keepId; } });
+        } else S.items.push(...list);
+        if (!S.items.some(x => x.id === S.sel)) { S.sel = null; S.pvw = null; }
+        break;
+      }
+      case 'replaceAll': S.items = (cmd.items || []).filter(x => x && TEMPLATES[x.tpl]).map(x => Object.assign(mkItem(x.tpl, x.f), { dur: +x.dur || 0, g: x.g || '', follow: x.follow || '' })); S.sel = null; S.pvw = null; break;
+      case 'select': { const i = idx(cmd.id); if (i < 0) return false; stageIndex(S, i); break; }
+      case 'stage': S.pvw = cmd.item && TEMPLATES[cmd.item.tpl] ? mkItem(cmd.item.tpl, cmd.item.f, { dur: +cmd.item.dur || 0, id: cmd.item.id || uid() }) : null; break;
+      case 'take': {
+        const it = cmd.id ? S.items[idx(cmd.id)] : S.pvw; if (!it) return false;
+        const fromList = !cmd.id && S.pvw && S.pvw.id === S.sel && cur() >= 0;   // 臨時送預覽的字幕不會帶動清單往下
+        takeItem(S, it, now);
+        if (fromList && S.opts.autoNext) stageIndex(S, cur() + 1);
+        break;
+      }
+      case 'next': case 'prev': {
+        const i = cur(), j = S.items.length ? (i < 0 ? 0 : i + (cmd.op === 'next' ? 1 : -1)) : -1;
+        if (!stageIndex(S, j)) return false;
+        if (S.opts.lyricLive && S.pvw && layerOf(S.pvw) === 'lyric') takeItem(S, S.pvw, now);
+        break;
+      }
+      case 'clear': { const ls = cmd.layer ? [cmd.layer] : Object.keys(S.pgm); if (!ls.some(l => S.pgm[l])) return false; ls.forEach(l => takeOff(S, l, now)); break; }
+      case 'live': {   // 手排即時改字：PVW 與正在播出的同圖層字幕一起更新，不重播進場動畫
+        if (!cmd.item || !TEMPLATES[cmd.item.tpl]) return false;
+        const it = mkItem(cmd.item.tpl, cmd.item.f, { id: S.pvw?.id || uid() }); S.pvw = it;
+        const e = S.pgm[layerOf(it)]; if (e && e.item.tpl === it.tpl) e.item = clone(it);
+        break;
+      }
+      case 'scoreAdj': {   // 比分快速加減：播出中、預覽中、清單裡同一則一起更新，不重播動畫
+        const key = cmd.team === 'b' ? 'sb' : 'sa', adj = f => { if (!f) return; const n = Math.max(0, (parseInt(f[key], 10) || 0) + (+cmd.d || 0)); f[key] = String(cmd.set != null ? Math.max(0, +cmd.set || 0) : n); };
+        const e = S.pgm.score, target = e ? e.item : (S.pvw?.tpl === 'score' ? S.pvw : null); if (!target) return false;
+        adj(target.f); const id = target.id, val = target.f[key];
+        [S.pvw, ...S.items, e?.item].forEach(x => { if (x && x.id === id && x.f !== target.f) x.f[key] = val; });
+        break;
+      }
+      /* 提詞機 */
+      case 'prompter': { const P = S.prompter, pos = promptPos(S, now); Object.assign(P, cmd.set || {}); P.size = Math.max(24, Math.min(160, +P.size || 64)); P.speed = Math.max(0, Math.min(400, +P.speed || 0)); P.pos = pos; P.t0 = now; break; }
+      case 'prompterPlay': { const P = S.prompter; P.pos = promptPos(S, now); P.t0 = now; P.playing = cmd.play == null ? !P.playing : !!cmd.play; break; }
+      case 'prompterSeek': { const P = S.prompter; P.pos = Math.max(0, cmd.pos != null ? +cmd.pos || 0 : promptPos(S, now) + (+cmd.delta || 0)); P.t0 = now; if (cmd.pos === 0) P.playing = false; break; }
+      /* 新聞排序表 */
+      case 'rdAdd': { const r = rdRow(cmd.row); const at = cmd.after ? S.rundown.rows.findIndex(x => x.id === cmd.after) + 1 : S.rundown.rows.length; S.rundown.rows.splice(at > 0 ? at : S.rundown.rows.length, 0, r); break; }
+      case 'rdUpdate': { const i = S.rundown.rows.findIndex(x => x.id === cmd.id); if (i < 0) return false; S.rundown.rows[i] = Object.assign(rdRow(Object.assign({}, S.rundown.rows[i], cmd.row)), { id: cmd.id }); break; }
+      case 'rdRemove': { const i = S.rundown.rows.findIndex(x => x.id === cmd.id); if (i < 0) return false; S.rundown.rows.splice(i, 1); if (S.rundown.cur >= S.rundown.rows.length) S.rundown.cur = S.rundown.rows.length - 1; break; }
+      case 'rdMove': { const R2 = S.rundown.rows, i = R2.findIndex(x => x.id === cmd.id), j = i + (cmd.dir < 0 ? -1 : 1); if (i < 0 || j < 0 || j >= R2.length) return false; [R2[i], R2[j]] = [R2[j], R2[i]]; break; }
+      case 'rdClear': S.rundown.rows = []; S.rundown.cur = -1; S.rundown.curStart = 0; break;
+      case 'rdReplace': S.rundown = { rows: (cmd.rundown?.rows || []).map(rdRow), cur: -1, curStart: 0, showEnd: String(cmd.rundown?.showEnd || '') }; break;
+      case 'rdSet': Object.assign(S.rundown, { showEnd: String(cmd.showEnd ?? S.rundown.showEnd).slice(0, 8) }); break;
+      case 'rdGo': {   // 進到某一條：計時重來、連結的第一則字幕送預覽、提詞稿換成這條的稿子
+        const R2 = S.rundown.rows, j = cmd.index != null ? +cmd.index : S.rundown.cur + (cmd.dir < 0 ? -1 : 1); if (j < -1 || j >= R2.length) return false;
+        S.rundown.cur = j; S.rundown.curStart = j >= 0 ? now : 0; const row = R2[j]; if (!row) break;
+        const first = (row.titles || []).map(id => S.items.findIndex(x => x.id === id)).filter(i => i >= 0)[0]; if (first != null) stageIndex(S, first);
+        if (row.script) { Object.assign(S.prompter, { text: row.script, pos: 0, t0: now, playing: false }); }
+        break;
+      }
+      /* 檢查設定、圖片 */
+      case 'check': Object.assign(S.check, cmd.set || {}); break;
+      case 'assetAdd': { if (!/^data:image\/(png|jpeg|webp|gif);base64,/.test(String(cmd.data || '')) || String(cmd.data).length > 1500000) return false; const id = cmd.id || uid(); S.assets[id] = { name: String(cmd.name || '圖片').slice(0, 40), data: cmd.data }; S.assetRev = (S.assetRev || 0) + 1; break; }
+      case 'assetRemove': if (!S.assets[cmd.id]) return false; delete S.assets[cmd.id]; S.assetRev = (S.assetRev || 0) + 1; break;
+      case 'assetRename': if (!S.assets[cmd.id]) return false; S.assets[cmd.id].name = String(cmd.name || '圖片').slice(0, 40); S.assetRev = (S.assetRev || 0) + 1; break;
+      case 'theme': Object.assign(S.theme, cmd.preset && THEMES[cmd.preset] ? clone(THEMES[cmd.preset]) : {}, cmd.theme || {}); break;
+      case 'opts': Object.assign(S.opts, cmd.opts || {}); break;
+      case 'data': Object.assign(S.data, cmd.data || {}); break;
+      default: return false;
+    }
+    S.rev++; return true;
+  }
+  const RD_TYPES = [['anchor', '主播'], ['sot', 'SOT／帶子'], ['live', 'LIVE 連線'], ['vo', 'VO／旁白'], ['guest', '來賓訪談'], ['pkg', '新聞帶'], ['ad', '廣告'], ['other', '其他']];
+  const rdRow = r => ({ id: r?.id || uid(), slug: String(r?.slug || '').slice(0, 80), type: RD_TYPES.some(t => t[0] === r?.type) ? r.type : 'anchor', dur: Math.max(0, Math.min(36000, +r?.dur || 0)), src: String(r?.src || '').slice(0, 60), titles: Array.isArray(r?.titles) ? r.titles.slice(0, 20).map(String) : [], script: String(r?.script || '').slice(0, 20000), note: String(r?.note || '').slice(0, 200) });
+  // 節目時鐘：現在時間、節目剩餘、本段經過／剩餘、下一條
+  function clock(S, now){
+    const d = new Date(now), R2 = S.rundown || { rows: [] }, cur = R2.rows[R2.cur], seg = cur && R2.curStart ? (now - R2.curStart) / 1000 : null;
+    let showLeft = null; const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(R2.showEnd || '').trim());
+    if (m) { const e = new Date(now); e.setHours(+m[1], +m[2], +(m[3] || 0), 0); showLeft = (e - now) / 1000; }
+    const remainPlanned = R2.rows.slice(Math.max(0, R2.cur + 1)).reduce((a, r) => a + (r.dur || 0), 0) + (cur ? Math.max(0, (cur.dur || 0) - (seg || 0)) : 0);
+    return { time: pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()), showLeft, seg, segLeft: cur && cur.dur ? cur.dur - (seg || 0) : null, cur, next: R2.rows[R2.cur + 1] || null, over: showLeft != null ? remainPlanned - showLeft : null };
+  }
+  const fmtSec = v => { if (v == null || !isFinite(v)) return '--:--'; const neg = v < 0, a = Math.round(Math.abs(v)), h = Math.floor(a / 3600), mm = Math.floor(a % 3600 / 60), ss = a % 60; return (neg ? '-' : '') + (h ? h + ':' + pad2(mm) : pad2(mm)) + ':' + pad2(ss); };
+  /* 錯字／敏感詞檢查：全半形混用、簡體字、自訂敏感詞、常用人名打錯 */
+  const SIMP = '这们说时发国会对经门东长进实现动机关开无车头体点应问题华爱学习书见认识业区号马鸟鱼龙为与万亿个过还边选运钱银铁变记让议论读谁调资质费贵买卖热烧灯灵历际陆阳阴队阶层岁岛归师帅币带帮广庆庙废弃张弹强录彻径从众优伤伦伟传伙侠侣侦侧侨价俭债倾偿储儿兑兰兴养兽冯冲决况冻净凉减凤凭凯击凿刘则刚创删别刮制刹剂剑剧劝办务励劲劳势勋匀医协单卢卫却厂厅厉压厌厕厨县参双叙叶叹吓吗启吴呐员呗响哑哗唤啧喷嘱囱园围图圆圣场坏块坚坛坝坞坟坠垄垒垦垫埚尘尝尧尽屉届属屡岂岗岚岭峡峦崭帐帜帧幂并库庐庞异弥弯当忆忧怀态怂怜总恋恳恶恼悦悬惊惧惨惩惫惭惯愤愿慑懒戏战户扑执扩扫扬扰抚抛抟抠抡抢护报担拟拢拣拥拦拧拨择挂挚挛挝挞挟挠挡挣挤挥损捡换捣据掳掴掷掸掺揽揿搀搁搂搅携摄摆摇摊撑撵擞攒敌敛数斋斓斩断旧旷昙昼显晋晒晓晕晖暂术杀杂权条来杨极构枪枫柜标栈栋栏树样档桥桦桨桩梦检棂椁椭楼榄横樱欢欧歼残殴毁毕毙气汇汉汤沟没沤沥沦沧沪泞泪泷泸泺泻泼泽洁洒浅浆浇浊测济浏浑浓涂涛涝涡涣润涧涨涩渊渍渐渔渗温湾湿溃溅滚滞满滤滥滨滩漤潇潜澜灭灾灿炀炉炖炜炝炼烁烂烃烛烟烦烨烩烫焕爷牍牵犊状犷犹狈独狭狮狯狰狱猎猕猡猫献獭玑玛玮环玺珐珑琼瑶琐电画畅疖疗疟疠疡疮疯痉痒痪痫瘪瘫瘾癣皑皱盏盐监盖盗盘眯睁瞒矫矶矾矿码砖砚硕确碍碛礼祢祯离种积称秽税稳穷窃窍窑窜窝窥竞笃笔笋笼筑筛筝签简箩篮篱类粜粝粮紧纠红纤约级纪纫纬纯纱纲纳纵纷纸纹纺线练组细织终绍结绕绘给络绝统继绩绪续绳维绵绸综绿缀缆缓编缘缚缠缩网罗罚罢罴羡翘耸耻聂聋职联聪肃肠肤肾肿胀胁胆胜胧胫脉脏脐脑脓脚脱脸腊腻腾舆舰舱艰艳艺节芜芦苇苍苏苹茎荐荚荡荣荤药莱莲获莹莺莼萝萤营萧萨蓝蓟蔷蔼蕴虏虑虚虫虽虾蚀蚁蚂蚕蛊蛎蛮蜕蜗蝇蝉蝼蟏衅衔补衬袄袜袭装裆裤观规视览觉译试诗诚话诞询该详语误诱请诸诺课谈谊谋谍谎谐谓谜谢谣谦谨谱谴豮贝贞负贡财责贤败账货贩贪贫购贯贱贴贷贸贺贼赋赌赏赐赔赖赚赛赞赠赶趋跃践踊踪蹑轨轩转轮软轰轴轻载较辆辈辉输辖辩辫辽达迁迈远违连迟适逊递逻遗邓邮邻郑酝酱酿释鉴钉针钓钟钢钥钻铃铅铜铝铭铲铺链销锁锅锈锋锐错锡锣锤锦键锯锻镇镜闪闭闯闲间闷闸闹闻阁阅阐阔阵陈陕险随隐隶难雏雾霁静鞑韦韧韩页顶项顺须顽顾顿颁颂预领颇频颗颜额风飘飞饥饭饮饰饱饲饺饼馆首驯驰驱驶驻驾驿骂骄验骑骗骚骤髅鬓魇鲁鲜鳄鸡鸣鸥鸦鸭鸽鹅鹤鹰麦黄齐齿龄龟';
+  function check(S, it){
+    const C = S?.check || {}; if (!it || C.on === false) return [];
+    const texts = Object.entries(it.f || {}).filter(([k]) => !['pos', 'size', 'box', 'img', 'bg', 'scheme', 'icon', 'src', 'status', 'alpha'].includes(k)).map(([, v]) => String(v || '')), all = texts.join('\n'), out = [];
+    if (/[\u4e00-\u9fff][,:;?!()][\u4e00-\u9fff]|[\u4e00-\u9fff][,:;?!]$/m.test(all)) out.push('中文裡夾了半形標點（, : ; ? ! ( )），建議改成全形');
+    if (/[Ａ-Ｚａ-ｚ０-９]/.test(all)) out.push('有全形英數字（例如 ２０２６），建議改成半形');
+    if (texts.some(t => /^\s|\s$/.test(t.replace(/\n/g, '')) && t.trim())) out.push('頭尾有多餘空白');
+    if (/ {2,}|　{2,}/.test(all)) out.push('有連續空白');
+    const simp = [...new Set([...all].filter(ch => SIMP.includes(ch)))]; if (simp.length) out.push('可能是簡體字：' + simp.slice(0, 8).join(' '));
+    String(C.words || '').split(/[\n,，、]/).map(x => x.trim()).filter(Boolean).forEach(w => { if (all.includes(w)) out.push('含敏感詞：「' + w + '」'); });
+    const names = String(C.names || '').split(/[\n,，、]/).map(x => x.trim()).filter(x => x.length >= 2 && x.length <= 5);
+    names.forEach(n => { if (all.includes(n)) return; const L = [...n].length, chars = [...all]; for (let i = 0; i + L <= chars.length; i++) { const sub = chars.slice(i, i + L); let diff = 0; for (let j = 0; j < L; j++) if (sub[j] !== [...n][j]) diff++; if (diff === 1 && sub[0] === [...n][0] && /[\u4e00-\u9fff]/.test(sub.join(''))) { out.push(`「${sub.join('')}」是不是「${n}」？`); break; } } });
+    return out;
+  }
+  // 每 250ms：時長到了自動下字、清掉已結束的退場動畫
+  function tick(S, now){
+    let ch = false; const sp = (S.theme.speed || .45) * 1000;
+    Object.keys(S.pgm).forEach(l => { const e = S.pgm[l]; if (e?.item?.dur > 0 && now - e.t0 > e.item.dur * 1000 + sp) { takeOff(S, l, now); ch = true; } });
+    const n = S.leaving.length; S.leaving = S.leaving.filter(e => now - e.out < sp + 150); if (S.leaving.length !== n) ch = true;
+    if (ch) S.rev++; return ch;
+  }
+  const onAir = S => Object.keys(S.pgm).filter(l => S.pgm[l]).map(l => ({ layer: l, item: S.pgm[l].item }));
+
+  /* ---------- 繪製 ---------- */
+  function fitFont(g, text, maxW, size, weight, font, min = .45){
+    let s = size; g.font = `${weight} ${s}px ${font}`;
+    while (s > size * min && g.measureText(text).width > maxW) { s *= .94; g.font = `${weight} ${s}px ${font}`; }
+    return s;
+  }
+  function rgba(hex, a){ const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return hex; const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+  function roundRect(g, x, y, w, h, r){ g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+
+  // 與切換台「版型」相同的格子位置（間距 1.2%），讓包裝框剛好套在畫面上
+  function frameBoxes(type, W, H){
+    const g2 = W * .012, half = (W - g2 * 3) / 2, fit = (x, y, w, h) => { const k = Math.min(w / 16, h / 9), bw = 16 * k, bh = 9 * k; return [x + (w - bw) / 2, y + (h - bh) / 2, bw, bh]; };
+    switch (type) {
+      case 'split2v': return [[g2, g2, W - g2 * 2, (H - g2 * 3) / 2], [g2, (H + g2) / 2, W - g2 * 2, (H - g2 * 3) / 2]];
+      case 'tri': { const bw = (W - g2 * 3) * .64, sw = W - g2 * 3 - bw, sh = (H - g2 * 3) / 2; return [fit(g2, g2, bw, H - g2 * 2), [g2 * 2 + bw, g2, sw, sh], [g2 * 2 + bw, g2 * 2 + sh, sw, sh]]; }
+      case 'tri3': { const w = (W - g2 * 4) / 3; return [0, 1, 2].map(i => fit(g2 + i * (w + g2), g2, w, H - g2 * 2)); }
+      case 'quad': { const w = (W - g2 * 3) / 2, h = (H - g2 * 3) / 2; return [[g2, g2, w, h], [g2 * 2 + w, g2, w, h], [g2, g2 * 2 + h, w, h], [g2 * 2 + w, g2 * 2 + h, w, h]]; }
+      case 'main3': { const mh = (H - g2 * 3) * .7, sh = H - g2 * 3 - mh, sw = (W - g2 * 4) / 3; return [[g2, g2, W - g2 * 2, mh], ...[0, 1, 2].map(i => [g2 + i * (sw + g2), g2 * 2 + mh, sw, sh])]; }
+      case 'pipL': { const pw = W * .3, ph = pw * 9 / 16; return [[0, 0, W, H], [W * .03, H - ph - H * .05, pw, ph]]; }
+      default: return [fit(g2, g2, half, H - g2 * 2), fit(g2 * 2 + half, g2, half, H - g2 * 2)];
+    }
+  }
+  // 天氣圖示（向量繪製，不需要圖檔）
+  function weatherKind(icon, cond){
+    if (icon && icon !== 'auto') return icon; const c = String(cond || '');
+    return /雷/.test(c) ? 'storm' : /雪/.test(c) ? 'snow' : /雨/.test(c) ? 'rain' : /晴.*雲|雲.*晴|時多雲/.test(c) ? 'partly' : /雲|陰/.test(c) ? 'cloud' : 'sun';
+  }
+  function drawWeatherIcon(g, k, cx, cy, r){
+    const sun = (x, y, rr) => { g.fillStyle = '#ffc93c'; g.beginPath(); g.arc(x, y, rr, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#ffc93c'; g.lineWidth = rr * .18; g.lineCap = 'round'; for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g.beginPath(); g.moveTo(x + Math.cos(a) * rr * 1.35, y + Math.sin(a) * rr * 1.35); g.lineTo(x + Math.cos(a) * rr * 1.75, y + Math.sin(a) * rr * 1.75); g.stroke(); } };
+    const cloud = (x, y, rr, col) => { g.fillStyle = col || '#e8eef5'; g.beginPath(); g.arc(x - rr * .55, y + rr * .15, rr * .55, 0, Math.PI * 2); g.arc(x + rr * .05, y - rr * .2, rr * .72, 0, Math.PI * 2); g.arc(x + rr * .7, y + rr * .2, rr * .5, 0, Math.PI * 2); g.rect(x - rr * .55, y + rr * .15, rr * 1.25, rr * .55); g.fill(); };
+    g.save();
+    if (k === 'sun') sun(cx, cy, r * .55);
+    else if (k === 'partly') { sun(cx - r * .3, cy - r * .3, r * .38); cloud(cx + r * .1, cy + r * .15, r * .62); }
+    else if (k === 'cloud') { cloud(cx - r * .2, cy - r * .15, r * .5, '#aab6c4'); cloud(cx + r * .1, cy + r * .1, r * .66); }
+    else { cloud(cx, cy - r * .2, r * .66, '#c9d3de');
+      if (k === 'rain') { g.strokeStyle = '#5ab4ff'; g.lineWidth = r * .1; g.lineCap = 'round'; [-.4, 0, .4].forEach(d => { g.beginPath(); g.moveTo(cx + d * r, cy + r * .45); g.lineTo(cx + d * r - r * .12, cy + r * .8); g.stroke(); }); }
+      if (k === 'storm') { g.fillStyle = '#ffd200'; g.beginPath(); g.moveTo(cx + r * .05, cy + r * .3); g.lineTo(cx - r * .25, cy + r * .72); g.lineTo(cx, cy + r * .68); g.lineTo(cx - r * .12, cy + r); g.lineTo(cx + r * .28, cy + r * .55); g.lineTo(cx + r * .04, cy + r * .58); g.closePath(); g.fill(); }
+      if (k === 'snow') { g.fillStyle = '#fff'; [-.4, 0, .4].forEach((d, i) => { g.beginPath(); g.arc(cx + d * r, cy + r * (.6 + (i % 2) * .2), r * .09, 0, Math.PI * 2); g.fill(); }); }
+    }
+    g.restore();
+  }
+  // 每個樣板回傳 { box:[x,y,w,h], dir:'left'|'up'|'down'|'fade', paint() }
+  function layout(g, W, H, it, th, now, ctx = {}){
+    const s = W / 1920 * (th.scale || 1), F = th.font || FONTS[0][0], wt = th.weight || 900, op = th.opacity ?? .96;
+    const mx = W * (th.safe ?? .05), mb = H * ((th.safe ?? .05) + .04), f = it.f || {};
+    const l1 = tokens(f.l1), l2 = tokens(f.l2), tag = tokens(f.tag);
+    g.textBaseline = 'middle'; g.textAlign = 'left';
+    switch (it.tpl) {
+      case 'name': {
+        const h1 = 88 * s, h2 = l2 ? 56 * s : 0, maxW = W - 2 * mx - 60 * s;
+        const s1 = fitFont(g, l1, maxW, 56 * s, wt, F), w1 = g.measureText(l1).width;
+        const s2 = l2 ? fitFont(g, l2, maxW, 36 * s, 600, F) : 0, w2 = l2 ? g.measureText(l2).width : 0;
+        const w = Math.min(W - 2 * mx, Math.max(520 * s, w1 + 76 * s, w2 + 76 * s)), x = mx, y = H - mb - h1 - h2;
+        return { box: [x, y, w, h1 + h2], dir: 'left', paint(){
+          g.fillStyle = rgba(th.primary, op); g.fillRect(x, y, w, h1);
+          g.fillStyle = th.accent; g.fillRect(x, y, 10 * s, h1 + h2);
+          g.fillStyle = th.text; g.font = `${wt} ${s1}px ${F}`; g.fillText(l1, x + 38 * s, y + h1 / 2 + 2 * s);
+          if (l2) { g.fillStyle = rgba(th.secondary, op); g.fillRect(x + 10 * s, y + h1, w - 10 * s, h2); g.fillStyle = th.text2; g.font = `600 ${s2}px ${F}`; g.fillText(l2, x + 38 * s, y + h1 + h2 / 2 + 1 * s); }
+        } };
+      }
+      case 'place': {
+        const h = 66 * s, maxW = (W - 2 * mx) * .6;
+        const s1 = fitFont(g, l1, maxW, 40 * s, wt, F), w1 = g.measureText(l1).width + 56 * s;
+        const s2 = l2 ? fitFont(g, l2, maxW * .7, 32 * s, 600, F) : 0, w2 = l2 ? g.measureText(l2).width + 44 * s : 0;
+        const x = mx, y = H - mb - h;
+        return { box: [x, y, w1 + w2, h], dir: 'left', paint(){
+          g.fillStyle = rgba(th.primary, op); g.fillRect(x, y, w1, h);
+          g.fillStyle = th.text; g.font = `${wt} ${s1}px ${F}`; g.fillText(l1, x + 28 * s, y + h / 2 + 2 * s);
+          if (l2) { g.fillStyle = rgba(th.secondary, op); g.fillRect(x + w1, y, w2, h); g.fillStyle = th.text2; g.font = `600 ${s2}px ${F}`; g.fillText(l2, x + w1 + 22 * s, y + h / 2 + 2 * s); }
+          g.fillStyle = th.accent; g.fillRect(x, y + h - 5 * s, w1 + w2, 5 * s);
+        } };
+      }
+      case 'headline': {
+        const w = W - 2 * mx, h1 = 104 * s, h2 = l2 ? 60 * s : 0, x = mx, y = H - mb - h1 - h2;
+        const s1 = fitFont(g, l1, w - 120 * s, 62 * s, wt, F), s2 = l2 ? fitFont(g, l2, w - 120 * s, 38 * s, 600, F) : 0;
+        return { box: [x, y, w, h1 + h2], dir: 'up', paint(){
+          g.fillStyle = rgba(th.primary, op); g.fillRect(x, y, w, h1);
+          g.fillStyle = th.accent; g.fillRect(x, y, 24 * s, h1);
+          g.fillStyle = th.text; g.font = `${wt} ${s1}px ${F}`; g.fillText(l1, x + 56 * s, y + h1 / 2 + 3 * s);
+          if (l2) { g.fillStyle = rgba(th.secondary, op); g.fillRect(x, y + h1, w, h2); g.fillStyle = th.text2; g.font = `600 ${s2}px ${F}`; g.fillText(l2, x + 56 * s, y + h1 + h2 / 2 + 2 * s); }
+        } };
+      }
+      case 'breaking': {
+        const h = 80 * s, x = 0, y = H * (th.safe ?? .05) * .7, w = W;
+        g.font = `${wt} ${44 * s}px ${F}`; const tw = g.measureText(tag || '快訊').width + 64 * s;
+        return { box: [x, y, w, h], dir: 'down', paint(){
+          g.fillStyle = rgba(th.secondary, op); g.fillRect(x, y, w, h);
+          const blink = .7 + .3 * Math.abs(Math.sin(now / 420));
+          g.fillStyle = th.primary; g.globalAlpha *= 1; g.fillRect(x, y, tw, h);
+          g.save(); g.globalAlpha *= blink; g.fillStyle = th.text; g.font = `${wt} ${44 * s}px ${F}`; g.fillText(tag || '快訊', x + 32 * s, y + h / 2 + 2 * s); g.restore();
+          const avail = w - tw - 40 * s; g.font = `${wt} ${44 * s}px ${F}`; const cw = g.measureText(l1).width;
+          g.save(); g.beginPath(); g.rect(x + tw, y, w - tw, h); g.clip(); g.fillStyle = th.text2;
+          if (cw <= avail) g.fillText(l1, x + tw + 28 * s, y + h / 2 + 2 * s);
+          else { const span = cw + 160 * s, off = (now / 1000 * 140 * s) % span; g.fillText(l1, x + tw + 28 * s - off, y + h / 2 + 2 * s); g.fillText(l1, x + tw + 28 * s - off + span, y + h / 2 + 2 * s); }
+          g.restore(); g.fillStyle = th.accent; g.fillRect(x, y + h - 5 * s, w, 5 * s);
+        } };
+      }
+      case 'credit': {
+        const sz = fitFont(g, l1, W * .4, 30 * s, 600, F), tw = g.measureText(l1).width, h = 50 * s, w = tw + 36 * s;
+        const x = W - mx - w, y = H * (th.safe ?? .05) * .8 + (ctx.banner ? ctx.banner * s : 0);
+        return { box: [x, y, w, h], dir: 'fade', paint(){ g.fillStyle = 'rgba(0,0,0,.45)'; roundRect(g, x, y, w, h, 6 * s); g.fill(); g.fillStyle = '#fff'; g.font = `600 ${sz}px ${F}`; g.fillText(l1, x + 18 * s, y + h / 2 + 1 * s); } };
+      }
+      case 'corner': {
+        const h = 62 * s, x = mx * .8, y = H * (th.safe ?? .05) * .8 + (ctx.banner ? ctx.banner * s : 0);   // 快訊橫幅在播時，角標往下讓位
+        g.font = `${wt} ${38 * s}px ${F}`; const tw = g.measureText(tag || 'LIVE').width + 74 * s;
+        const s2 = l1 ? fitFont(g, l1, W * .3, 32 * s, 700, F) : 0, w2 = l1 ? g.measureText(l1).width + 40 * s : 0;
+        return { box: [x, y, tw + w2, h], dir: 'left', paint(){
+          g.fillStyle = th.primary; g.fillRect(x, y, tw, h);
+          g.fillStyle = '#fff'; g.globalAlpha *= 1; g.beginPath(); g.arc(x + 26 * s, y + h / 2, 9 * s, 0, Math.PI * 2); g.save(); g.globalAlpha *= .55 + .45 * Math.abs(Math.sin(now / 500)); g.fill(); g.restore();
+          g.fillStyle = th.text; g.font = `${wt} ${38 * s}px ${F}`; g.fillText(tag || 'LIVE', x + 46 * s, y + h / 2 + 2 * s);
+          if (l1) { g.fillStyle = rgba(th.secondary, op * .92); g.fillRect(x + tw, y, w2, h); g.fillStyle = th.text2; g.font = `700 ${s2}px ${F}`; g.fillText(l1, x + tw + 20 * s, y + h / 2 + 2 * s); }
+        } };
+      }
+      case 'lyric': {
+        const lines = [l1, l2].filter(Boolean), lh = 84 * s, maxW = W - 2 * mx;
+        const sizes = lines.map(t => fitFont(g, t, maxW, 66 * s, 800, F)), y0 = H - mb - lh * lines.length;
+        return { box: [mx, y0, maxW, lh * lines.length], dir: 'fade', paint(){
+          g.textAlign = 'center'; g.lineJoin = 'round';
+          lines.forEach((t, i) => { const y = y0 + lh * i + lh / 2; g.font = `800 ${sizes[i]}px ${F}`; g.lineWidth = 8 * s; g.strokeStyle = 'rgba(0,0,0,.85)'; g.strokeText(t, W / 2, y); g.fillStyle = '#fff'; g.fillText(t, W / 2, y); });
+          g.textAlign = 'left';
+        } };
+      }
+      case 'card': {
+        const body = String(l2).split('\n').slice(0, 10);
+        const bgi = ctx.img?.(f.bg);
+        return { box: [0, 0, W, H], dir: 'fade', paint(){
+          if (bgi) { const k = Math.max(W / bgi.naturalWidth, H / bgi.naturalHeight); g.drawImage(bgi, (W - bgi.naturalWidth * k) / 2, (H - bgi.naturalHeight * k) / 2, bgi.naturalWidth * k, bgi.naturalHeight * k); g.fillStyle = rgba(th.secondary, .55); g.fillRect(0, 0, W, H); }
+          else { g.fillStyle = rgba(th.secondary, .9); g.fillRect(0, 0, W, H); }
+          g.fillStyle = th.primary; g.fillRect(W * .2, H * .36, W * .6, 8 * s);
+          g.textAlign = 'center'; g.fillStyle = th.text2 === '#ffffff' ? '#fff' : th.text2;
+          const ts = fitFont(g, l1, W * .8, 92 * s, wt, F); g.font = `${wt} ${ts}px ${F}`; g.fillStyle = '#fff'; g.fillText(l1, W / 2, H * .29);
+          const lh = 70 * s, start = H * .36 + 70 * s;
+          body.forEach((t, i) => { const bs = fitFont(g, t, W * .8, 52 * s, 700, F); g.font = `700 ${bs}px ${F}`; g.fillStyle = i % 2 && th.accent ? th.accent : '#fff'; g.fillText(t, W / 2, start + lh * i); });
+          g.textAlign = 'left';
+        } };
+      }
+      case 'free': {
+        const sz = Math.max(16, Math.min(240, +f.size || 64)) * s, lines = String(f.l1 || '').split('\n').map(tokens), lh = sz * 1.3, box = f.box !== '0' && f.box !== '';
+        g.font = `${wt} ${sz}px ${F}`; const tw = Math.min(W - 2 * mx, Math.max(...lines.map(t => g.measureText(t).width), 10)), padX = box ? 30 * s : 0, padY = box ? 18 * s : 0;
+        const w = tw + padX * 2, h = lh * lines.length + padY * 2, p = f.pos || 'bc';
+        const x = p[1] === 'l' ? mx : p[1] === 'r' ? W - mx - w : (W - w) / 2, y = p[0] === 't' ? H * (th.safe ?? .05) : p[0] === 'b' ? H - mb - h : (H - h) / 2;
+        return { box: [x, y, w, h], dir: 'fade', paint(){
+          if (box) { g.fillStyle = rgba(th.secondary, op * .9); roundRect(g, x, y, w, h, 10 * s); g.fill(); g.fillStyle = th.primary; g.fillRect(x, y, 8 * s, h); }
+          g.textAlign = p[1] === 'l' ? 'left' : p[1] === 'r' ? 'right' : 'center'; const tx = p[1] === 'l' ? x + padX : p[1] === 'r' ? x + w - padX : x + w / 2;
+          g.lineJoin = 'round';
+          lines.forEach((t, i) => { const yy = y + padY + lh * i + lh / 2; g.font = `${wt} ${sz}px ${F}`; if (!box) { g.lineWidth = Math.max(4, sz * .12); g.strokeStyle = 'rgba(0,0,0,.85)'; g.strokeText(t, tx, yy); } g.fillStyle = box ? th.text2 : '#fff'; g.fillText(t, tx, yy); });
+          g.textAlign = 'left';
+        } };
+      }
+      case 'dual': {   // 雙人名條：左右各一條，對話、辯論、主持＋來賓
+        const r1 = tokens(f.r1), r2 = tokens(f.r2), h1 = 76 * s, h2 = 50 * s, half = (W - 2 * mx - 40 * s) / 2, y = H - mb - h1 - h2;
+        const bar = (x, n, t, right) => {
+          const s1 = fitFont(g, n, half - 60 * s, 48 * s, wt, F), w1 = g.measureText(n).width; const s2 = t ? fitFont(g, t, half - 60 * s, 32 * s, 600, F) : 0, w2 = t ? g.measureText(t).width : 0;
+          const w = Math.min(half, Math.max(380 * s, w1 + 64 * s, w2 + 64 * s)), bx = right ? x - w : x;
+          return { w, bx, paint(){ g.fillStyle = rgba(th.primary, op); g.fillRect(bx, y, w, h1); g.fillStyle = th.accent; g.fillRect(right ? bx + w - 8 * s : bx, y, 8 * s, h1 + (t ? h2 : 0)); g.textAlign = right ? 'right' : 'left'; const tx = right ? bx + w - 30 * s : bx + 30 * s;
+            g.fillStyle = th.text; g.font = `${wt} ${s1}px ${F}`; g.fillText(n, tx, y + h1 / 2 + 2 * s);
+            if (t) { g.fillStyle = rgba(th.secondary, op); g.fillRect(right ? bx : bx + 8 * s, y + h1, w - 8 * s, h2); g.fillStyle = th.text2; g.font = `600 ${s2}px ${F}`; g.fillText(t, tx, y + h1 + h2 / 2 + 1 * s); } g.textAlign = 'left'; } };
+        };
+        const A = l1 ? bar(mx, l1, l2, false) : null, B = r1 ? bar(W - mx, r1, r2, true) : null;
+        return { box: [mx, y, W - 2 * mx, h1 + h2], dir: 'up', paint(){ A?.paint(); B?.paint(); } };
+      }
+      case 'score': {   // 比分條：上方置中，隊名＋比分＋局數；快訊橫幅在播時往下讓位
+        const ta = tokens(f.ta) || 'A', tb = tokens(f.tb) || 'B', sa = String(f.sa ?? '0'), sb = String(f.sb ?? '0'), info = tokens(f.info);
+        const h = 64 * s, teamW = 230 * s, scW = 84 * s, infoW = info ? Math.min(260 * s, Math.max(110 * s, (g.font = `700 ${30 * s}px ${F}`, g.measureText(info).width + 40 * s))) : 0;
+        const w = teamW * 2 + scW * 2 + infoW, x = (W - w) / 2, y = H * (th.safe ?? .05) * .8 + (ctx.banner ? ctx.banner * s : 0);
+        return { box: [x, y, w, h], dir: 'down', paint(){
+          g.fillStyle = rgba(th.secondary, op); g.fillRect(x, y, w, h);
+          const team = (t, tx) => { const fs = fitFont(g, t, teamW - 24 * s, 34 * s, wt, F); g.font = `${wt} ${fs}px ${F}`; g.fillStyle = '#fff'; g.textAlign = 'center'; g.fillText(t, tx + teamW / 2, y + h / 2 + 2 * s); };
+          const score = (v, sx) => { g.fillStyle = th.primary; g.fillRect(sx, y, scW, h); g.fillStyle = th.text; g.font = `${wt} ${44 * s}px ${F}`; g.textAlign = 'center'; g.fillText(v, sx + scW / 2, y + h / 2 + 3 * s); };
+          team(ta, x); score(sa, x + teamW); score(sb, x + teamW + scW); team(tb, x + teamW + scW * 2);
+          g.fillStyle = th.accent; g.fillRect(x + teamW + scW - 1 * s, y + 10 * s, 2 * s, h - 20 * s);
+          if (info) { const ix = x + w - infoW; g.fillStyle = th.accent; g.fillRect(ix, y, infoW, h); g.fillStyle = '#111'; g.font = `700 ${fitFont(g, info, infoW - 20 * s, 30 * s, 700, F)}px ${F}`; g.textAlign = 'center'; g.fillText(info, ix + infoW / 2, y + h / 2 + 2 * s); }
+          g.textAlign = 'left';
+        } };
+      }
+      case 'election': {   // 選舉開票條：下方滿版，每位候選人一列（姓名、得票長條、票數、得票率）
+        const title = tokens(f.title), prog = tokens(f.prog), list = parseList(f.list).slice(0, 5), win = String(f.win || '').trim();
+        const pal = ['#1b9431', '#0a4ea8', '#e0661b', '#7c3aed', '#c8102e'], total = list.reduce((a, r) => a + num(r[1]), 0) || 1;
+        const hh = 54 * s, rh = 60 * s, w = W - 2 * mx, h = hh + rh * Math.max(1, list.length), x = mx, y = H - mb - h;
+        const nameW = 320 * s, votesW = 240 * s, pctW = 150 * s, barX = x + nameW, barW = w - nameW - votesW - pctW - 20 * s;
+        return { box: [x, y, w, h], dir: 'up', paint(){
+          g.fillStyle = rgba(th.primary, op); g.fillRect(x, y, w, hh); g.fillStyle = th.text; g.font = `${wt} ${fitFont(g, title, w * .6, 34 * s, wt, F)}px ${F}`; g.fillText(title, x + 24 * s, y + hh / 2 + 2 * s);
+          if (prog) { g.textAlign = 'right'; g.fillStyle = th.accent; g.font = `700 ${30 * s}px ${F}`; g.fillText(prog, x + w - 24 * s, y + hh / 2 + 2 * s); g.textAlign = 'left'; }
+          list.forEach((r, i) => {
+            const ry = y + hh + rh * i, v = num(r[1]), pct = v / total, col = /^#[0-9a-f]{3,8}$/i.test(r[2] || '') ? r[2] : pal[i % pal.length], won = !!win && r[0] === win;
+            g.fillStyle = rgba(th.secondary, op * (i % 2 ? .9 : 1)); g.fillRect(x, ry, w, rh);
+            g.fillStyle = col; g.fillRect(x, ry, 10 * s, rh);
+            const ns = fitFont(g, r[0] || '', nameW - (won ? 120 : 40) * s, 36 * s, wt, F); g.fillStyle = '#fff'; g.font = `${wt} ${ns}px ${F}`; g.fillText(r[0] || '', x + 26 * s, ry + rh / 2 + 2 * s);
+            if (won) { const nw = g.measureText(r[0] || '').width; g.fillStyle = '#e11d2a'; roundRect(g, x + 38 * s + nw, ry + 12 * s, 78 * s, rh - 24 * s, 6 * s); g.fill(); g.fillStyle = '#fff'; g.font = `${wt} ${24 * s}px ${F}`; g.fillText('當選', x + 52 * s + nw, ry + rh / 2 + 1 * s); }
+            g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(barX, ry + 16 * s, barW, rh - 32 * s); g.fillStyle = col; g.fillRect(barX, ry + 16 * s, barW * Math.min(1, pct), rh - 32 * s);
+            g.textAlign = 'right'; g.fillStyle = '#fff'; g.font = `${wt} ${34 * s}px ${F}`; g.fillText(v.toLocaleString('zh-TW'), barX + barW + votesW, ry + rh / 2 + 2 * s);
+            g.fillStyle = th.accent; g.font = `700 ${30 * s}px ${F}`; g.fillText((pct * 100).toFixed(1) + '%', x + w - 20 * s, ry + rh / 2 + 2 * s); g.textAlign = 'left';
+          });
+        } };
+      }
+      case 'stock': {   // 股市行情條：畫面最底部，太長自動捲動；台股慣例漲紅跌綠
+        const title = tokens(f.title) || '行情', list = parseList(f.list), us = f.scheme === 'us', h = 58 * s, y = H - h - 8 * s;
+        const up = us ? '#22c55e' : '#ff4d4d', dn = us ? '#ff4d4d' : '#22c55e';
+        g.font = `${wt} ${32 * s}px ${F}`; const tw = g.measureText(title).width + 48 * s;
+        const parts = list.map(r => { const c = String(r[2] || ''), d = /^-|^▼|跌/.test(c) ? -1 : (/^\+|^▲|漲/.test(c) || num(c) > 0) ? 1 : 0; return { n: r[0] || '', p: r[1] || '', c: c.replace(/^[+▲▼-]/, ''), d }; });
+        return { box: [0, y, W, h], dir: 'up', paint(){
+          g.fillStyle = rgba(th.secondary, op); g.fillRect(0, y, W, h); g.fillStyle = th.primary; g.fillRect(0, y, tw, h);
+          g.fillStyle = th.text; g.font = `${wt} ${32 * s}px ${F}`; g.fillText(title, 24 * s, y + h / 2 + 2 * s);
+          const segW = parts.map(pt => { g.font = `700 ${30 * s}px ${F}`; const a = g.measureText(pt.n + '  ').width; g.font = `${wt} ${30 * s}px ${F}`; return a + g.measureText(pt.p + '  ').width + g.measureText((pt.d > 0 ? '▲' : pt.d < 0 ? '▼' : '') + pt.c).width + 70 * s; });
+          const total = segW.reduce((a, b) => a + b, 0) || 1, avail = W - tw, scroll = total > avail - 20 * s, off = scroll ? (now / 1000 * 110 * s) % total : 0;
+          g.save(); g.beginPath(); g.rect(tw, y, W - tw, h); g.clip();
+          for (let rep = 0; rep < (scroll ? 2 : 1); rep++) { let cx = tw + 30 * s - off + rep * total;
+            parts.forEach((pt, i) => { g.fillStyle = '#fff'; g.font = `700 ${30 * s}px ${F}`; g.fillText(pt.n, cx, y + h / 2 + 2 * s); let px = cx + g.measureText(pt.n + '  ').width;
+              g.font = `${wt} ${30 * s}px ${F}`; g.fillStyle = pt.d > 0 ? up : pt.d < 0 ? dn : '#fff'; g.fillText(pt.p, px, y + h / 2 + 2 * s); px += g.measureText(pt.p + '  ').width;
+              g.fillText((pt.d > 0 ? '▲' : pt.d < 0 ? '▼' : '') + pt.c, px, y + h / 2 + 2 * s); cx += segW[i]; }); }
+          g.restore();
+        } };
+      }
+      case 'phone': {   // 電話連線條：電話圖示＋標籤＋姓名，聲波動畫表示正在連線
+        const tag = tokens(f.tag) || '電話連線', name = tokens(f.name), sub = [tokens(f.role), tokens(f.place)].filter(Boolean).join('　'), h1 = 80 * s, h2 = sub ? 52 * s : 0;
+        g.font = `${wt} ${32 * s}px ${F}`; const tagW = g.measureText(tag).width + 100 * s;
+        const s1 = fitFont(g, name, W * .4, 50 * s, wt, F), nw = g.measureText(name).width + 150 * s, s2 = sub ? fitFont(g, sub, W * .5, 32 * s, 600, F) : 0, sw = sub ? g.measureText(sub).width + 50 * s : 0;
+        const ph = ctx.img?.(f.img), pw = ph ? h1 + h2 : 0, w = Math.max(tagW + nw, sw + 10 * s) + pw, x = mx + 0, y = H - mb - h1 - h2;
+        return { box: [x, y, w, h1 + h2], dir: 'left', paint(){
+          if (ph) { const k = Math.max(pw / ph.naturalWidth, pw / ph.naturalHeight), iw = ph.naturalWidth * k, ih = ph.naturalHeight * k; g.save(); g.beginPath(); g.rect(x, y, pw, pw); g.clip(); g.drawImage(ph, x + (pw - iw) / 2, y + (pw - ih) / 2, iw, ih); g.restore(); g.translate(pw, 0); }
+          g.fillStyle = th.primary; g.fillRect(x, y, tagW, h1);
+          g.save(); g.translate(x + 36 * s, y + h1 / 2); g.rotate(-Math.PI / 4); g.fillStyle = th.text; roundRect(g, -7 * s, -22 * s, 14 * s, 44 * s, 7 * s); g.fill(); roundRect(g, -12 * s, -24 * s, 24 * s, 12 * s, 5 * s); g.fill(); roundRect(g, -12 * s, 12 * s, 24 * s, 12 * s, 5 * s); g.fill(); g.restore();
+          g.fillStyle = th.text; g.font = `${wt} ${32 * s}px ${F}`; g.fillText(tag, x + 66 * s, y + h1 / 2 + 2 * s);
+          g.fillStyle = rgba(th.secondary, op); g.fillRect(x + tagW, y, w - pw - tagW, h1); g.fillStyle = '#fff'; g.font = `${wt} ${s1}px ${F}`; g.fillText(name, x + tagW + 26 * s, y + h1 / 2 + 2 * s);
+          const ex = x + w - pw - 70 * s; for (let i = 0; i < 5; i++) { const bh = (12 + 26 * Math.abs(Math.sin(now / 180 + i * 1.3))) * s; g.fillStyle = th.accent; g.fillRect(ex + i * 11 * s, y + h1 / 2 - bh / 2, 6 * s, bh); }
+          if (sub) { g.fillStyle = rgba(th.secondary, op * .85); g.fillRect(x, y + h1, w - pw, h2); g.fillStyle = th.text2 === '#ffffff' ? '#dbe4ee' : th.text2; g.font = `600 ${s2}px ${F}`; g.fillText(sub, x + 26 * s, y + h1 + h2 / 2 + 1 * s); }
+          g.fillStyle = th.accent; g.fillRect(x, y + h1 + h2 - 4 * s, w - pw, 4 * s);
+        } };
+      }
+      case 'poll': {   // 民調／投票結果：右側面板，橫向長條
+        const title = tokens(f.title), list = parseList(f.list).slice(0, 6), unit = f.unit ?? '%', src = tokens(f.src), max = Math.max(...list.map(r => num(r[1])), 1);
+        const pal = [th.primary, th.accent, '#5ab4ff', '#a78bfa', '#34d399', '#f97316'];
+        const w = 640 * s, hh = 70 * s, rh = 66 * s, fh = src ? 40 * s : 14 * s, h = hh + rh * list.length + fh, x = W - mx - w, y = H - mb - h - (ctx.lift ? ctx.lift * s : 0);
+        return { box: [x, y, w, h], dir: 'left', paint(){
+          g.fillStyle = rgba(th.secondary, op); roundRect(g, x, y, w, h, 10 * s); g.fill();
+          g.fillStyle = th.primary; g.fillRect(x, y, w, hh); g.fillStyle = th.text; g.font = `${wt} ${fitFont(g, title, w - 40 * s, 34 * s, wt, F)}px ${F}`; g.fillText(title, x + 20 * s, y + hh / 2 + 2 * s);
+          list.forEach((r, i) => { const ry = y + hh + rh * i, v = num(r[1]), bw = (w - 300 * s) * v / max;
+            g.fillStyle = '#fff'; g.font = `700 ${fitFont(g, r[0] || '', 150 * s, 30 * s, 700, F)}px ${F}`; g.fillText(r[0] || '', x + 20 * s, ry + rh / 2 + 2 * s);
+            g.fillStyle = 'rgba(255,255,255,.1)'; g.fillRect(x + 180 * s, ry + 16 * s, w - 300 * s, rh - 32 * s); g.fillStyle = pal[i % pal.length]; g.fillRect(x + 180 * s, ry + 16 * s, bw, rh - 32 * s);
+            g.textAlign = 'right'; g.fillStyle = '#fff'; g.font = `${wt} ${32 * s}px ${F}`; g.fillText((r[1] ?? '') + unit, x + w - 18 * s, ry + rh / 2 + 2 * s); g.textAlign = 'left'; });
+          if (src) { g.fillStyle = '#aab6c4'; g.font = `500 ${22 * s}px ${F}`; g.fillText(src, x + 20 * s, y + h - fh / 2); }
+        } };
+      }
+      case 'bullets': {   // 重點條列：左側面板，編號圓點，長句自動換行
+        const title = tokens(f.title), list = String(f.list || '').split('\n').map(l => tokens(l.trim().replace(/\|/g, ' '))).filter(Boolean).slice(0, 6), w = 820 * s   /* 條列每行整句保留，逗號不切開 */, x = mx, y0 = H * .14 + (ctx.banner ? ctx.banner * s : 0);
+        g.font = `700 ${34 * s}px ${F}`; const wrapped = list.map(t => wrap(g, t, w - 120 * s, 2)), lh = 46 * s, hh = 76 * s, gap = 18 * s;
+        const h = hh + wrapped.reduce((a, l) => a + l.length * lh + gap, 0) + 16 * s;
+        return { box: [x, y0, w, h], dir: 'left', paint(){
+          g.fillStyle = rgba(th.secondary, op * .94); g.fillRect(x, y0, w, h); g.fillStyle = th.primary; g.fillRect(x, y0, w, hh); g.fillStyle = th.accent; g.fillRect(x, y0 + hh, 8 * s, h - hh);
+          g.fillStyle = th.text; g.font = `${wt} ${fitFont(g, title, w - 40 * s, 42 * s, wt, F)}px ${F}`; g.fillText(title, x + 26 * s, y0 + hh / 2 + 2 * s);
+          let cy = y0 + hh + gap; wrapped.forEach((ls, i) => { g.fillStyle = th.primary; g.beginPath(); g.arc(x + 56 * s, cy + lh / 2, 20 * s, 0, Math.PI * 2); g.fill(); g.fillStyle = th.text; g.font = `${wt} ${24 * s}px ${F}`; g.textAlign = 'center'; g.fillText(String(i + 1), x + 56 * s, cy + lh / 2 + 1 * s); g.textAlign = 'left';
+            g.fillStyle = '#fff'; g.font = `700 ${34 * s}px ${F}`; ls.forEach((l, j) => g.fillText(l, x + 92 * s, cy + lh * j + lh / 2 + 2 * s)); cy += ls.length * lh + gap; });
+        } };
+      }
+      case 'social': {   // 觀眾留言：右下卡片，平台標籤＋暱稱＋留言（最多 3 行）
+        const PF = { yt: ['YouTube', '#ff0033'], fb: ['Facebook', '#1877f2'], ig: ['Instagram', '#c13584'], line: ['LINE', '#06c755'], x: ['X', '#111111'], web: ['網友', '#64748b'] }[f.src] || ['網友', '#64748b'];
+        const user = tokens(f.user) || '網友', w = 660 * s; g.font = `600 ${32 * s}px ${F}`; const lines = wrap(g, tokens(f.text), w - 60 * s, 3), lh = 44 * s, hh = 70 * s, h = hh + Math.max(1, lines.length) * lh + 26 * s;
+        const x = W - mx - w, y = H - mb - h - (ctx.lift ? ctx.lift * s : 0);
+        return { box: [x, y, w, h], dir: 'left', paint(){
+          g.fillStyle = 'rgba(255,255,255,.96)'; roundRect(g, x, y, w, h, 14 * s); g.fill();
+          g.fillStyle = PF[1]; g.beginPath(); g.arc(x + 46 * s, y + hh / 2 + 4 * s, 24 * s, 0, Math.PI * 2); g.fill(); g.fillStyle = '#fff'; g.font = `${wt} ${26 * s}px ${F}`; g.textAlign = 'center'; g.fillText([...user][0] || '?', x + 46 * s, y + hh / 2 + 5 * s); g.textAlign = 'left';
+          const un = [...user].slice(0, 20).join(''); g.fillStyle = '#111'; g.font = `${wt} ${30 * s}px ${F}`; g.fillText(un, x + 84 * s, y + hh / 2 + 4 * s);
+          const uw = g.measureText(un).width; g.font = `700 ${20 * s}px ${F}`; const pw = g.measureText(PF[0]).width + 20 * s; g.fillStyle = PF[1]; roundRect(g, x + 96 * s + uw, y + hh / 2 - 10 * s, pw, 28 * s, 14 * s); g.fill(); g.fillStyle = '#fff'; g.fillText(PF[0], x + 106 * s + uw, y + hh / 2 + 5 * s);
+          g.fillStyle = '#1f2937'; g.font = `600 ${32 * s}px ${F}`; lines.forEach((l, i) => g.fillText(l, x + 30 * s, y + hh + lh * i + lh / 2));
+        } };
+      }
+      case 'slate': {   // 開場／休息字卡：全畫面，大字狀態＋活動名稱＋倒數
+        const ST = { soon: '即將開始', break: '中場休息', back: '稍後回來', end: '感謝收看' }, status = f.status === 'custom' ? tokens(f.sub) : (ST[f.status] || '即將開始');
+        const title = tokens(f.title), sub = f.status === 'custom' ? '' : tokens(f.sub), cd = countdown(f.cd);
+        return { box: [0, 0, W, H], dir: 'fade', paint(){
+          const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, th.secondary); gr.addColorStop(1, th.primary); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+          g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, H * .72, W, H * .28);
+          g.textAlign = 'center'; g.fillStyle = th.accent; g.font = `${wt} ${fitFont(g, title, W * .8, 54 * s, wt, F)}px ${F}`; g.fillText(title, W / 2, H * .3);
+          g.fillStyle = '#fff'; g.font = `${wt} ${fitFont(g, status, W * .85, 150 * s, wt, F)}px ${F}`; g.fillText(status, W / 2, H * .47);
+          if (sub) { g.fillStyle = 'rgba(255,255,255,.85)'; g.font = `600 ${fitFont(g, sub, W * .8, 40 * s, 600, F)}px ${F}`; g.fillText(sub, W / 2, H * .6); }
+          if (cd) { g.fillStyle = '#fff'; g.font = `${wt} ${120 * s}px ${F}`; g.fillText(cd, W / 2, H * .85); }
+          g.textAlign = 'left';
+        } };
+      }
+      case 'agenda': {   // 議程：左側面板，依現在時間自動標示「進行中」
+        const title = tokens(f.title), rows = parseList(f.list).slice(0, 8), d = new Date(), nowMin = d.getHours() * 60 + d.getMinutes();
+        const toMin = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; };
+        let cur = -1; rows.forEach((r, i) => { const m = toMin(r[0]); if (m != null && m <= nowMin) cur = i; });
+        const w = 860 * s, hh = 76 * s, rh = 64 * s, h = hh + rh * rows.length + 14 * s, x = mx, y = H * .14 + (ctx.banner ? ctx.banner * s : 0);
+        return { box: [x, y, w, h], dir: 'left', paint(){
+          g.fillStyle = rgba(th.secondary, op * .94); g.fillRect(x, y, w, h); g.fillStyle = th.primary; g.fillRect(x, y, w, hh);
+          g.fillStyle = th.text; g.font = `${wt} ${fitFont(g, title, w - 40 * s, 42 * s, wt, F)}px ${F}`; g.fillText(title, x + 26 * s, y + hh / 2 + 2 * s);
+          rows.forEach((r, i) => { const ry = y + hh + 7 * s + rh * i, on = i === cur, done = i < cur;
+            if (on) { g.fillStyle = rgba(th.accent, .22); g.fillRect(x, ry, w, rh); g.fillStyle = th.accent; g.fillRect(x, ry, 8 * s, rh); }
+            g.globalAlpha *= done ? .55 : 1;
+            g.fillStyle = on ? th.accent : '#9fb3c8'; g.font = `700 ${30 * s}px ${F}`; g.fillText(r[0] || '', x + 28 * s, ry + rh / 2 + 2 * s);
+            g.fillStyle = '#fff'; g.font = `${on ? wt : 700} ${fitFont(g, r[1] || '', w - 420 * s, 34 * s, wt, F)}px ${F}`; g.fillText(r[1] || '', x + 150 * s, ry + rh / 2 + 2 * s);
+            if (r[2]) { g.textAlign = 'right'; g.fillStyle = '#cfd8e3'; g.font = `600 ${fitFont(g, r[2], 230 * s, 28 * s, 600, F)}px ${F}`; g.fillText(r[2], x + w - 22 * s, ry + rh / 2 + 2 * s); g.textAlign = 'left'; }
+            if (on) { g.fillStyle = th.primary; roundRect(g, x + w - (r[2] ? 360 : 130) * s, ry + 16 * s, 100 * s, rh - 32 * s, 6 * s); g.fill(); g.fillStyle = th.text; g.font = `${wt} ${22 * s}px ${F}`; g.textAlign = 'center'; g.fillText('進行中', x + w - (r[2] ? 310 : 80) * s, ry + rh / 2 + 1 * s); g.textAlign = 'left'; }
+            g.globalAlpha /= done ? .55 : 1; });
+        } };
+      }
+      case 'speaker': {   // 講者介紹：姓名＋職稱＋講題
+        const name = tokens(f.name), title = tokens(f.title), topic = tokens(f.topic), h1 = 90 * s, h2 = title ? 54 * s : 0, h3 = topic ? 56 * s : 0, maxW = W * .62;
+        const s1 = fitFont(g, name, maxW, 58 * s, wt, F), w1 = g.measureText(name).width; const s2 = title ? fitFont(g, title, maxW, 34 * s, 600, F) : 0, w2 = title ? g.measureText(title).width : 0;
+        const tp = topic ? '講題｜' + topic : '', s3 = topic ? fitFont(g, tp, maxW, 32 * s, 700, F) : 0, w3 = topic ? g.measureText(tp).width : 0;
+        const ph = ctx.img?.(f.img), pw = ph ? h1 + h2 + h3 : 0, w = Math.max(560 * s, w1, w2, w3) + 80 * s, x = mx + pw, y = H - mb - h1 - h2 - h3;
+        return { box: [x - pw, y, w + pw, h1 + h2 + h3], dir: 'left', paint(){
+          if (ph) { const k = Math.max(pw / ph.naturalWidth, pw / ph.naturalHeight), iw = ph.naturalWidth * k, ih = ph.naturalHeight * k; g.save(); g.beginPath(); g.rect(x - pw, y, pw, pw); g.clip(); g.drawImage(ph, x - pw + (pw - iw) / 2, y + (pw - ih) / 2, iw, ih); g.restore(); }
+          g.fillStyle = rgba(th.primary, op); g.fillRect(x, y, w, h1); g.fillStyle = th.text; g.font = `${wt} ${s1}px ${F}`; g.fillText(name, x + 40 * s, y + h1 / 2 + 3 * s);
+          if (title) { g.fillStyle = rgba(th.secondary, op); g.fillRect(x, y + h1, w, h2); g.fillStyle = th.text2; g.font = `600 ${s2}px ${F}`; g.fillText(title, x + 40 * s, y + h1 + h2 / 2 + 1 * s); }
+          if (topic) { g.fillStyle = th.accent; g.fillRect(x, y + h1 + h2, w, h3); g.fillStyle = '#111'; g.font = `700 ${s3}px ${F}`; g.fillText(tp, x + 40 * s, y + h1 + h2 + h3 / 2 + 2 * s); }
+          g.fillStyle = th.accent; g.fillRect(x, y, 12 * s, h1 + h2);
+        } };
+      }
+      case 'award': {   // 頒獎：下方置中，獎項＋得獎者＋作品
+        const award = tokens(f.award), winner = tokens(f.winner), work = tokens(f.work), w = Math.min(W - 2 * mx, 1200 * s), h = (work ? 230 : 180) * s, x = (W - w) / 2, y = H - mb - h;
+        return { box: [x, y, w, h], dir: 'up', paint(){
+          const gr = g.createLinearGradient(x, y, x, y + h); gr.addColorStop(0, rgba(th.secondary, op)); gr.addColorStop(1, rgba(th.secondary, op * .85)); g.fillStyle = gr; roundRect(g, x, y, w, h, 14 * s); g.fill();
+          g.strokeStyle = th.accent; g.lineWidth = 3 * s; roundRect(g, x + 8 * s, y + 8 * s, w - 16 * s, h - 16 * s, 10 * s); g.stroke();
+          g.textAlign = 'center'; g.fillStyle = th.accent; g.font = `${wt} ${fitFont(g, award, w * .8, 40 * s, wt, F)}px ${F}`; g.fillText('★ ' + award + ' ★', W / 2, y + 50 * s);
+          g.fillStyle = '#fff'; g.font = `${wt} ${fitFont(g, winner, w * .85, 76 * s, wt, F)}px ${F}`; g.fillText(winner, W / 2, y + 122 * s);
+          if (work) { g.fillStyle = '#d8dee6'; g.font = `600 ${fitFont(g, work, w * .85, 36 * s, 600, F)}px ${F}`; g.fillText(work, W / 2, y + 186 * s); }
+          g.textAlign = 'left';
+        } };
+      }
+      case 'sponsor': {   // 感謝贊助：右下小框，每幾秒換一個（淡入淡出）
+        const list = String(f.list || '').split('\n').map(x => tokens(x.trim())).filter(Boolean), sec = Math.max(1, +f.sec || 4) * 1000, title = tokens(f.title) || '感謝贊助';
+        const idx = list.length ? Math.floor(now / sec) % list.length : 0, phase = (now % sec) / sec, fade = Math.min(1, phase * 6, (1 - phase) * 6);
+        const w = 460 * s, hh = 44 * s, bh = 96 * s, h = hh + bh, x = W - mx - w, y = H - mb - h - (ctx.lift ? ctx.lift * s : 0);
+        return { box: [x, y, w, h], dir: 'left', paint(){
+          g.fillStyle = th.primary; g.fillRect(x, y, w, hh); g.fillStyle = th.text; g.font = `${wt} ${26 * s}px ${F}`; g.fillText(title, x + 18 * s, y + hh / 2 + 1 * s);
+          g.fillStyle = 'rgba(255,255,255,.96)'; g.fillRect(x, y + hh, w, bh);
+          const nm = list[idx] || '', lg = ctx.imgName?.(nm); g.save(); g.globalAlpha *= fade;
+          if (lg) { const k = Math.min((w - 40 * s) / lg.naturalWidth, (bh - 26 * s) / lg.naturalHeight), iw = lg.naturalWidth * k, ih = lg.naturalHeight * k; g.drawImage(lg, x + (w - iw) / 2, y + hh + (bh - 10 * s - ih) / 2, iw, ih); }
+          else { g.fillStyle = '#111'; g.textAlign = 'center'; g.font = `${wt} ${fitFont(g, nm, w - 40 * s, 44 * s, wt, F)}px ${F}`; g.fillText(nm, x + w / 2, y + hh + bh / 2 + 2 * s); }
+          g.restore(); g.textAlign = 'left';
+          if (list.length > 1) list.forEach((_, i) => { g.fillStyle = i === idx ? th.primary : '#c9d1da'; g.beginPath(); g.arc(x + w / 2 + (i - (list.length - 1) / 2) * 16 * s, y + h - 10 * s, 4 * s, 0, Math.PI * 2); g.fill(); });
+        } };
+      }
+      case 'quote': {   // 金句：左側大字引言
+        const text = tokens(f.text), author = tokens(f.author), w = 900 * s; g.font = `${wt} ${52 * s}px ${F}`; const lines = wrap(g, text, w - 150 * s, 4), lh = 72 * s;
+        const h = lines.length * lh + (author ? 70 : 30) * s + 86 * s, x = mx, y = (H - h) / 2;
+        return { box: [x, y, w, h], dir: 'fade', paint(){
+          g.fillStyle = rgba(th.secondary, op * .9); g.fillRect(x, y, w, h); g.fillStyle = th.primary; g.fillRect(x, y, 12 * s, h);
+          g.fillStyle = th.accent; g.font = `${wt} ${140 * s}px Georgia,serif`; g.fillText('“', x + 30 * s, y + 70 * s);
+          g.fillStyle = '#fff'; g.font = `${wt} ${52 * s}px ${F}`; lines.forEach((l, i) => g.fillText(l, x + 110 * s, y + 96 * s + lh * i));
+          if (author) { g.fillStyle = th.accent; g.font = `700 ${34 * s}px ${F}`; g.textAlign = 'right'; g.fillText('— ' + author, x + w - 40 * s, y + h - 40 * s); g.textAlign = 'left'; }
+        } };
+      }
+      case 'infobar': {   // 資訊條：右上（畫面提供的位置），標籤＋網址／電話
+        const tag = tokens(f.tag), text = tokens(f.text); g.font = `${wt} ${30 * s}px ${F}`; const tw = tag ? g.measureText(tag).width + 40 * s : 0; const s2 = fitFont(g, text, W * .4, 32 * s, 700, F), w2 = g.measureText(text).width + 40 * s;
+        const h = 56 * s, w = tw + w2, x = W - mx - w, y = H * (th.safe ?? .05) * .8 + (ctx.banner ? ctx.banner * s : 0);
+        return { box: [x, y, w, h], dir: 'fade', paint(){
+          if (tag) { g.fillStyle = th.primary; g.fillRect(x, y, tw, h); g.fillStyle = th.text; g.font = `${wt} ${30 * s}px ${F}`; g.fillText(tag, x + 20 * s, y + h / 2 + 2 * s); }
+          g.fillStyle = 'rgba(255,255,255,.95)'; g.fillRect(x + tw, y, w2, h); g.fillStyle = '#111'; g.font = `700 ${s2}px ${F}`; g.fillText(text, x + tw + 20 * s, y + h / 2 + 2 * s);
+        } };
+      }
+      case 'frBorder': {   // 活動外框：上下標題條＋左右細邊（蓋在畫面邊緣）
+        const title = tokens(f.title), sub = tokens(f.sub), th1 = 70 * s, bh = sub ? 56 * s : 14 * s, side = 14 * s;
+        return { box: [0, 0, W, H], dir: 'fade', paint(){
+          g.fillStyle = rgba(th.secondary, op); g.fillRect(0, 0, W, th1); g.fillRect(0, H - bh, W, bh); g.fillRect(0, th1, side, H - th1 - bh); g.fillRect(W - side, th1, side, H - th1 - bh);
+          g.fillStyle = th.primary; g.fillRect(0, th1 - 5 * s, W, 5 * s); g.fillStyle = th.accent; g.fillRect(0, H - bh, W, 4 * s);
+          g.textAlign = 'center'; g.fillStyle = '#fff'; g.font = `${wt} ${fitFont(g, title, W * .7, 40 * s, wt, F)}px ${F}`; g.fillText(title, W / 2, th1 / 2);
+          if (sub) { g.fillStyle = '#d8dee6'; g.font = `600 ${fitFont(g, sub, W * .8, 28 * s, 600, F)}px ${F}`; g.fillText(sub, W / 2, H - bh / 2 + 2 * s); }
+          g.textAlign = 'left';
+        } };
+      }
+      case 'frL': {   // L 型包裝：右側欄＋底條（會蓋住畫面右側與下方）
+        const title = tokens(f.title), side = String(f.side || '').split('\n').map(x => tokens(x)), bottom = tokens(f.bottom), sw = W * .25, bh = H * .15, ww = W - sw, wh = H - bh;
+        return { box: [0, 0, W, H], dir: 'fade', paint(){
+          const gr = g.createLinearGradient(ww, 0, W, H); gr.addColorStop(0, rgba(th.secondary, op)); gr.addColorStop(1, rgba(th.primary, op)); g.fillStyle = gr; g.fillRect(ww, 0, sw, H); g.fillStyle = rgba(th.secondary, op); g.fillRect(0, wh, ww, bh);
+          g.strokeStyle = th.accent; g.lineWidth = 4 * s; g.strokeRect(2 * s, 2 * s, ww - 4 * s, wh - 4 * s);
+          g.fillStyle = th.accent; g.font = `${wt} ${fitFont(g, title, sw - 60 * s, 46 * s, wt, F)}px ${F}`; g.fillText(title, ww + 30 * s, 80 * s);
+          g.fillStyle = '#fff'; g.font = `700 ${34 * s}px ${F}`; let ly = 150 * s; side.forEach(l => { wrap(g, l, sw - 60 * s, 3).forEach(t => { if (ly < H - 40 * s) g.fillText(t, ww + 30 * s, ly); ly += 48 * s; }); ly += 10 * s; });
+          g.save(); g.beginPath(); g.rect(0, wh, ww, bh); g.clip(); g.fillStyle = '#fff'; g.font = `700 ${44 * s}px ${F}`; const tw = g.measureText(bottom).width;
+          if (tw < ww - 80 * s) g.fillText(bottom, 40 * s, wh + bh / 2 + 2 * s); else { const span = tw + 200 * s, off = (now / 1000 * 120 * s) % span; g.fillText(bottom, 40 * s - off, wh + bh / 2 + 2 * s); g.fillText(bottom, 40 * s - off + span, wh + bh / 2 + 2 * s); }
+          g.restore();
+        } };
+      }
+      case 'logo': {   // 台標／Logo：四個角落，保留安全邊界
+        const im = ctx.img?.(f.img); if (!im) return null;
+        const hh = Math.max(20, +f.size || 110) * s, ww = im.naturalWidth * hh / im.naturalHeight, p = f.pos || 'tr', x = p[1] === 'l' ? mx * .8 : W - mx * .8 - ww, y = p[0] === 't' ? H * (th.safe ?? .05) * .8 + (p[1] === 'l' && ctx.banner ? ctx.banner * s : 0) : H - mb - hh;
+        return { box: [x, y, ww, hh], dir: 'fade', paint(){ g.save(); g.globalAlpha *= Math.max(.05, Math.min(1, (+f.alpha || 90) / 100)); g.drawImage(im, x, y, ww, hh); g.restore(); } };
+      }
+      case 'image': {   // 圖片疊加：QR Code、海報、活動主視覺
+        const im = ctx.img?.(f.img); if (!im) return null;
+        const cap = tokens(f.cap), ww = W * Math.max(3, Math.min(100, +f.size || 25)) / 100, hh = im.naturalHeight * ww / im.naturalWidth, ch = cap ? 50 * s : 0, p = f.pos || 'br';
+        const x = p[1] === 'l' ? mx : p[1] === 'r' ? W - mx - ww : (W - ww) / 2, y = p[0] === 't' ? H * (th.safe ?? .05) + (ctx.banner ? ctx.banner * s : 0) : p[0] === 'b' ? H - mb - hh - ch : (H - hh - ch) / 2;
+        return { box: [x, y, ww, hh + ch], dir: 'fade', paint(){ g.save(); g.globalAlpha *= Math.max(.05, Math.min(1, (+f.alpha || 100) / 100)); g.drawImage(im, x, y, ww, hh); g.restore();
+          if (cap) { g.fillStyle = rgba(th.primary, op); g.fillRect(x, y + hh, ww, ch); g.fillStyle = th.text; g.textAlign = 'center'; g.font = `${wt} ${fitFont(g, cap, ww - 20 * s, 30 * s, wt, F)}px ${F}`; g.fillText(cap, x + ww / 2, y + hh + ch / 2 + 1 * s); g.textAlign = 'left'; } } };
+      }
+      case 'weather': {   // 天氣條：右下，圖示＋地點＋溫度＋天氣＋降雨
+        const loc = tokens(f.loc), temp = tokens(f.temp), cond = tokens(f.cond), rain = tokens(f.rain), k = weatherKind(f.icon, f.cond);
+        const h = 128 * s, w = 470 * s, x = W - mx - w, y = H - mb - h - (ctx.lift ? ctx.lift * s : 0);
+        return { box: [x, y, w, h], dir: 'left', paint(){
+          g.fillStyle = rgba(th.secondary, op); roundRect(g, x, y, w, h, 10 * s); g.fill();
+          g.fillStyle = th.primary; g.fillRect(x, y, w, 40 * s); g.fillStyle = th.text; g.font = `${wt} ${fitFont(g, loc, w - 40 * s, 28 * s, wt, F)}px ${F}`; g.fillText(loc, x + 20 * s, y + 21 * s);
+          drawWeatherIcon(g, k, x + 62 * s, y + 86 * s, 38 * s);
+          g.fillStyle = '#fff'; g.font = `${wt} ${fitFont(g, temp, 230 * s, 44 * s, wt, F)}px ${F}`; g.fillText(temp, x + 124 * s, y + 72 * s);
+          g.fillStyle = th.text2 === '#ffffff' ? '#cfd8e3' : th.text2; g.font = `600 ${fitFont(g, cond + (rain ? '　降雨 ' + rain : ''), w - 140 * s, 26 * s, 600, F)}px ${F}`; g.fillText(cond + (rain ? '　降雨 ' + rain : ''), x + 126 * s, y + 107 * s);
+        } };
+      }
+    }
+    // 對齊切換台「版型」的多框包裝：只畫框線、標籤，框內透明（畫面由版型提供）
+    if (TEMPLATES[it.tpl]?.box) {
+      const boxes = frameBoxes(TEMPLATES[it.tpl].box, W, H), labels = ['a', 'b', 'c', 'd'].map(k => tokens(f[k])), title = tokens(f.title);
+      return { box: [0, 0, W, H], dir: 'fade', paint(){
+        boxes.forEach(([bx, by, bw, bh], i) => {
+          const full = bw >= W - 1 && bh >= H - 1;
+          if (!full) { g.strokeStyle = th.accent; g.lineWidth = 4 * s; g.strokeRect(bx, by, bw, bh); }
+          const lb = labels[i]; if (!lb) return;
+          const fs = Math.max(20 * s, Math.min(34 * s, bh * .07)); g.font = `${wt} ${fs}px ${F}`; const tw = Math.min(bw * .8, g.measureText(lb).width + 30 * s), lh = fs * 1.7, lx = bx + (full ? mx : 10 * s), ly = by + bh - lh - (full ? mb : 10 * s);
+          g.fillStyle = rgba(th.primary, op); g.fillRect(lx, ly, tw, lh); g.fillStyle = th.text; g.font = `${wt} ${fitFont(g, lb, tw - 24 * s, fs, wt, F)}px ${F}`; g.fillText(lb, lx + 14 * s, ly + lh / 2 + 1 * s);
+        });
+        if (title) { g.font = `${wt} ${32 * s}px ${F}`; const tw = g.measureText(title).width + 60 * s, th2 = 54 * s, tx = (W - tw) / 2; g.fillStyle = rgba(th.secondary, op); g.fillRect(tx, 0, tw, th2); g.fillStyle = th.accent; g.fillRect(tx, th2 - 4 * s, tw, 4 * s); g.fillStyle = '#fff'; g.textAlign = 'center'; g.fillText(title, W / 2, th2 / 2); g.textAlign = 'left'; }
+      } };
+    }
+    return null;
+  }
+  // 圖片快取：圖片資料（data URL）只解碼一次
+  const IMG = new Map();
+  function imgOf(S, id){ const a = id && S?.assets?.[id]; if (!a) return null; let e = IMG.get(id); if (!e || e.src !== a.data) { e = new Image(); e.src = a.data; IMG.set(id, e); } return e.complete && e.naturalWidth ? e : null; }
+  function imgByName(S, name){ const id = Object.keys(S?.assets || {}).find(k => S.assets[k].name === name); return id ? imgOf(S, id) : null; }
+  function drawItem(g, W, H, it, th, p, now, ctx){
+    if (!it || p <= 0) return;
+    const L = layout(g, W, H, it, th, now, ctx); if (!L) return;
+    const style = th.anim || 'slide', e = ease(Math.min(1, Math.max(0, p)));
+    g.save();
+    if (style === 'cut') { /* 直接出現 */ }
+    else if (style === 'fade' || L.dir === 'fade') g.globalAlpha *= e;
+    else {
+      const [x, y, w, h] = L.box; g.beginPath(); g.rect(x - 4, y - 4, w + 8, h + 8); g.clip();
+      if (L.dir === 'left') g.translate(-(1 - e) * (w + 8), 0); else if (L.dir === 'up') g.translate(0, (1 - e) * (h + 8)); else if (L.dir === 'down') g.translate(0, -(1 - e) * (h + 8));
+      g.globalAlpha *= Math.min(1, e * 1.6);
+    }
+    L.paint(); g.restore();
+  }
+  // bus：'pgm' 畫正在播出的字幕（含進退場），'pvw' 畫預覽中的那一則；layers 可限制只畫部分圖層（透明輸出用）
+  function draw(g, W, H, S, now, opt = {}){
+    if (!S) return; const th = S.theme, sp = Math.max(.05, th.speed || .45) * 1000, only = opt.layers;
+    const lowTpl = S.pgm.lower?.item?.tpl;
+    const ctx = { img: id => imgOf(S, id), imgName: n => imgByName(S, n), banner: S.pgm.upper ? 92 : 0, lift: ['dual', 'headline'].includes(lowTpl) ? 160 : 0 };   // 快訊橫幅在播：角標、比分條、畫面提供往下讓位；雙人名條／主副標在播：天氣條往上讓位
+    if (opt.bus === 'pvw') { if (S.pvw && (!only || only.has(layerOf(S.pvw)))) drawItem(g, W, H, S.pvw, th, 1, now, ctx); return; }
+    LAYERS.forEach(l => {
+      if (only && !only.has(l)) return;
+      S.leaving.forEach(e => { if (e.layer === l) drawItem(g, W, H, e.item, th, th.anim === 'cut' ? 0 : 1 - (now - e.out) / sp, now, ctx); });
+      const e = S.pgm[l]; if (e) drawItem(g, W, H, e.item, th, th.anim === 'cut' ? 1 : (now - e.t0) / sp, now, ctx);
+    });
+  }
+  /* ---------- 資料來源：Google 試算表／CSV ---------- */
+  function sheetCsvUrl(u){
+    u = String(u || '').trim(); const m = /docs\.google\.com\/spreadsheets\/d\/([\w-]+)/.exec(u); if (!m) return u;
+    const gid = /[#&?]gid=(\d+)/.exec(u); return `https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:csv${gid ? '&gid=' + gid[1] : ''}`;
+  }
+  function parseCsv(t){
+    const rows = []; let row = [], cell = '', q = false; t = String(t || '').replace(/^﻿/, '');
+    for (let i = 0; i < t.length; i++) { const c = t[i];
+      if (q) { if (c === '"') { if (t[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true; else if (c === ',' || c === '\t') { row.push(cell); cell = ''; } else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; } else cell += c; }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(r => r.some(x => String(x).trim() !== ''));
+  }
+  async function fetchRows(url){
+    const r = await fetch(sheetCsvUrl(url), { cache: 'no-store' }); if (!r.ok) throw new Error('讀取失敗（' + r.status + '）：請確認試算表已設為「知道連結的任何人可以檢視」');
+    const txt = await r.text(); if (/^\s*</.test(txt)) throw new Error('讀到的不是表格資料：請確認試算表已公開檢視，或改貼 CSV 內容');
+    return parseCsv(txt);
+  }
+  // 依表頭自動對應欄位：表頭含「姓名／職稱／地點…」就對到樣板欄位，否則依序對應
+  const mapFields = tpl => TEMPLATES[tpl]?.rows || TEMPLATES[tpl]?.fields.filter(x => !['select', 'number', 'check', 'img'].includes(x.type)) || [];
+  function autoMap(tpl, header){
+    const map = {}, used = new Set(), fields = mapFields(tpl);
+    fields.forEach(fd => { const key = fd.t.replace(/（.*?）/g, '').split(/[／/]/)[0]; const i = header.findIndex((h, j) => !used.has(j) && h && (String(h).includes(key) || String(h).toLowerCase() === fd.k)); if (i >= 0) { map[fd.k] = i; used.add(i); } });
+    fields.forEach(fd => { if (map[fd.k] == null) { const i = header.findIndex((h, j) => !used.has(j)); if (i >= 0) { map[fd.k] = i; used.add(i); } } });
+    return map;
+  }
+  function rowsToItems(rows, tpl, map, hasHeader){
+    const T = TEMPLATES[tpl];
+    if (T?.rows) {   // 開票、行情、民調、條列：整張表合成一則（每列是清單的一行）
+      const lines = rows.slice(hasHeader ? 1 : 0).map(r => T.rows.map(rs => map[rs.k] != null && map[rs.k] !== '' ? String(r[+map[rs.k]] ?? '').trim().replace(/\|/g, '／') : '').join('|').replace(/\|+$/, '')).filter(l => l.replace(/\|/g, '').trim());
+      return lines.length ? [{ tpl, f: { list: lines.join('\n') } }] : [];
+    }
+    return rows.slice(hasHeader ? 1 : 0).map(r => { const f = {}; Object.keys(map).forEach(k => { if (map[k] !== '' && map[k] != null && +map[k] >= 0) f[k] = String(r[+map[k]] ?? '').trim(); }); return { tpl, f }; }).filter(x => Object.values(x.f).some(Boolean));
+  }
+  // 唱詞：空行分段，或每 N 行一則
+  function lyricItems(text, per, group){
+    const lines = String(text || '').replace(/\r/g, '').split('\n');
+    const out = []; if (per === 'block') { let buf = []; lines.concat(['']).forEach(l => { if (l.trim() === '') { if (buf.length) { for (let i = 0; i < buf.length; i += 2) out.push(buf.slice(i, i + 2)); buf = []; } } else buf.push(l.trim()); }); }
+    else { const n = per === '2' ? 2 : 1, ls = lines.map(x => x.trim()).filter(Boolean); for (let i = 0; i < ls.length; i += n) out.push(ls.slice(i, i + n)); }
+    return out.map(b => ({ tpl: 'lyric', f: { l1: b[0] || '', l2: b[1] || '' }, g: group || '' }));
+  }
+  return { RD_TYPES, clock, fmtSec, check, promptPos, saveAssets, GROUP_NAMES, mapFields, parseList, FONTS, THEMES, TEMPLATES, LAYERS, LAYER_NAMES, POS, fresh, load, save, snapshot, fromSnapshot, apply, tick, draw, onAir, summary, mkItem, defaults, layerOf, sheetCsvUrl, parseCsv, fetchRows, autoMap, rowsToItems, lyricItems, clone };
+})();
+
+/* 字幕控制介面：導播台的「字幕播出」視窗與遠端字幕控制頁共用。
+ * api = { get():狀態, send(cmd), links?():{ctl,out}, remotes?():人數, canTake?():bool } */
+function TitleUI(root, api){
+  const C = TitleCore, $q = s => root.querySelector(s), $qa = s => [...root.querySelectorAll(s)];
+  // 樣板選單依類別分組：新聞／資料／活動／轉播包裝框
+  const tplOpts = v => Object.entries(C.GROUP_NAMES).map(([gk, gn]) => `<optgroup label="${gn}">${Object.entries(C.TEMPLATES).filter(([, t]) => (t.grp || 'news') === gk).map(([k, t]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</optgroup>`).join('');
+  let pane = 'list', listSig = '', editFor = undefined, dataRows = null, raf = 0, dead = false, liveT = 0;
+  const send = cmd => api.send(cmd);
+  const guard = () => { if (api.canTake && !api.canTake()) return false; return true; };
+  // 上字前檢查：有疑似錯字時先確認（可在「錯字檢查」關閉）
+  const okToTake = it => { const S = api.get(); if (!S.check || S.check.confirm === false) return true; const w = C.check(S, it); return !w.length || confirm('這則字幕可能有問題：\n\n・' + w.join('\n・') + '\n\n仍要上字嗎？'); };
+  root.classList.add('tui');
+  root.innerHTML = `
+    <div class="tui-mon">
+      <figure><figcaption><b class="pv">PVW</b> 字幕預覽 <span data-pvn></span></figcaption><canvas data-c="pvw" width="640" height="360"></canvas></figure>
+      <figure><figcaption><b class="pg">PGM</b> 播出中 <span data-pgn></span></figcaption><canvas data-c="pgm" width="640" height="360"></canvas></figure>
+    </div>
+    <div class="tui-clock" data-clock></div>
+    <div class="tui-ctl">
+      <button type="button" class="btn" data-k="prev" title="上一則（PageUp／←）">◀ 上一則</button>
+      <button type="button" class="btn take" data-k="take" title="把預覽中的字幕送上節目（.）">TAKE 上字</button>
+      <button type="button" class="btn" data-k="next" title="下一則（PageDown／→，簡報筆也可以）">下一則 ▶</button>
+      <button type="button" class="btn danger" data-k="clear" title="下字：撤下最近一次上的字（Delete）；各圖層也可以按下方標籤的 × 個別撤下">下字</button>
+      <button type="button" class="btn danger" data-k="clearAll" title="全部下字（Shift＋Delete）">全部下字</button>
+    </div>
+    <div class="tui-air" data-air></div>
+    <div class="tui-score hidden" data-score><b>比分快速調整</b><span data-scn></span><button type="button" class="btn sm" data-sc="a:-1">A −1</button><button type="button" class="btn sm" data-sc="a:1">A ＋1</button><button type="button" class="btn sm" data-sc="b:-1">B −1</button><button type="button" class="btn sm" data-sc="b:1">B ＋1</button><span class="note">播出中會直接更新畫面</span></div>
+    <div class="tui-tabs" role="tablist">${[['list', '播出清單'], ['edit', '新增／編輯'], ['rundown', '排序表'], ['prompter', '提詞機'], ['lyric', '唱詞'], ['free', '手排'], ['data', '資料來源'], ['images', '圖片'], ['theme', '外觀主題'], ['check', '錯字檢查'], ...(api.log ? [['log', '播出紀錄']] : []), ...(api.cloud ? [['cloud', '雲端清單']] : []), ...(api.links ? [['link', '遠端／輸出']] : [])].map(([k, n]) => `<button type="button" role="tab" data-tab="${k}">${n}</button>`).join('')}</div>
+    <div class="tui-panes">
+      <section data-pane="list">
+        <div class="tui-bar"><label><input type="checkbox" data-o="autoNext"> 上字後自動預覽下一則</label><label><input type="checkbox" data-o="lyricLive"> 唱詞直播（下一則＝直接上字）</label><label title="清單裡有設定「跟著畫面」的字幕，切到那個來源時自動上字"><input type="checkbox" data-o="followCut"> 字幕跟著畫面</label><label title="切走時自動撤下跟著畫面的字幕"><input type="checkbox" data-o="followOff"> 切走自動下字</label><label>延遲<select class="field sm" data-o2="followDelay"><option value="0">0 秒</option><option value="0.5">0.5 秒</option><option value="1">1 秒</option><option value="2">2 秒</option><option value="3">3 秒</option></select></label><span class="grow"></span>
+          <button type="button" class="btn sm" data-k="exp">匯出清單</button><label class="btn sm">匯入清單<input type="file" accept=".json,application/json" data-k="imp" hidden></label><button type="button" class="btn sm danger" data-k="clr">清空</button></div>
+        <div class="tui-list" data-list></div>
+        <p class="note">點一下＝送到預覽；點兩下或 ▶＝直接上字。快捷鍵：<kbd>.</kbd> 上字、<kbd>PgDn</kbd>／<kbd>→</kbd> 下一則、<kbd>PgUp</kbd>／<kbd>←</kbd> 上一則、<kbd>Delete</kbd> 下字、<kbd>Shift</kbd>＋<kbd>Delete</kbd> 全部下字。</p>
+      </section>
+      <section data-pane="edit">
+        <div class="tui-form"><label>樣板<select class="field" data-e="tpl">${tplOpts('name')}</select></label><div data-efields class="tui-fields"></div>
+          <div class="tui-grid2"><label>時長（秒，0＝手動下字）<input class="field" type="number" min="0" max="3600" step="1" data-e="dur" value="0"></label><label>分組／備註（選填）<input class="field" data-e="g" maxlength="40" placeholder="例：第一段、來賓 A"></label></div>
+          <label>跟著畫面自動上（選填）<select class="field" data-e="follow"></select></label>
+          <div class="tui-warn" data-ewarn></div>
+          <div class="tui-bar"><span data-emode class="note"></span><span class="grow"></span><button type="button" class="btn" data-k="eadd">新增到清單</button><button type="button" class="btn" data-k="eupd">更新選取的項目</button><button type="button" class="btn" data-k="epvw">送到預覽</button><button type="button" class="btn primary" data-k="etake">直接上字</button></div></div>
+        <p class="note">文字可用 <code>{時間}</code>、<code>{秒}</code>、<code>{日期}</code>，播出時自動換成現在的時間。</p>
+      </section>
+      <section data-pane="lyric">
+        <div class="tui-form"><label>歌名／分組<input class="field" data-ly="g" maxlength="40" placeholder="例：開場曲"></label>
+          <label>歌詞（直接貼上）<textarea class="field" rows="9" data-ly="text" placeholder="一行一句；空一行代表換段"></textarea></label>
+          <div class="tui-bar"><label>切法<select class="field sm" data-ly="per"><option value="1">每 1 行一則</option><option value="2" selected>每 2 行一則</option><option value="block">依空行分段（每段最多 2 行）</option></select></label><span class="grow"></span><button type="button" class="btn primary" data-k="lyadd">加入清單</button></div></div>
+        <p class="note">唱詞建議搭配「唱詞直播」：按 <kbd>PgDn</kbd> 或簡報筆的下一頁，就會直接換下一句。</p>
+      </section>
+      <section data-pane="free">
+        <div class="tui-form"><label>手排內容（可多行）<textarea class="field" rows="5" data-fr="l1" placeholder="現場臨時要上的字，直接打"></textarea></label>
+          <div class="tui-grid3"><label>位置<select class="field" data-fr="pos">${C.POS.map(([k, n]) => `<option value="${k}" ${k === 'bc' ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>字級<input class="field" type="number" min="16" max="240" value="64" data-fr="size"></label><label class="chk"><input type="checkbox" data-fr="box" checked> 底框</label></div>
+          <div class="tui-bar"><label><input type="checkbox" data-fr="live"> 即時更新（已上字時，打字直接改到畫面）</label><span class="grow"></span><button type="button" class="btn" data-k="frpvw">送到預覽</button><button type="button" class="btn primary" data-k="frtake">直接上字</button><button type="button" class="btn danger" data-k="frclr">下手排</button></div></div>
+      </section>
+      <section data-pane="data">
+        <div class="tui-form"><label>Google 試算表或 CSV 網址<div class="tui-bar" style="margin:0"><input class="field grow" data-d="url" placeholder="https://docs.google.com/spreadsheets/d/…（需設為知道連結的任何人可檢視）"><button type="button" class="btn" data-k="dload">讀取</button></div></label>
+          <div class="tui-bar"><label class="btn sm">選擇 CSV 檔<input type="file" accept=".csv,text/csv,.tsv,text/plain" data-k="dfile" hidden></label><span class="note">或把 Excel／試算表內容直接複製貼到下面</span></div>
+          <textarea class="field" rows="3" data-d="paste" placeholder="貼上表格內容（可直接從 Excel 複製）"></textarea><div class="tui-bar" style="margin-top:4px"><button type="button" class="btn sm" data-k="dparse">解析貼上的內容</button><span class="note" data-dstat></span></div>
+          <div data-dmap></div></div>
+      </section>
+      <section data-pane="theme"><div data-theme></div></section>
+      <section data-pane="rundown"><div data-rd></div></section>
+      <section data-pane="prompter"><div data-pr></div></section>
+      <section data-pane="images"><div data-img></div></section>
+      <section data-pane="check"><div data-chk></div></section>
+      ${api.links ? '<section data-pane="link"><div data-link></div></section>' : ''}
+      ${api.log ? '<section data-pane="log"><div data-log></div></section>' : ''}
+      ${api.cloud ? '<section data-pane="cloud"><div data-cloud></div></section>' : ''}
+    </div>`;
+
+  /* ---------- 共用控制 ---------- */
+  const smartClear = () => {
+    const S = api.get(), l = Object.keys(S.pgm).sort((a, b) => S.pgm[b].t0 - S.pgm[a].t0)[0];   // 下最近一次上的字
+    if (l) send({ op: 'clear', layer: l });
+  };
+  const act = k => {
+    if (['take', 'next', 'prev', 'clear', 'clearAll'].includes(k) && !guard()) return;
+    if (k === 'take') { if (okToTake(api.get().pvw)) send({ op: 'take' }); } else if (k === 'next') send({ op: 'next' }); else if (k === 'prev') send({ op: 'prev' });
+    else if (k === 'clear') smartClear(); else if (k === 'clearAll') send({ op: 'clear' });
+  };
+  $qa('.tui-ctl [data-k]').forEach(b => b.onclick = () => act(b.dataset.k));
+  $qa('.tui-tabs [data-tab]').forEach(b => b.onclick = () => { pane = b.dataset.tab; paintPane(); });
+  root.addEventListener('click', e => { const x = e.target.closest('[data-airx]'); if (x && guard()) send({ op: 'clear', layer: x.dataset.airx }); const sc = e.target.closest('[data-sc]'); if (sc && guard()) { const [team, d] = sc.dataset.sc.split(':'); send({ op: 'scoreAdj', team, d: +d }); } });
+
+  /* ---------- 播出清單 ---------- */
+  const listEl = $q('[data-list]');
+  listEl.addEventListener('click', e => {
+    const row = e.target.closest('[data-id]'); if (!row) return; const id = row.dataset.id, a = e.target.closest('[data-a]')?.dataset.a;
+    if (!a) return send({ op: 'select', id });
+    if (a === 'take') { if (guard() && okToTake(api.get().items.find(x => x.id === id))) send({ op: 'take', id }); }
+    else if (a === 'up' || a === 'down') send({ op: 'move', id, dir: a === 'up' ? -1 : 1 });
+    else if (a === 'dup') send({ op: 'dup', id });
+    else if (a === 'del') send({ op: 'remove', id });
+  });
+  listEl.addEventListener('dblclick', e => { const row = e.target.closest('[data-id]'); if (row && !e.target.closest('[data-a]') && guard() && okToTake(api.get().items.find(x => x.id === row.dataset.id))) send({ op: 'take', id: row.dataset.id }); });
+  $qa('[data-o]').forEach(c => c.onchange = () => send({ op: 'opts', opts: { [c.dataset.o]: c.checked } }));
+  $qa('[data-o2]').forEach(c => c.onchange = () => send({ op: 'opts', opts: { [c.dataset.o2]: +c.value } }));
+  $q('[data-k="clr"]').onclick = () => { if (confirm('清空整個播出清單？')) send({ op: 'clearList' }); };
+  $q('[data-k="exp"]').onclick = () => { const S = api.get(); const url = URL.createObjectURL(new Blob([JSON.stringify({ webcallTitles: 1, theme: S.theme, items: S.items }, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = 'WebCall字幕清單-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000); };
+  $q('[data-k="imp"]').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { const o = JSON.parse(await f.text()); if (!Array.isArray(o.items)) throw new Error('不是字幕清單檔'); send({ op: 'replaceAll', items: o.items }); if (o.theme) send({ op: 'theme', theme: o.theme }); toast(`已匯入 ${o.items.length} 則字幕`); } catch (err) { toast('匯入失敗：' + err.message); } };
+  function paintList(force){
+    const S = api.get(), air = new Set(C.onAir(S).map(x => x.item.id)), sig = JSON.stringify([S.items, S.sel, [...air], S.opts, S.check]);
+    $qa('[data-o]').forEach(c => { c.checked = !!S.opts[c.dataset.o]; }); $qa('[data-o2]').forEach(c => { if (document.activeElement !== c) c.value = String(S.opts[c.dataset.o2] ?? 1); });
+    if (!force && sig === listSig) return; const selChanged = !listSig || JSON.parse(listSig)[1] !== S.sel; listSig = sig;
+    const top = listEl.scrollTop;
+    listEl.innerHTML = S.items.map((it, i) => `<div class="tui-row ${it.id === S.sel ? 'sel' : ''} ${air.has(it.id) ? 'air' : ''}" data-id="${esc(it.id)}"><span class="n">${i + 1}</span><span class="tp">${esc(C.TEMPLATES[it.tpl]?.name.replace(/（.*?）/, '') || it.tpl)}</span><span class="sm">${air.has(it.id) ? '<i class="onair">播出中</i>' : ''}${(() => { const w = C.check(S, it); return w.length ? `<i class="wn" title="${esc(w.join('\n'))}">⚠</i>` : ''; })()}${esc(C.summary(it))}</span>${it.follow ? `<span class="g fl" title="切到這個來源時自動上字">🔗 ${esc(it.follow)}</span>` : ''}${it.g ? `<span class="g">${esc(it.g)}</span>` : ''}${it.dur ? `<span class="g">${it.dur}s</span>` : ''}<span class="acts"><button type="button" data-a="take" title="直接上字">▶</button><button type="button" data-a="up" title="上移">↑</button><button type="button" data-a="down" title="下移">↓</button><button type="button" data-a="dup" title="複製">⧉</button><button type="button" data-a="del" title="刪除">✕</button></span></div>`).join('') || '<div class="note" style="padding:14px">清單是空的：到「新增／編輯」、「唱詞」或「資料來源」加入字幕。</div>';
+    listEl.scrollTop = top;
+    if (selChanged) listEl.querySelector('.sel')?.scrollIntoView({ block: 'nearest' });
+  }
+
+  /* ---------- 新增／編輯 ---------- */
+  const ef = $q('[data-efields]');
+  const fieldHtml = (fd, v, attr) => {
+    const a = `${attr}="${fd.k}"`;
+    if (fd.type === 'area') return `<label class="full">${esc(fd.t)}<textarea class="field" rows="3" ${a} placeholder="${esc(fd.p || '')}">${esc(v)}</textarea></label>`;
+    if (fd.type === 'select') return `<label>${esc(fd.t)}<select class="field" ${a}>${fd.opts.map(([k, n]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+    if (fd.type === 'number') return `<label>${esc(fd.t)}<input class="field" type="number" min="16" max="240" ${a} value="${esc(v)}"></label>`;
+    if (fd.type === 'img') { const S = api.get(), list = S.assetList || Object.keys(S.assets || {}).map(id => ({ id, name: S.assets[id].name })); return `<label>${esc(fd.t)}<select class="field" ${a}><option value="">（無）</option>${list.map(x => `<option value="${esc(x.id)}" ${x.id === v ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>`; }
+    if (fd.type === 'check') return `<label class="chk"><input type="checkbox" ${a} ${v !== '0' && v !== '' ? 'checked' : ''}> ${esc(fd.t)}</label>`;
+    return `<label>${esc(fd.t)}<input class="field" ${a} value="${esc(v)}" placeholder="${esc(fd.p || '')}"></label>`;
+  };
+  const renderFields = (tpl, f) => { ef.innerHTML = (C.TEMPLATES[tpl]?.fields || []).map(fd => fieldHtml(fd, f?.[fd.k] ?? C.defaults(tpl)[fd.k] ?? '', 'data-ef')).join(''); };
+  const readEdit = () => { const tpl = $q('[data-e="tpl"]').value, f = {}; $qa('[data-ef]').forEach(i => { f[i.dataset.ef] = i.type === 'checkbox' ? (i.checked ? '1' : '0') : i.value; }); return { tpl, f, dur: +$q('[data-e="dur"]').value || 0, g: $q('[data-e="g"]').value.trim(), follow: $q('[data-e="follow"]').value }; };
+  const fillFollow = v => { const S = api.get(), names = [...new Set([...(S.sources || []), ...(v ? [v] : [])])]; $q('[data-e="follow"]').innerHTML = `<option value="">（不連動）</option>` + names.map(n => `<option value="${esc(n)}" ${n === v ? 'selected' : ''}>${esc(n)}${(S.sources || []).includes(n) ? '' : '（目前不在線上）'}</option>`).join(''); };
+  const editWarn = () => { const w = C.check(api.get(), readEdit()); $q('[data-ewarn]').innerHTML = w.map(x => `<div>⚠ ${esc(x)}</div>`).join(''); };
+  $q('[data-pane="edit"]').addEventListener('input', () => { clearTimeout(editWarn.t); editWarn.t = setTimeout(editWarn, 200); });
+  $q('[data-e="tpl"]').onchange = e => { const cur = readEdit(); renderFields(e.target.value, { l1: cur.f.l1 || '', l2: cur.f.l2 || '' }); };   // 換樣板只帶過內容文字，標籤等欄位用新樣板的預設值
+  function loadEditor(force){
+    const S = api.get(), it = S.items.find(x => x.id === S.sel);
+    if (!force && editFor === (it?.id || null)) return; if (!force && root.contains(document.activeElement) && document.activeElement.closest('[data-pane="edit"]')) return;
+    editFor = it?.id || null; const tpl = it?.tpl || $q('[data-e="tpl"]').value || 'name';
+    $q('[data-e="tpl"]').value = tpl; renderFields(tpl, it?.f); $q('[data-e="dur"]').value = it?.dur || 0; $q('[data-e="g"]').value = it?.g || ''; fillFollow(it?.follow || '');
+    $q('[data-emode]').textContent = it ? `正在編輯第 ${S.items.indexOf(it) + 1} 則` : '新增字幕';
+    $q('[data-k="eupd"]').disabled = !it; editWarn();
+  }
+  $q('[data-k="eadd"]').onclick = () => { const d = readEdit(); const S = api.get(); send({ op: 'add', ...d, after: S.sel || undefined, stage: true }); toast('已加入清單'); };
+  $q('[data-k="eupd"]').onclick = () => { const S = api.get(); if (!S.sel) return; send({ op: 'update', id: S.sel, ...readEdit() }); toast('已更新'); };
+  $q('[data-k="epvw"]').onclick = () => send({ op: 'stage', item: readEdit() });
+  $q('[data-k="etake"]').onclick = () => { if (!guard() || !okToTake(readEdit())) return; send({ op: 'stage', item: readEdit() }); send({ op: 'take' }); };
+
+  /* ---------- 唱詞 ---------- */
+  $q('[data-k="lyadd"]').onclick = () => { const items = C.lyricItems($q('[data-ly="text"]').value, $q('[data-ly="per"]').value, $q('[data-ly="g"]').value.trim()); if (!items.length) return toast('請先貼上歌詞'); send({ op: 'import', items }); toast(`已加入 ${items.length} 則唱詞`); pane = 'list'; paintPane(); };
+
+  /* ---------- 手排 ---------- */
+  const readFree = () => ({ tpl: 'free', f: { l1: $q('[data-fr="l1"]').value, pos: $q('[data-fr="pos"]').value, size: $q('[data-fr="size"]').value, box: $q('[data-fr="box"]').checked ? '1' : '0' } });
+  $q('[data-k="frpvw"]').onclick = () => send({ op: 'stage', item: readFree() });
+  $q('[data-k="frtake"]').onclick = () => { if (!guard()) return; send({ op: 'stage', item: readFree() }); send({ op: 'take' }); };
+  $q('[data-k="frclr"]').onclick = () => { if (guard()) send({ op: 'clear', layer: 'free' }); };
+  $qa('[data-fr]').forEach(i => i.addEventListener('input', () => { if (!$q('[data-fr="live"]').checked || i.dataset.fr === 'live') return; clearTimeout(liveT); liveT = setTimeout(() => send({ op: 'live', item: readFree() }), 120); }));
+
+  /* ---------- 資料來源 ---------- */
+  const dstat = t => { $q('[data-dstat]').textContent = t; };
+  async function loadUrl(){ const url = $q('[data-d="url"]').value.trim(); if (!url) return toast('請貼上試算表網址'); dstat('讀取中…'); try { dataRows = await C.fetchRows(url); send({ op: 'data', data: { url } }); dstat(`讀到 ${dataRows.length} 列`); paintMap(true); } catch (e) { dstat(''); toast(e.message); } }
+  $q('[data-k="dload"]').onclick = loadUrl;
+  $q('[data-k="dfile"]').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; dataRows = C.parseCsv(await f.text()); dstat(`讀到 ${dataRows.length} 列（${f.name}）`); paintMap(true); };
+  $q('[data-k="dparse"]').onclick = () => { dataRows = C.parseCsv($q('[data-d="paste"]').value); dstat(`讀到 ${dataRows.length} 列`); paintMap(true); };
+  let dcfg = null;
+  function paintMap(resetMap){
+    const box = $q('[data-dmap]'), S = api.get(); if (!dataRows?.length) { box.innerHTML = ''; return; }
+    if (!dcfg) dcfg = { tpl: S.data.tpl || 'name', header: S.data.header !== false, auto: !!S.data.auto, map: S.data.map || null, sec: S.data.sec || 30 };
+    const header = dcfg.header, tpl = C.TEMPLATES[dcfg.tpl] ? dcfg.tpl : 'name', head = dataRows[0];
+    const cols = head.map((h, i) => [i, header ? (h || `第 ${i + 1} 欄`) : `第 ${i + 1} 欄（${String(h).slice(0, 8)}）`]);
+    if (resetMap || !dcfg.map) dcfg.map = C.autoMap(tpl, header ? head : head.map(() => ''));
+    const map = dcfg.map, fields = C.mapFields(tpl), multi = !!C.TEMPLATES[tpl].rows;
+    box.innerHTML = `<div class="tui-grid3" style="margin-top:8px"><label>套用樣板<select class="field" data-dm="tpl">${tplOpts(tpl)}</select></label><label class="chk"><input type="checkbox" data-dm="header" ${header ? 'checked' : ''}> 第一列是表頭</label><label class="chk"><input type="checkbox" data-dm="auto" ${dcfg.auto ? 'checked' : ''}> 每 ${dcfg.sec} 秒自動更新</label></div>
+      <div class="tui-grid3">${fields.map(fd => `<label>${esc(fd.t)} ←<select class="field" data-mapk="${fd.k}"><option value="">（不使用）</option>${cols.map(([i, n]) => `<option value="${i}" ${String(map[fd.k]) === String(i) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>`).join('')}</div>
+      <div class="tui-prev"><table><tbody>${dataRows.slice(0, 6).map((r, ri) => `<tr class="${ri === 0 && header ? 'h' : ''}">${r.slice(0, 8).map(c => `<td>${esc(String(c).slice(0, 24))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      <div class="tui-bar"><span class="note">${multi ? `整張表會合成 1 則（共 ${dataRows.length - (header ? 1 : 0)} 行）；標題等其他欄位匯入後到「新增／編輯」補上，之後自動更新不會蓋掉。` : `共 ${dataRows.length - (header ? 1 : 0)} 則。`}自動更新只適用網址來源，且需要導播台開著；播出中的資料字幕會直接換成新數字。</span><span class="grow"></span><button type="button" class="btn" data-k="dappend">加在清單後面</button><button type="button" class="btn primary" data-k="dimport">匯入（取代上次匯入的資料）</button></div>`;
+    const readMap = () => { const m = {}; box.querySelectorAll('[data-mapk]').forEach(s => { if (s.value !== '') m[s.dataset.mapk] = +s.value; }); dcfg.map = m; return m; };
+    const saveCfg = () => { readMap(); dcfg.auto = box.querySelector('[data-dm="auto"]').checked; send({ op: 'data', data: { tpl: dcfg.tpl, header: dcfg.header, auto: dcfg.auto, map: dcfg.map, url: $q('[data-d="url"]').value.trim() || S.data.url || '' } }); };
+    box.querySelector('[data-dm="tpl"]').onchange = e => { dcfg.tpl = e.target.value; dcfg.map = null; paintMap(true); saveCfg(); };
+    box.querySelector('[data-dm="header"]').onchange = e => { dcfg.header = e.target.checked; paintMap(true); saveCfg(); };
+    box.querySelector('[data-dm="auto"]').onchange = saveCfg;
+    box.querySelectorAll('[data-mapk]').forEach(s => s.onchange = saveCfg);
+    const items = () => C.rowsToItems(dataRows, dcfg.tpl, readMap(), dcfg.header);
+    box.querySelector('[data-k="dimport"]').onclick = () => { saveCfg(); const list = items(); send({ op: 'import', items: list, source: 'data' }); toast(`已匯入 ${list.length} 則`); };
+    box.querySelector('[data-k="dappend"]').onclick = () => { const list = items(); send({ op: 'import', items: list }); toast(`已加入 ${list.length} 則`); };
+  }
+
+  /* ---------- 外觀主題 ---------- */
+  function paintTheme(){
+    const S = api.get(), T = S.theme, box = $q('[data-theme]');
+    if (box.contains(document.activeElement)) return;
+    const col = (k, n) => `<label>${n}<input type="color" data-th="${k}" value="${esc(T[k] || '#000000')}"></label>`;
+    const rng = (k, n, min, max, step, fmt) => `<label>${n} <output>${fmt(T[k])}</output><input type="range" data-th="${k}" min="${min}" max="${max}" step="${step}" value="${T[k]}"></label>`;
+    box.innerHTML = `<div class="tui-bar">${Object.entries(C.THEMES).map(([k, t]) => `<button type="button" class="btn sm" data-preset="${k}" style="border-left:6px solid ${t.primary}">${esc(t.name)}</button>`).join('')}</div>
+      <div class="tui-grid3">${col('primary', '主色')}${col('secondary', '副色（底條）')}${col('accent', '強調色')}${col('text', '主色上的文字')}${col('text2', '副色上的文字')}
+        <label>字型<select class="field" data-th="font">${C.FONTS.map(([v, n]) => `<option value='${esc(v)}' ${v === T.font ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>字重<select class="field" data-th="weight">${[[500, '一般'], [700, '粗'], [900, '特粗']].map(([v, n]) => `<option value="${v}" ${+T.weight === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <label>進退場<select class="field" data-th="anim">${[['slide', '滑入'], ['fade', '淡入'], ['cut', '直接出現']].map(([v, n]) => `<option value="${v}" ${T.anim === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        ${rng('speed', '動畫秒數', .15, 1.2, .05, v => (+v).toFixed(2) + 's')}${rng('opacity', '底條不透明度', .5, 1, .02, v => Math.round(v * 100) + '%')}${rng('scale', '整體大小', .7, 1.4, .05, v => Math.round(v * 100) + '%')}${rng('safe', '安全邊界', .02, .1, .005, v => Math.round(v * 100) + '%')}</div>
+      <p class="note">主題會套用到所有樣板，也會同步到遠端控制頁與透明輸出。可以先挑一個內建主題再微調。</p>`;
+    box.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { send({ op: 'theme', preset: b.dataset.preset }); setTimeout(paintTheme, 80); });
+    let t = 0; box.querySelectorAll('[data-th]').forEach(i => i.addEventListener('input', () => { const k = i.dataset.th, v = i.type === 'range' || k === 'weight' ? +i.value : i.value; const o = i.parentElement.querySelector('output'); if (o) o.textContent = { speed: x => x.toFixed(2) + 's', opacity: x => Math.round(x * 100) + '%', scale: x => Math.round(x * 100) + '%', safe: x => Math.round(x * 100) + '%' }[k]?.(v) || ''; clearTimeout(t); t = setTimeout(() => send({ op: 'theme', theme: { [k]: v } }), 60); }));
+  }
+
+  /* ---------- 遠端／輸出 ---------- */
+  function paintLink(){
+    const box = $q('[data-link]'); if (!box || box.contains(document.activeElement)) return; const L = api.links();
+    const layers = new Set(JSON.parse(store('wc_cgout_layers') || 'null') || C.LAYERS), bg = store('wc_cgout_bg') || '';
+    const outUrl = L.out + (layers.size < C.LAYERS.length ? '&layers=' + [...layers].join(',') : '') + (bg ? '&bg=' + bg : '');
+    box.innerHTML = `<div class="tui-form"><h4>另一台電腦控制上字</h4><p class="note">在另一台電腦（或平板）打開這個網址，就能用完整的字幕控制介面上字；狀態與這台導播台同步。連結等同字幕操作權限，請只給字幕操作人員。</p>
+        <div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.ctl)}"><button type="button" class="btn" data-k="cpctl">複製</button></div><div class="tui-qr" data-qr></div>
+        <p class="note">目前連線：遠端控制 ${api.remotes?.().ctl || 0} 台、透明輸出 ${api.remotes?.().out || 0} 個。</p>
+        ${L.prompter ? `<h4 style="margin-top:14px">提詞機（主播／記者平板）</h4><p class="note">平板打開就會跟著「提詞機」分頁同步捲動。提詞玻璃用的平板，網址後面加 <code>&amp;mirror=1</code> 會左右鏡像。</p><div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.prompter)}"><button type="button" class="btn" data-k="cppr">複製</button></div>
+        <h4 style="margin-top:14px">節目時鐘（現場螢幕）</h4><p class="note">大字顯示現在時間、節目剩餘、本段剩餘與下一條，適合放在攝影棚或現場的螢幕。</p><div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.clock)}"><button type="button" class="btn" data-k="cpclk">複製</button></div>` : ''}
+        <h4 style="margin-top:14px">透明字幕輸出（給 OBS／vMix）</h4><p class="note">OBS：新增「瀏覽器」來源，寬 1920、高 1080，貼上網址即可（背景自動透明）。vMix：新增 Web Browser 輸入貼上網址；要去背可選綠幕再用 Chroma Key。</p>
+        <div class="tui-bar">${C.LAYERS.map(l => `<label><input type="checkbox" data-ol="${l}" ${layers.has(l) ? 'checked' : ''}> ${C.LAYER_NAMES[l]}</label>`).join('')}</div>
+        <div class="tui-bar"><label>背景<select class="field sm" data-ob><option value="" ${!bg ? 'selected' : ''}>透明（OBS 建議）</option><option value="00ff00" ${bg === '00ff00' ? 'selected' : ''}>綠幕</option><option value="0000ff" ${bg === '0000ff' ? 'selected' : ''}>藍幕</option><option value="000000" ${bg === '000000' ? 'selected' : ''}>黑底</option></select></label></div>
+        <div class="tui-bar"><input class="field grow mono" readonly value="${esc(outUrl)}"><button type="button" class="btn" data-k="cpout">複製</button><button type="button" class="btn" data-k="opout">開新視窗預覽</button></div></div>`;
+    try { qr(box.querySelector('[data-qr]'), L.ctl, 128); } catch {}
+    box.querySelector('[data-k="cpctl"]').onclick = () => copyText(L.ctl, '已複製字幕控制網址');
+    box.querySelector('[data-k="cppr"]')?.addEventListener('click', () => copyText(L.prompter, '已複製提詞機網址'));
+    box.querySelector('[data-k="cpclk"]')?.addEventListener('click', () => copyText(L.clock, '已複製節目時鐘網址'));
+    box.querySelector('[data-k="cpout"]').onclick = () => copyText(outUrl, '已複製透明字幕輸出網址');
+    box.querySelector('[data-k="opout"]').onclick = () => window.open(outUrl, '_blank', 'noopener,width=960,height=560');
+    box.querySelectorAll('[data-ol]').forEach(c => c.onchange = () => { const s = new Set(C.LAYERS.filter(l => box.querySelector(`[data-ol="${l}"]`).checked)); store('wc_cgout_layers', JSON.stringify([...s])); paintLink(); });
+    box.querySelector('[data-ob]').onchange = e => { store('wc_cgout_bg', e.target.value); paintLink(); };
+  }
+
+  /* ---------- 新聞排序表（Rundown） ---------- */
+  let rdEdit = null, rdDraft = null;   // rdDraft：新增表單還沒送出的內容，畫面重繪時保留
+  const mmss = v => { const t = String(v || '').trim().replace(/^-/, ''); if (/^\d+(:\d{1,2}){1,2}$/.test(t)) return t.split(':').reduce((a, x) => a * 60 + +x, 0); return Math.max(0, +t || 0); };
+  function paintRundown(force){
+    const box = $q('[data-rd]'); if (!box) return; const S = api.get(), R = S.rundown, ck = C.clock(S, Date.now());
+    if (!box.dataset.ready) {   // 上方工具列、清單、表單分開重繪，打字時清單更新不會把表單洗掉
+      box.dataset.ready = '1';
+      box.innerHTML = `<div class="tui-bar"><label>節目結束<input class="field sm mono" data-rdend placeholder="19:00" style="width:80px"></label><button type="button" class="btn" data-rk="prev">◀ 上一條</button><button type="button" class="btn primary" data-rk="next">下一條 ▶</button><span class="note" data-rdsum></span><span class="grow"></span><button type="button" class="btn sm danger" data-rk="clr">清空</button></div><div class="tui-list" data-rdlist></div><div data-rdform></div>`;
+      box.querySelector('[data-rdend]').onchange = e => send({ op: 'rdSet', showEnd: e.target.value.trim() });
+      box.querySelector('[data-rk="prev"]').onclick = () => send({ op: 'rdGo', dir: -1 });
+      box.querySelector('[data-rk="next"]').onclick = () => send({ op: 'rdGo', dir: 1 });
+      box.querySelector('[data-rk="clr"]').onclick = () => { if (confirm('清空整個排序表？')) send({ op: 'rdClear' }); };
+      box.querySelector('[data-rdlist]').addEventListener('click', e => { const b = e.target.closest('[data-ra]'); if (!b) return; const R0 = api.get().rundown, id = b.closest('[data-rid]').dataset.rid, a = b.dataset.ra, i = R0.rows.findIndex(r => r.id === id);
+        if (a === 'go') send({ op: 'rdGo', index: i }); else if (a === 'edit') { rdEdit = id; paintRundown(true); } else if (a === 'del') { if (confirm('刪除這一條？')) { send({ op: 'rdRemove', id }); if (rdEdit === id) { rdEdit = null; paintRundown(true); } } } else send({ op: 'rdMove', id, dir: a === 'up' ? -1 : 1 }); });
+    }
+    const endEl = box.querySelector('[data-rdend]'); if (document.activeElement !== endEl) endEl.value = R.showEnd || '';
+    let acc = 0; const total = R.rows.reduce((a, r) => a + (r.dur || 0), 0);
+    const endMin = /^(\d{1,2}):(\d{2})$/.exec(R.showEnd || ''), endT = endMin ? (() => { const e = new Date(); e.setHours(+endMin[1], +endMin[2], 0, 0); return e; })() : null;
+    const rows = R.rows.map((r, i) => { const startBack = endT ? new Date(endT - (total - acc) * 1000) : null; acc += r.dur || 0; const tn = (C.RD_TYPES.find(t => t[0] === r.type) || [0, r.type])[1];
+      return `<div class="tui-row ${i === R.cur ? 'sel' : ''} ${i < R.cur ? 'done' : ''}" data-rid="${esc(r.id)}"><span class="n">${i + 1}</span><span class="g mono" title="依節目結束時間倒推的應開始時間">${startBack ? startBack.toTimeString().slice(0, 5) : ''}</span><span class="tp">${esc(tn)}</span><span class="sm">${esc(r.slug || '（未命名）')}${r.src ? ` <i class="g fl">🎥 ${esc(r.src)}</i>` : ''}${r.titles?.length ? ` <i class="g">字幕 ${r.titles.length}</i>` : ''}${r.script ? ' <i class="g">📜</i>' : ''}</span><span class="g mono">${C.fmtSec(r.dur)}</span><span class="acts"><button type="button" data-ra="go" title="跳到這一條">▶</button><button type="button" data-ra="edit" title="編輯">✎</button><button type="button" data-ra="up">↑</button><button type="button" data-ra="down">↓</button><button type="button" data-ra="del">✕</button></span></div>`; }).join('');
+    box.querySelector('[data-rdsum]').textContent = `總長 ${C.fmtSec(total)}${ck.over != null ? `｜${ck.over > 0 ? '超時 ' + C.fmtSec(ck.over) : '剩餘 ' + C.fmtSec(-ck.over)}` : ''}`;
+    const listHtml = rows || '<div class="note" style="padding:14px">還沒有排序表：在下面新增第一條。按「下一條」會讓計時重來、連結的第一則字幕進預覽、提詞機換成這條的稿子。</div>', listEl = box.querySelector('[data-rdlist]');
+    if (listEl.dataset.h !== listHtml) { listEl.dataset.h = listHtml; listEl.innerHTML = listHtml; }
+    // 表單：只有切換編輯對象、字幕清單或來源有變、且沒在打字時才重繪
+    const ed = rdEdit ? R.rows.find(r => r.id === rdEdit) : null, srcs = [...new Set([...(S.sources || []), ...(ed?.src ? [ed.src] : [])])];
+    const formBox = box.querySelector('[data-rdform]'), key = JSON.stringify([rdEdit, S.items.map(x => x.id + C.summary(x).slice(0, 30)), srcs]);
+    if (!force && (formBox.dataset.key === key || formBox.contains(document.activeElement))) return;
+    formBox.dataset.key = key;
+    const draft = ed ? null : rdDraft;
+    formBox.innerHTML = `<div class="tui-form rd-form" style="margin-top:8px"><h4>${ed ? `編輯第 ${R.rows.indexOf(ed) + 1} 條` : '新增一條'}</h4>
+        <div class="tui-grid3"><label>標題<input class="field" data-rf="slug" value="${esc(ed?.slug || '')}" placeholder="颱風最新動態"></label><label>類型<select class="field" data-rf="type">${C.RD_TYPES.map(([k, n]) => `<option value="${k}" ${k === (ed?.type || 'anchor') ? 'selected' : ''}>${n}</option>`).join('')}</select></label><label>時長（分:秒）<input class="field mono" data-rf="dur" value="${ed ? C.fmtSec(ed.dur) : ''}" placeholder="1:30"></label></div>
+        <div class="tui-grid2"><label>畫面來源（備註用）<select class="field" data-rf="src"><option value="">（不指定）</option>${srcs.map(n => `<option value="${esc(n)}" ${n === ed?.src ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label><label>備註<input class="field" data-rf="note" value="${esc(ed?.note || '')}"></label></div>
+        <label>這條要用的字幕（第一則會自動進預覽）<div class="rd-titles">${S.items.map((it, i) => `<label class="chk"><input type="checkbox" data-rt="${esc(it.id)}" ${ed?.titles?.includes(it.id) ? 'checked' : ''}> ${i + 1}. ${esc(C.summary(it).slice(0, 30))}</label>`).join('') || '<span class="note">播出清單還沒有字幕</span>'}</div></label>
+        <label>提詞稿（選填，進到這條時自動換到提詞機）<textarea class="field" rows="4" data-rf="script">${esc(ed?.script || '')}</textarea></label>
+        <div class="tui-bar"><span class="grow"></span>${ed ? '<button type="button" class="btn" data-rk="cancel">取消編輯</button><button type="button" class="btn primary" data-rk="upd">更新這一條</button>' : '<button type="button" class="btn primary" data-rk="add">新增到排序表</button>'}</div></div>`;
+    function readRow(){ const q = k => formBox.querySelector(`[data-rf="${k}"]`); return { slug: q('slug').value.trim(), type: q('type').value, dur: mmss(q('dur').value), src: q('src').value, note: q('note').value.trim(), script: q('script').value, titles: [...formBox.querySelectorAll('[data-rt]:checked')].map(c => c.dataset.rt) }; }
+    if (draft) { Object.entries(draft).forEach(([k, v]) => { const el = formBox.querySelector(`[data-rf="${k}"]`); if (el && k !== 'titles') el.value = k === 'dur' ? (v ? C.fmtSec(v) : '') : v; }); formBox.querySelectorAll('[data-rt]').forEach(c => c.checked = (draft.titles || []).includes(c.dataset.rt)); }
+    const fm = formBox.querySelector('.rd-form'), keep = () => { if (!rdEdit) rdDraft = readRow(); }; fm.addEventListener('input', keep); fm.addEventListener('change', keep);
+    const reset = () => { rdDraft = null; formBox.innerHTML = ''; document.activeElement?.blur(); paintRundown(true); };
+    formBox.querySelector('[data-rk="add"]')?.addEventListener('click', () => { const r = readRow(); if (!r.slug) return toast('請輸入標題'); send({ op: 'rdAdd', row: r }); reset(); });
+    formBox.querySelector('[data-rk="upd"]')?.addEventListener('click', () => { send({ op: 'rdUpdate', id: rdEdit, row: readRow() }); rdEdit = null; reset(); });
+    formBox.querySelector('[data-rk="cancel"]')?.addEventListener('click', () => { rdEdit = null; reset(); });
+  }
+  /* ---------- 提詞機 ---------- */
+  let prView = null;
+  function paintPrompter(){
+    const box = $q('[data-pr]'); if (!box) return; const S = api.get(), P = S.prompter;
+    if (box.dataset.ready) { const t = box.querySelector('[data-pf="text"]'); if (document.activeElement !== t && t.value !== P.text) t.value = P.text; box.querySelector('[data-pk="play"]').textContent = P.playing ? '⏸ 暫停' : '▶ 開始捲動'; ['size', 'speed', 'margin'].forEach(k => { const i = box.querySelector(`[data-pf="${k}"]`); if (document.activeElement !== i) { i.value = P[k]; i.parentElement.querySelector('output').textContent = P[k]; } }); box.querySelector('[data-pf="mirror"]').checked = !!P.mirror; return; }
+    box.dataset.ready = '1';
+    box.innerHTML = `<div class="tui-pr"><div class="tui-form"><label>提詞稿（直接貼上；進到排序表某一條時，會自動換成那條的稿子）<textarea class="field" rows="8" data-pf="text"></textarea></label>
+        <div class="tui-grid3"><label>字級 <output></output><input type="range" min="32" max="140" step="2" data-pf="size"></label><label>速度 <output></output><input type="range" min="0" max="300" step="5" data-pf="speed"></label><label>左右留白 % <output></output><input type="range" min="0" max="30" step="1" data-pf="margin"></label></div>
+        <div class="tui-bar"><button type="button" class="btn primary" data-pk="play">▶ 開始捲動</button><button type="button" class="btn" data-pk="slow">慢一點</button><button type="button" class="btn" data-pk="fast">快一點</button><button type="button" class="btn" data-pk="back">↑ 往回</button><button type="button" class="btn" data-pk="fwd">↓ 往前</button><button type="button" class="btn" data-pk="top">⏮ 回開頭</button><label class="chk"><input type="checkbox" data-pf="mirror"> 鏡像（提詞玻璃用）</label></div></div>
+      <div class="tui-prview" data-prv></div></div><p class="note">主播或記者的平板打開「遠端／輸出」分頁裡的提詞機網址就會同步捲動；黃色線是唸到的位置。</p>`;
+    let tt = 0; box.querySelector('[data-pf="text"]').addEventListener('input', e => { clearTimeout(tt); tt = setTimeout(() => send({ op: 'prompter', set: { text: e.target.value } }), 300); });
+    ['size', 'speed', 'margin'].forEach(k => box.querySelector(`[data-pf="${k}"]`).addEventListener('input', e => { e.target.parentElement.querySelector('output').textContent = e.target.value; clearTimeout(tt); tt = setTimeout(() => send({ op: 'prompter', set: { [k]: +e.target.value } }), 80); }));
+    box.querySelector('[data-pf="mirror"]').onchange = e => send({ op: 'prompter', set: { mirror: e.target.checked } });
+    const P0 = () => api.get().prompter;
+    box.querySelector('[data-pk="play"]').onclick = () => send({ op: 'prompterPlay' });
+    box.querySelector('[data-pk="slow"]').onclick = () => send({ op: 'prompter', set: { speed: Math.max(0, P0().speed - 10) } });
+    box.querySelector('[data-pk="fast"]').onclick = () => send({ op: 'prompter', set: { speed: Math.min(300, P0().speed + 10) } });
+    box.querySelector('[data-pk="back"]').onclick = () => send({ op: 'prompterSeek', delta: -200 });
+    box.querySelector('[data-pk="fwd"]').onclick = () => send({ op: 'prompterSeek', delta: 200 });
+    box.querySelector('[data-pk="top"]').onclick = () => send({ op: 'prompterSeek', pos: 0 });
+    prView = PrompterView(box.querySelector('[data-prv]'), () => api.get(), { small: true });
+    paintPrompter();
+  }
+  /* ---------- 圖片（台標、Logo、照片、QR Code） ---------- */
+  function paintImages(){
+    const box = $q('[data-img]'); if (!box) return; const S = api.get(), list = S.assetList || Object.keys(S.assets || {}).map(id => ({ id, name: S.assets[id].name }));
+    box.innerHTML = `<div class="tui-bar"><label class="btn primary">上傳圖片<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple data-k="imgup" hidden></label><span class="note">PNG 可保留透明背景。會自動縮到最長 800 像素；建議總數 20 張以內。</span></div>
+      <div class="tui-imgs">${list.map(x => `<figure data-aid="${esc(x.id)}">${S.assets?.[x.id] ? `<img src="${S.assets[x.id].data}" alt="">` : '<div class="note">（在導播台）</div>'}<figcaption><input class="field sm" data-an value="${esc(x.name)}" maxlength="40"><button type="button" class="btn sm danger" data-adel>刪除</button></figcaption></figure>`).join('') || '<p class="note">還沒有圖片。上傳後可以用在「台標／Logo」「圖片疊加」「講者介紹」「電話連線條」「全版字卡」，贊助輪播裡填圖片名稱會顯示 Logo。</p>'}</div>`;
+    box.querySelector('[data-k="imgup"]').onchange = async e => { for (const f of [...e.target.files].slice(0, 20)) { try { const data = await shrinkImage(f, 800); send({ op: 'assetAdd', name: f.name.replace(/\.[^.]+$/, '').slice(0, 40), data }); } catch (err) { toast('圖片讀取失敗：' + f.name); } } e.target.value = ''; setTimeout(paintImages, 300); };
+    box.querySelectorAll('[data-an]').forEach(i => i.onchange = () => send({ op: 'assetRename', id: i.closest('[data-aid]').dataset.aid, name: i.value.trim() || '圖片' }));
+    box.querySelectorAll('[data-adel]').forEach(b => b.onclick = () => { if (confirm('刪除這張圖片？用到它的字幕會不顯示圖片。')) { send({ op: 'assetRemove', id: b.closest('[data-aid]').dataset.aid }); setTimeout(paintImages, 200); } });
+  }
+  /* ---------- 錯字檢查設定 ---------- */
+  function paintCheck(){
+    const box = $q('[data-chk]'); if (!box || box.contains(document.activeElement)) return; const K = api.get().check || {};
+    box.innerHTML = `<div class="tui-form"><div class="tui-bar"><label class="chk"><input type="checkbox" data-ck="on" ${K.on !== false ? 'checked' : ''}> 開啟錯字檢查（清單上會出現 ⚠）</label><label class="chk"><input type="checkbox" data-ck="confirm" ${K.confirm !== false ? 'checked' : ''}> 上字前有疑慮時先跳確認</label></div>
+      <p class="note">自動檢查：中文夾半形標點、全形英數字、頭尾或連續空白、疑似簡體字。</p>
+      <div class="tui-grid2"><label>敏感詞（一行一個；出現就提醒）<textarea class="field" rows="6" data-ck="words" placeholder="例：死者姓名、未證實的指控">${esc(K.words || '')}</textarea></label><label>常用人名（一行一個；打錯一個字會提醒）<textarea class="field" rows="6" data-ck="names" placeholder="王小明\n李小華">${esc(K.names || '')}</textarea></label></div>
+      <div class="tui-bar"><span class="grow"></span><button type="button" class="btn primary" data-k="cksave">儲存</button></div></div>`;
+    box.querySelector('[data-k="cksave"]').onclick = () => { send({ op: 'check', set: { on: box.querySelector('[data-ck="on"]').checked, confirm: box.querySelector('[data-ck="confirm"]').checked, words: box.querySelector('[data-ck="words"]').value, names: box.querySelector('[data-ck="names"]').value } }); toast('已儲存檢查設定'); };
+    box.querySelectorAll('[data-ck="on"],[data-ck="confirm"]').forEach(c => c.onchange = () => send({ op: 'check', set: { [c.dataset.ck]: c.checked } }));
+  }
+  function paintClock(){
+    const el = $q('[data-clock]'), S = api.get(), k = C.clock(S, Date.now()); if (!el) return;
+    const cls = v => v == null ? '' : v < 0 ? 'bad' : v < 30 ? 'warn' : '';
+    el.innerHTML = `<span><b class="mono">${k.time}</b></span>${k.showLeft != null ? `<span class="${cls(k.showLeft)}">節目剩 <b class="mono">${C.fmtSec(k.showLeft)}</b></span>` : ''}${k.cur ? `<span>本段 <b class="mono">${C.fmtSec(k.seg)}</b>${k.cur.dur ? ` / ${C.fmtSec(k.cur.dur)}` : ''}</span>${k.segLeft != null ? `<span class="${cls(k.segLeft)}">剩 <b class="mono">${C.fmtSec(k.segLeft)}</b></span>` : ''}<span class="grow ell">▶ ${esc(k.cur.slug)}${k.next ? `　下一條：${esc(k.next.slug)}` : ''}</span>` : '<span class="note grow">排序表還沒開始（到「排序表」按下一條）</span>'}${k.over != null ? `<span class="${k.over > 0 ? 'bad' : ''}">${k.over > 0 ? '預計超時 ' : '預計提早 '}<b class="mono">${C.fmtSec(Math.abs(k.over))}</b></span>` : ''}`;
+  }
+
+  /* ---------- 播出紀錄（導播台本機） ---------- */
+  function paintLog(){
+    const box = $q('[data-log]'); if (!box) return; const L = api.log.list(), st = api.log.status();
+    box.innerHTML = `<div class="tui-bar"><span class="note">最近 ${L.length} 筆（新的在上面）。${st.pending ? `尚有 ${st.pending} 筆等待上傳到試算表「字幕播出紀錄」` : '已全部同步到試算表「字幕播出紀錄」'}${st.error ? '｜上傳失敗：' + esc(st.error) : ''}</span><span class="grow"></span><button type="button" class="btn sm" data-k="logcsv">匯出 CSV</button><button type="button" class="btn sm" data-k="logsync">立即上傳</button><button type="button" class="btn sm danger" data-k="logclr">清除本機紀錄</button></div>
+      <div class="tui-prev" style="max-height:min(46vh,420px)"><table><tbody><tr class="h"><td>時間</td><td>動作</td><td>圖層</td><td>內容</td><td>秒數</td><td>操作者</td></tr>${L.slice().reverse().slice(0, 300).map(r => `<tr><td class="mono">${esc(r.t.slice(11))}</td><td>${esc(r.act)}</td><td>${esc(C.LAYER_NAMES[r.layer] || r.layer)}</td><td>${esc(r.text)}</td><td>${r.dur == null ? '' : Math.round(r.dur)}</td><td>${esc(r.by)}</td></tr>`).join('')}</tbody></table></div>`;
+    box.querySelector('[data-k="logcsv"]').onclick = () => { const head = ['時間', '動作', '圖層', '樣板', '內容', '播出秒數', '操作者'], q = v => `"${String(v ?? '').replace(/"/g, '""')}"`; const csv = '\uFEFF' + [head, ...L.map(r => [r.t, r.act, C.LAYER_NAMES[r.layer] || r.layer, C.TEMPLATES[r.tpl]?.name || r.tpl, r.text, r.dur == null ? '' : Math.round(r.dur), r.by])].map(x => x.map(q).join(',')).join('\r\n'); const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); const a = document.createElement('a'); a.href = url; a.download = '字幕播出紀錄-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000); };
+    box.querySelector('[data-k="logsync"]').onclick = () => api.log.flush().then(paintLog);
+    box.querySelector('[data-k="logclr"]').onclick = () => { if (confirm('清除這台電腦上的播出紀錄？（已上傳到試算表的不受影響）')) { api.log.clear(); paintLog(); } };
+  }
+  /* ---------- 雲端字幕清單（存在 Google 試算表，換電腦也能載入） ---------- */
+  async function paintCloud(){
+    const box = $q('[data-cloud]'); if (!box) return;
+    box.innerHTML = `<div class="tui-form"><div class="tui-bar" style="margin:0"><input class="field grow" data-cl="name" maxlength="60" placeholder="清單名稱，例如：11/14 晚間新聞、年度頒獎典禮"><button type="button" class="btn primary" data-k="clsave">儲存目前清單到雲端</button></div><p class="note">會一起存清單、外觀主題與播出選項；同名清單會覆蓋。其他帳號也看得到，只有建立者可以覆蓋或刪除。</p><div data-cllist class="note">讀取中…</div></div>`;
+    box.querySelector('[data-k="clsave"]').onclick = async () => { const name = box.querySelector('[data-cl="name"]').value.trim(); if (!name) return toast('請輸入清單名稱'); try { await api.cloud.save(name); toast('已儲存到雲端：' + name); paintCloud(); } catch (e) { toast(e.message); } };
+    try {
+      const sets = await api.cloud.list(), el = box.querySelector('[data-cllist]'); if (!el) return;
+      el.className = ''; el.innerHTML = sets.length ? `<div class="tui-list">${sets.map(x => `<div class="tui-row" data-sid="${esc(x.id)}"><span class="sm"><b>${esc(x.name)}</b>　<span class="g">${x.count} 則・${esc(x.owner || x.account)}・${esc(x.updated)}</span></span><span class="acts" style="gap:4px"><button type="button" class="btn sm" data-ca="load" style="width:auto">載入</button>${x.mine ? '<button type="button" class="btn sm danger" data-ca="del" style="width:auto">刪除</button>' : ''}</span></div>`).join('')}</div>` : '<p class="note">雲端還沒有字幕清單。</p>';
+      el.querySelectorAll('[data-ca]').forEach(b => b.onclick = async () => { const id = b.closest('[data-sid]').dataset.sid, x = sets.find(s => s.id === id);
+        if (b.dataset.ca === 'load') { if (!confirm(`載入「${x.name}」？目前的清單會被取代（正在播出的字幕不受影響）。`)) return; try { await api.cloud.load(id); toast('已載入：' + x.name); pane = 'list'; paintPane(); } catch (e) { toast(e.message); } }
+        else { if (!confirm(`刪除雲端清單「${x.name}」？`)) return; try { await api.cloud.del(id); paintCloud(); } catch (e) { toast(e.message); } } });
+    } catch (e) { const el = box.querySelector('[data-cllist]'); if (el) el.textContent = '讀取失敗：' + e.message; }
+  }
+
+  /* ---------- 畫面更新 ---------- */
+  function paintPane(){
+    $qa('.tui-tabs [data-tab]').forEach(b => { b.classList.toggle('on', b.dataset.tab === pane); b.setAttribute('aria-selected', String(b.dataset.tab === pane)); });
+    $qa('[data-pane]').forEach(p => p.classList.toggle('hidden', p.dataset.pane !== pane));
+    if (pane === 'list') paintList(true); if (pane === 'edit') loadEditor(true); if (pane === 'theme') paintTheme(); if (pane === 'link') paintLink(); if (pane === 'log') paintLog(); if (pane === 'cloud') paintCloud(); if (pane === 'rundown') paintRundown(); if (pane === 'prompter') paintPrompter(); if (pane === 'images') paintImages(); if (pane === 'check') paintCheck();
+    if (pane === 'data') { const S = api.get(); if (!$q('[data-d="url"]').value) $q('[data-d="url"]').value = S.data.url || ''; paintMap(false); }
+  }
+  function paintAir(){
+    const S = api.get(), on = C.onAir(S);
+    $q('[data-air]').innerHTML = on.length ? on.map(x => `<span class="chip"><i class="onair">●</i>${esc(C.LAYER_NAMES[x.layer])}：${esc(C.summary(x.item).slice(0, 24))}<button type="button" data-airx="${x.layer}" title="下這個圖層">×</button></span>`).join('') : '<span class="note">目前沒有字幕在播出</span>';
+    $q('[data-pvn]').textContent = S.pvw ? '· ' + C.summary(S.pvw).slice(0, 28) : '';
+    $q('[data-pgn]').textContent = on.length ? '· ' + on.length + ' 層' : '';
+    const sc = S.pgm.score?.item || (S.pvw?.tpl === 'score' ? S.pvw : null); $q('[data-score]').classList.toggle('hidden', !sc); if (sc) $q('[data-scn]').textContent = C.summary(sc) + (S.pgm.score ? '（播出中）' : '（預覽）');
+  }
+  let logSeen = -1;
+  let rdSig = '', imgSig = '';
+  function refresh(){ if (dead) return; paintAir(); { const S = api.get(); if (pane === 'rundown') { const sg = JSON.stringify([S.rundown.rows, S.rundown.cur, S.rundown.showEnd, S.items.length, S.sources]); if (sg !== rdSig) { rdSig = sg; paintRundown(); } } if (pane === 'prompter') paintPrompter(); if (pane === 'images') { const sg = JSON.stringify(S.assetList || Object.keys(S.assets || {})); if (sg !== imgSig) { imgSig = sg; paintImages(); } } } if (pane === 'list') paintList(false); if (pane === 'edit') { loadEditor(false); if (!root.contains(document.activeElement) || !document.activeElement.closest('[data-pane="edit"]')) fillFollow($q('[data-e="follow"]').value); } if (pane === 'link') paintLink(); if (pane === 'log' && api.log && api.log.list().length !== logSeen) { logSeen = api.log.list().length; paintLog(); } }
+  const cvs = { pvw: $q('[data-c="pvw"]'), pgm: $q('[data-c="pgm"]') };
+  function frame(){
+    if (dead || !root.isConnected) { dead = true; return; }
+    const S = api.get(), now = Date.now();
+    if (root.offsetParent !== null && now - (frame.clk || 0) > 250) { frame.clk = now; paintClock(); }
+    if (root.offsetParent !== null) for (const bus of ['pvw', 'pgm']) { const c = cvs[bus], g = c.getContext('2d'), W = c.width, H = c.height; g.clearRect(0, 0, W, H); g.fillStyle = '#10151b'; g.fillRect(0, 0, W, H); g.fillStyle = '#161d25'; for (let y = 0; y < H; y += 20) for (let x = (y / 20) % 2 ? 20 : 0; x < W; x += 40) g.fillRect(x, y, 20, 20); TitleCore.draw(g, W, H, S, now, { bus }); }
+    raf = requestAnimationFrame(frame);
+  }
+  paintPane(); refresh(); raf = requestAnimationFrame(frame);
+  return { root, refresh, destroy(){ dead = true; cancelAnimationFrame(raf); } };
+}
+// 字幕快捷鍵（導播台與遠端控制頁共用）；回傳 true 表示已處理
+function titleHotkey(e, send, getState, canTake){
+  const tg = e.target; if (tg?.closest && tg.closest('input,select,textarea,[contenteditable]')) return false;
+  if (e.ctrlKey || e.metaKey || e.altKey) return false;
+  const k = e.code, take = ['Period', 'NumpadDecimal'].includes(k), next = ['PageDown', 'ArrowRight'].includes(k), prev = ['PageUp', 'ArrowLeft'].includes(k), del = k === 'Delete';
+  if (!take && !next && !prev && !del) return false;
+  e.preventDefault(); if (canTake && !canTake()) return true;
+  if (take) { const S = getState(); if (S.check?.confirm !== false) { const w = TitleCore.check(S, S.pvw); if (w.length && !confirm('這則字幕可能有問題：\n\n・' + w.join('\n・') + '\n\n仍要上字嗎？')) return true; } send({ op: 'take' }); } else if (next) send({ op: 'next' }); else if (prev) send({ op: 'prev' });
+  else if (e.shiftKey) send({ op: 'clear' });
+  else { const S = getState(), l = Object.keys(S.pgm).sort((a, b) => S.pgm[b].t0 - S.pgm[a].t0)[0]; if (l) send({ op: 'clear', layer: l }); }
+  return true;
+}
+
+// 提詞機畫面：導播台預覽、遠端控制頁、主播平板共用；以 1000 像素寬的虛擬畫面排版，所以各裝置捲到同一行
+function PrompterView(el, getS, o = {}){
+  el.classList.add('prv'); el.innerHTML = '<div class="prv-wrap"><div class="prv-text"></div></div><div class="prv-line"></div>';
+  const wrap = el.querySelector('.prv-wrap'), txt = el.querySelector('.prv-text'); let last = null, raf = 0;
+  (function frame(){
+    if (!el.isConnected) return;
+    const S = getS(), P = S.prompter || {}, w = el.clientWidth || 1, h = el.clientHeight || 1, k = w / 1000;
+    if (P.text !== last) { last = P.text; txt.textContent = P.text || '（尚未輸入提詞稿）'; }
+    txt.style.fontSize = (P.size || 64) + 'px'; txt.style.padding = `0 ${P.margin || 0}%`;
+    const pos = Math.min(TitleCore.promptPos(S, Date.now()), Math.max(0, txt.offsetHeight - (P.size || 64))), y = h * .35 / k - pos, mir = o.mirror || P.mirror;
+    wrap.style.transform = (mir ? `translateX(${w}px) scale(${-k},${k})` : `scale(${k})`) + ` translateY(${y}px)`;
+    raf = requestAnimationFrame(frame);
+  })();
+  return { destroy(){ cancelAnimationFrame(raf); } };
+}
+// 圖片縮到最長 max 像素；有透明度的格式輸出 PNG，照片輸出 JPEG
+function shrinkImage(file, max){
+  return new Promise((res, rej) => { const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { const k = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(im.naturalWidth * k)); c.height = Math.max(1, Math.round(im.naturalHeight * k)); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(/png|gif|webp/.test(file.type) ? c.toDataURL('image/png') : c.toDataURL('image/jpeg', .88)); };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('bad image')); }; im.src = url; });
+}
+
+/* ===================== 遠端字幕控制頁（?mode=cgctl）===================== */
+function TitleRemote(){
+  const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), tok = Q.get('t') || '';
+  document.body.className = 'cgctl';
+  app.innerHTML = `<div class="cgctl-page"><header>${brand()}<span class="pill">字幕控制</span><b id="cgl" class="grow"></b><span class="pill" id="cgs"><span class="dot wait"></span>連線中</span><input class="field sm" id="cgn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px"></header><main id="cgui"></main></div>`;
+  let S = TitleCore.fresh(), conn = null, retryT = 0, denied = false, ASSETS = {};
+  const st = (cls, t) => { $('#cgs').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`; };
+  const send = cmd => { if (conn?.open) conn.send({ type: 'cg', cmd }); else toast('尚未連上導播台，指令沒有送出'); };
+  const ui = TitleUI($('#cgui'), { get: () => S, send });
+  addEventListener('keydown', e => titleHotkey(e, send, () => S));
+  $('#cgn').onchange = e => store('wc_opname', e.target.value.trim());
+  if (!roomKey || !tok) { st('bad', '網址不完整，請跟導播要字幕控制連結'); return; }
+  const retry = () => { if (denied) return; clearTimeout(retryT); retryT = setTimeout(dial, 3000); };
+  function dial(){
+    clearTimeout(retryT); if (!peer?.open || denied) return;
+    try { conn?.close(); } catch {}
+    st('wait', '連線導播台中…');
+    conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'cg', t: tok, name: $('#cgn').value.trim() || '字幕' }, ...CONN_OPTS });
+    conn.on('open', () => { if (!denied) st('ok', '已連線'); });
+    conn.on('data', d => {
+      if (d?.type === 'deny') { denied = true; st('bad', d.error || '連結無效'); try { conn.close(); } catch {} return; }
+      if (d?.type === 'cgHello') $('#cgl').textContent = d.label || '';
+      if (d?.type === 'cgAssets') { ASSETS = d.assets || {}; S.assets = ASSETS; ui.refresh(); }
+      if (d?.type === 'cgState') { S = TitleCore.fromSnapshot(d.s, Date.now()); S.assets = ASSETS; ui.refresh(); }
+    });
+    conn.on('close', () => { if (!denied) { st('bad', '導播台離線，重試中…'); retry(); } });
+    conn.on('error', retry);
+  }
+  const peer = new Peer(PREFIX + roomKey + '-cg-' + rnd(8), PEER_OPTS);
+  peer.on('open', dial);
+  peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
+  peer.on('error', e => { st('bad', peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
+}
+
+/* ===================== 透明字幕輸出（?mode=cgout，給 OBS／vMix 瀏覽器來源）===================== */
+function TitleOutput(){
+  const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), bg = (Q.get('bg') || '').replace(/[^0-9a-f]/gi, '').slice(0, 6);
+  const only = Q.get('layers') ? new Set(Q.get('layers').split(',').filter(l => TitleCore.LAYERS.includes(l))) : null;
+  const W = Q.get('res') === '4k' ? 3840 : 1920, H = W * 9 / 16, debug = Q.get('debug') === '1';
+  document.documentElement.classList.add('cgout-root'); document.body.className = 'cgout';
+  if (bg) document.body.style.setProperty('background', '#' + bg, 'important');
+  app.innerHTML = `<canvas id="cgc" width="${W}" height="${H}"></canvas>${debug ? '<div id="cgdbg"></div>' : ''}`;
+  const cv = $('#cgc'), g = cv.getContext('2d'), log = t => { if (debug) $('#cgdbg').textContent = '字幕輸出 · ' + t; };
+  let S = null, conn = null, retryT = 0, lostAt = 0, ASSETS = {};
+  (function frame(){
+    g.clearRect(0, 0, W, H);
+    if (S && lostAt && Date.now() - lostAt > 15000) S = null;   // 導播台離線超過 15 秒：清掉字幕，避免畫面卡著舊字
+    if (S) TitleCore.draw(g, W, H, S, Date.now(), { bus: 'pgm', layers: only });
+    requestAnimationFrame(frame);
+  })();
+  if (!roomKey) { log('網址缺少房間參數'); return; }
+  const retry = () => { clearTimeout(retryT); retryT = setTimeout(dial, 3000); };
+  function dial(){
+    clearTimeout(retryT); if (!peer?.open) return;
+    try { conn?.close(); } catch {}
+    log('連線導播台中…');
+    conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'cgout' }, ...CONN_OPTS });
+    conn.on('open', () => { lostAt = 0; log('已連線'); });
+    conn.on('data', d => { if (d?.type === 'cgAssets') { ASSETS = d.assets || {}; if (S) S.assets = ASSETS; } if (d?.type === 'cgState') { S = TitleCore.fromSnapshot(d.s, Date.now()); S.assets = ASSETS; lostAt = 0; } });
+    conn.on('close', () => { lostAt = lostAt || Date.now(); log('導播台離線，重試中…'); retry(); });
+    conn.on('error', retry);
+  }
+  const peer = new Peer(PREFIX + roomKey + '-cgo-' + rnd(8), PEER_OPTS);
+  peer.on('open', dial);
+  peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
+  peer.on('error', e => { log(peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) { lostAt = lostAt || Date.now(); retry(); } });
+}
+
+/* 唯讀連線：提詞機、節目時鐘頁共用（用房間金鑰連，和透明輸出一樣不需要控制權限） */
+function titleViewer(roomKey, tag, onState, onStatus){
+  let conn = null, retryT = 0; const retry = () => { clearTimeout(retryT); retryT = setTimeout(dial, 3000); };
+  const peer = new Peer(PREFIX + roomKey + '-' + tag + '-' + rnd(8), PEER_OPTS);
+  function dial(){ clearTimeout(retryT); if (!peer?.open) return; try { conn?.close(); } catch {} onStatus('連線導播台中…', 'wait');
+    conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'cgout' }, ...CONN_OPTS });
+    conn.on('open', () => onStatus('已連線', 'ok')); conn.on('data', d => { if (d?.type === 'cgState') onState(TitleCore.fromSnapshot(d.s, Date.now())); });
+    conn.on('close', () => { onStatus('導播台離線，重試中…', 'bad'); retry(); }); conn.on('error', retry); }
+  peer.on('open', dial); peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
+  peer.on('error', e => { onStatus(peerErrText(e), 'bad'); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
+}
+/* ===================== 提詞機頁（?mode=prompter）===================== */
+function TitlePrompter(){
+  const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), mirror = Q.get('mirror') === '1';
+  document.body.className = 'prompter-page';
+  app.innerHTML = `<div class="prp"><div class="prp-bar" id="prb"><span id="prs"><span class="dot wait"></span>連線中</span><span id="prc" class="mono"></span><span class="grow"></span><span class="note">點畫面隱藏／顯示這條</span></div><div class="prp-view" id="prv"></div></div>`;
+  let S = TitleCore.fresh();
+  PrompterView($('#prv'), () => S, { mirror });
+  $('#prv').onclick = () => $('#prb').classList.toggle('hidden');
+  setInterval(() => { const k = TitleCore.clock(S, Date.now()); $('#prc').textContent = k.time + (k.segLeft != null ? '　本段剩 ' + TitleCore.fmtSec(k.segLeft) : '') + (k.cur ? '　▶ ' + k.cur.slug : ''); }, 500);
+  try { navigator.wakeLock?.request('screen').catch(() => {}); } catch {}
+  if (!roomKey) { $('#prs').textContent = '網址不完整'; return; }
+  titleViewer(roomKey, 'pr', s => { S = s; }, (t, c) => { $('#prs').innerHTML = `<span class="dot ${c}"></span>${esc(t)}`; });
+}
+/* ===================== 節目時鐘頁（?mode=clock）===================== */
+function TitleClock(){
+  const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, '');
+  document.body.className = 'clock-page';
+  app.innerHTML = `<div class="clk"><div class="clk-time mono" id="ct">--:--:--</div><div class="clk-grid"><div><span>節目剩餘</span><b class="mono" id="cs">--:--</b></div><div><span>本段經過</span><b class="mono" id="cg">--:--</b></div><div><span>本段剩餘</span><b class="mono" id="cl">--:--</b></div></div><div class="clk-now" id="cn"></div><div class="clk-next" id="cx"></div><div class="clk-st" id="cst"></div></div>`;
+  let S = TitleCore.fresh();
+  const paint = () => { const k = TitleCore.clock(S, Date.now()), F = TitleCore.fmtSec, col = (el, v) => { el.className = 'mono ' + (v == null ? '' : v < 0 ? 'bad' : v < 30 ? 'warn' : ''); };
+    $('#ct').textContent = k.time; $('#cs').textContent = F(k.showLeft); col($('#cs'), k.showLeft); $('#cg').textContent = F(k.seg); $('#cl').textContent = F(k.segLeft); col($('#cl'), k.segLeft);
+    $('#cn').textContent = k.cur ? '▶ ' + k.cur.slug : '排序表尚未開始'; $('#cx').textContent = k.next ? '下一條：' + k.next.slug : ''; };
+  setInterval(paint, 250); paint();
+  try { navigator.wakeLock?.request('screen').catch(() => {}); } catch {}
+  if (!roomKey) { $('#cst').textContent = '網址不完整'; return; }
+  titleViewer(roomKey, 'clk', s => { S = s; }, t => { $('#cst').textContent = t; });
+}
+
 function Host(sess){
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
   let invite = sess.invite, roomKey = sess.key;
@@ -1768,22 +3136,120 @@ function Host(sess){
   const savedSwitch=store('wc_swmode');
   const UI={sw:savedSwitch==='on',pro:store('wc_pro')==='1'};if(savedSwitch==null)UI.sw=UI.pro;if(UI.sw)UI.pro=true;
   // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
+  // 功能整合：相關的視窗合成一個，用分頁切換（原本的功能都還在）
+  // 2026.1114 重新分類：依直播時的使用頻率排序；每項功能只出現在一個地方
+  //   hint＝滑鼠停在按鈕上時顯示的完整名稱（含英文）
   const GROUPS = {
-    ic:   { key: '對講／IFB', title: 'INTERCOM 對講台／IFB 返送／倒數', w: 780, h: 620, tabs: ['ic', 'ifb', 'timer'] },
-    msgq: { key: 'Live Interaction｜即時互動中心', title: 'LIVE INTERACTION｜訊息、提問與投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
-    mixg: { key: 'Audio Console｜數位混音台', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix', 'mtx'] },
-    audg: { key: '聲音路由', title: 'AUDIO ROUTING 聲音路由／回傳', w: 820, h: 780, tabs: ['aud', 'ret'] },
-    ctl:  { key: '遠端控制', tabs: ['ctl'] },
-    mediag:{ key:'素材／回放／雲端',title:'MEDIA 素材庫／即時回放／Google Drive',w:820,h:680,tabs:['media16','decode','replay','cloud','recovery','workflow','ingest'] },
-    swg:  { key: 'Production Switcher｜影像切換台', title: 'SWITCHER 切換台：來源／去背合成／字幕圖層／圖庫／場景／版面／錄影／設定', w: 780, h: 720, tabs: ['src','capture4k','me','vset','tracking','color','scopes','gfx','cgdesigner','still','scene','lay','rec','set'] },
-    routingg:{key:'來賓／路數指派',title:'來賓／路數指派',w:760,h:680,direct:true,tabs:['routing','pocket']},
-    outg: { key: '輸出／串流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流', w: 780, h: 700, tabs: ['out', 'aux', 'strm', 'ndi'] },
-    sysg: { key: '系統', title: 'SYSTEM 網路監控／操作員／快捷鍵', w: 760, h: 580, tabs: ['noc','ops','keys','native'] },
+    routingg:{ key:'來賓／訊號', hint:'Inputs｜來賓路數指派、訊號來源、DJI Pocket、外網回傳 RTMP、4K 擷取', title:'INPUTS 來賓／訊號來源', w:780, h:680, direct:true, tabs:['routing','src','pocket','ingest','capture4k'] },
+    ic:   { key: '對講／返送', hint:'Intercom｜對講、IFB／Mix-minus 返送、來賓回傳', title: 'INTERCOM 對講台／IFB 返送／來賓回傳', w: 820, h: 680, tabs: ['ic', 'ifb', 'ret'] },
+    mixg: { key: '混音台', hint:'Audio Console｜推桿與監聽', title: 'AUDIO MIXER 混音台', w: 900, h: 620, tabs: ['mix'] },
+    audg: { key: '聲音路由', hint:'Audio Routing｜音訊路由、路由矩陣', title: 'AUDIO ROUTING 聲音路由／路由矩陣', w: 860, h: 720, tabs: ['aud', 'mtx'] },
+    swg:  { key: '切換台', hint:'Production Switcher｜M/E、去背合成、攝影機追蹤、調色、示波器、場景、版型、設定', title: 'SWITCHER 切換台：M/E／去背合成／追蹤／調色／示波器／場景／版型／設定', w: 780, h: 720, tabs: ['me','vset','tracking','color','scopes','scene','lay','set'] },
+    gfxg: { key: '字幕／圖文', hint:'Titles & Graphics｜字幕播出（清單／預覽／上字／唱詞／手排／資料來源）、字幕條與跑馬燈、CG 設計器、圖庫、計時倒數', title: 'TITLES 字幕播出／圖文包裝／CG 設計器／圖庫／計時倒數', w: 1000, h: 760, tabs: ['titles','gfx','cgdesigner','still','timer'] },
+    mediag:{ key:'錄影／回放', hint:'Record & Replay｜錄影、錄影恢復、即時回放、16 格素材庫、檔案解碼、雲端儲存', title:'RECORD／REPLAY 錄影／回放／素材／雲端', w:820, h:680, tabs:['rec','recovery','replay','media16','decode','cloud'] },
+    outg: { key: '輸出／串流', hint:'Output｜OBS 輸出、AUX 母線、串流推流、NDI、錄影儲存／推流拉流', title: 'OUTPUT 輸出：OBS／AUX 母線／串流／NDI', w: 800, h: 700, tabs: ['out', 'aux', 'strm', 'ndi', 'workflow'] },
+    msgq: { key: '互動', hint:'Live Interaction｜訊息、舉手、投票', title: 'LIVE INTERACTION｜訊息、提問與投票', w: 420, h: 560, tabs: ['msg', 'qa'] },
+    ctl:  { key: '遠端控制', hint:'Remote Control｜遠端調整來賓設備', tabs: ['ctl'] },
+    sysg: { key: '系統', hint:'System｜網路監控、操作員、快捷鍵、原生影音引擎', title: 'SYSTEM 網路監控／操作員／快捷鍵／原生引擎', w: 760, h: 580, tabs: ['noc','ops','keys','native'], tail:true },
   };
   const GOF = {}; Object.entries(GROUPS).forEach(([g, d]) => d.tabs.forEach(t => GOF[t] = g));
   const WALIAS = {};
   const PROTAB = new Set(['mtx','lay','aux','strm','noc','me','color','scopes','tracking','cgdesigner','ndi','capture4k']);   // 專業版才顯示的分頁
-  const TABN = {ingest:'外網回傳／RTMP',native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'儲存／串流同步',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: 'Graphics／CG 圖文包裝', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+  const TABN = {titles:'字幕播出',ingest:'外網回傳／RTMP',native:'原生影音引擎',decode:'專業檔案解碼',capture4k:'4K 實體擷取',ndi:'原生 NDI',me:'多級 M/E',cgdesigner:'CG 動態設計器',color:'色輪調色',scopes:'波形／向量示波器',tracking:'實體攝影機追蹤', routing:'來賓／路數指派', recovery:'錄影恢復',pocket:'DJI Pocket 接收',workflow:'錄影儲存／推流拉流',media16:'16 格素材庫',replay:'即時回放',cloud:'Google 雲端儲存',set: '切換台設定', src: '訊號來源', scene: '場景預設', still: '圖庫', lay: '版型預設', rec: '錄影', mix: '推桿／監聽', mtx: '音訊路由矩陣', aud: '音訊路由', ic: 'Intercom 對講', ifb: 'IFB／Mix-minus 返送', ret: 'Guest Return 來賓回傳', gfx: '字幕條／跑馬燈', timer: '計時倒數', vset: 'Chroma Key 影像合成', msg: '訊息', qa: '舉手／投票', out: 'OBS 輸出', aux: 'AUX 母線', strm: '串流推流', noc: '網路監控', ops: '操作員', keys: '快捷鍵' };   // 簡易版／專業版   // 切換台（PREVIEW／PROGRAM／T-Bar）預設關閉
+
+  /* ---------- 字幕播出（VisTitle／vMix 風格）：狀態只在導播台，遠端控制與透明輸出都從這裡同步 ---------- */
+  const TS = TitleCore.load(), CGC = new Set(); let titleUi = null, titleDataAt = 0;
+  const cgCtlUrl = () => `${shareBase()}?mode=cgctl&o=${roomKey}&t=${OPTOK.cg}`;
+  const cgOutUrl = () => `${shareBase()}?mode=cgout&o=${roomKey}`;
+  let assetSent = TS.assetRev || 0;
+  const sendAssets = c => { try { if (c.conn.open) c.conn.send({ type: 'cgAssets', assets: TS.assets || {} }); } catch {} };
+  function titleSync(){ if ((TS.assetRev || 0) !== assetSent) { assetSent = TS.assetRev || 0; if (!TitleCore.saveAssets(TS)) toast('圖片太多，瀏覽器空間不足：重新整理後可能遺失部分圖片，建議存到雲端清單', 'warn'); CGC.forEach(sendAssets); } const snap = TitleCore.snapshot(TS, Date.now()); CGC.forEach(c => { try { if (c.conn.open) c.conn.send({ type: 'cgState', s: snap }); } catch {} }); try { titleUi?.refresh(); } catch {} }
+  /* ----- 字幕播出紀錄（As-run log）：每次上字、下字、自動下字、內容更新都記下來，定時上傳到試算表 ----- */
+  const TLOG_KEY = 'wc_titlelog_v1', TLOG = (() => { try { return JSON.parse(localStorage.getItem(TLOG_KEY) || '[]'); } catch { return []; } })();
+  let tlogErr = '', tlogBusy = false;
+  const tlogTime = () => { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
+  function tlogAdd(act, layer, item, by, dur){
+    const last = TLOG[TLOG.length - 1], text = TitleCore.summary(item);
+    if (act === '更新內容' && last && last.act === '更新內容' && last.layer === layer && Date.now() - last.ms < 3000 && !last.up) { last.text = text; last.ms = Date.now(); }   // 手排連續打字只留最後一筆
+    else TLOG.push({ t: tlogTime(), ms: Date.now(), act, layer, tpl: item?.tpl || '', text, by: by || '', dur: dur == null ? null : dur, up: false });
+    if (TLOG.length > 3000) TLOG.splice(0, TLOG.length - 3000);
+    try { localStorage.setItem(TLOG_KEY, JSON.stringify(TLOG)); } catch {}
+  }
+  async function tlogFlush(){
+    const rows = TLOG.filter(r => !r.up && Date.now() - r.ms > 2500); if (!rows.length || tlogBusy) return; tlogBusy = true;
+    try { const batch = rows.slice(0, 200); const r = await apiCall({ action: 'titleLog', token: sess.token, sid: sess.sid, rows: batch.map(x => ({ t: x.t, act: x.act, layer: TitleCore.LAYER_NAMES[x.layer] || x.layer, tpl: TitleCore.TEMPLATES[x.tpl]?.name || x.tpl, text: x.text, by: x.by, dur: x.dur })) }); if (!r.ok) throw new Error(r.error); batch.forEach(x => x.up = true); tlogErr = ''; try { localStorage.setItem(TLOG_KEY, JSON.stringify(TLOG)); } catch {} }
+    catch (e) { tlogErr = String(e.message || e).replace('SESSION_EXPIRED：', ''); }
+    finally { tlogBusy = false; }
+  }
+  const tlogT = setInterval(() => { if (ended) return clearInterval(tlogT); tlogFlush(); }, 15000);
+  // 比對操作前後的播出狀態，記錄上字／下字／更新
+  const airMap = () => { const m = {}; Object.keys(TS.pgm).forEach(l => { const e = TS.pgm[l]; if (e) m[l] = { id: e.item.id, t0: e.t0, sig: JSON.stringify(e.item.f), item: e.item }; }); return m; };
+  function tlogDiff(before, by, reason){
+    const after = airMap(), now = Date.now();
+    Object.keys(before).forEach(l => { const b = before[l], a = after[l]; if (!a || a.t0 !== b.t0) tlogAdd(a ? '替換下字' : (reason || '下字'), l, b.item, by, (now - b.t0) / 1000); });
+    Object.keys(after).forEach(l => { const b = before[l], a = after[l]; if (!b || b.t0 !== a.t0) tlogAdd(by && by.startsWith('自動') ? '自動上字' : '上字', l, a.item, by); else if (b.sig !== a.sig) tlogAdd('更新內容', l, a.item, by); });
+  }
+  const localOperator = () => info?.me?.name || info?.me?.account || '導播台';
+  function titleCmd(cmd, by){
+    const before = airMap();
+    if (TitleCore.apply(TS, cmd, Date.now())) { tlogDiff(before, by || localOperator()); TitleCore.save(TS); titleSync(); }
+  }
+  /* ----- 字幕跟著畫面：切到設定好的來源時自動上字、切走自動下字 ----- */
+  let followLast = null, followT = 0, srcSig = '';
+  function followCheck(){
+    const curName = inputs.get(SW.pgm)?.name || '';
+    const names = [...inputs.values()].map(x => x.name).filter(Boolean), sig = names.join('|');
+    if (sig !== srcSig) { srcSig = sig; TS.sources = [...new Set(names)]; titleSync(); }
+    if (followLast === null) { followLast = curName; return; }   // 剛開啟（含重新整理恢復）時只記錄目前畫面，不動已在播出的字幕
+    if (curName === followLast) return; followLast = curName; clearTimeout(followT);
+    if (!TS.opts.followCut || !TS.items.some(x => x.follow)) return;
+    followT = setTimeout(() => {
+      if (ended || (inputs.get(SW.pgm)?.name || '') !== curName) return;
+      if (TS.opts.followOff) Object.keys(TS.pgm).forEach(l => { const it = TS.pgm[l]?.item; if (it?.follow && it.follow !== curName) titleCmd({ op: 'clear', layer: l }, '自動（切走）'); });
+      const used = new Set(); TS.items.filter(x => x.follow && x.follow === curName).forEach(x => { const l = TitleCore.layerOf(x); if (used.has(l)) return; used.add(l); if (TS.pgm[l]?.item?.id !== x.id) titleCmd({ op: 'take', id: x.id }, '自動（跟著畫面）'); });
+    }, Math.max(0, +TS.opts.followDelay || 0) * 1000);
+  }
+  function titleCanTake(){ if (canSw()) return true; roleDeny(); return false; }
+  function drawTitleBus(g, W, H, bus){ if (TS.pvw || TS.leaving.length || Object.keys(TS.pgm).length) TitleCore.draw(g, W, H, TS, Date.now(), { bus }); }
+  const titleTickT = setInterval(() => { if (ended) return clearInterval(titleTickT); const before = airMap(); if (TitleCore.tick(TS, Date.now())) { tlogDiff(before, '自動', '自動下字（時長到）'); TitleCore.save(TS); titleSync(); } try { followCheck(); } catch {} }, 250);
+  if (TS.restored) setTimeout(() => toast(`已恢復重新整理前正在播出的 ${TS.restored} 層字幕`), 1500);
+  // 資料來源自動更新（Google 試算表網址）：內容有變才重新匯入，並保留預覽位置
+  const titleDataT = setInterval(async () => {
+    if (ended) return clearInterval(titleDataT); const D = TS.data; if (!D.auto || !D.url || !D.map) return;
+    if (Date.now() - titleDataAt < Math.max(10, D.sec || 30) * 1000) return; titleDataAt = Date.now();
+    try {
+      const items = TitleCore.rowsToItems(await TitleCore.fetchRows(D.url), D.tpl || 'name', D.map, D.header !== false);
+      const sig = list => list.map(x => JSON.stringify([x.tpl, Object.assign(TitleCore.defaults(x.tpl), x.f)])).join('|');
+      if (sig(TS.items.filter(x => x.src === 'data')) !== sig(items)) titleCmd({ op: 'import', items, source: 'data' });
+    } catch {}
+  }, 5000);
+  function acceptCg(conn, md){
+    const kind = md.role === 'cgout' ? 'out' : 'ctl', ok = kind === 'out' || (!!OPTOK.cg && String(md.t || '') === OPTOK.cg);
+    const go = () => {
+      if (!ok) { try { conn.send({ type: 'deny', error: '字幕控制連結無效或已經更換，請跟導播要新的連結' }); } catch {} setTimeout(() => conn.close(), 400); return; }
+      const c = { conn, kind, name: String(md.name || '').slice(0, 20) }; CGC.add(c);
+      conn.send({ type: 'cgHello', kind, label: info.label || '' }); sendAssets(c); conn.send({ type: 'cgState', s: TitleCore.snapshot(TS, Date.now()) });
+      if (kind === 'ctl') { conn.on('data', d => { if (d?.type === 'cg' && d.cmd) titleCmd(d.cmd, '遠端：' + (c.name || '字幕')); }); toast(`🔤 字幕控制「${c.name || '遠端'}」已連線`); }
+      conn.on('close', () => { CGC.delete(c); try { titleUi?.refresh(); } catch {} });
+      try { titleUi?.refresh(); } catch {}
+    };
+    if (conn.open) go(); else conn.on('open', go);
+  }
+  function renderTitles(){
+    const w = WIN.titles; if (!w?.open) return;
+    if (titleUi && w.body.contains(titleUi.root)) { titleUi.refresh(); return; }
+    titleUi?.destroy(); w.body.innerHTML = ''; const box = document.createElement('div'); w.body.appendChild(box);
+    const cloudCall = async body => { const r = await apiCall(Object.assign({ token: sess.token }, body)); if (!r.ok) throw new Error(String(r.error || '雲端操作失敗').replace('SESSION_EXPIRED：', '')); return r; };
+    titleUi = TitleUI(box, { get: () => TS, send: cmd => titleCmd(cmd), canTake: titleCanTake, links: () => ({ ctl: cgCtlUrl(), out: cgOutUrl(), prompter: `${shareBase()}?mode=prompter&o=${roomKey}`, clock: `${shareBase()}?mode=clock&o=${roomKey}` }),
+      log: { list: () => TLOG, status: () => ({ pending: TLOG.filter(r => !r.up).length, error: tlogErr }), flush: tlogFlush, clear: () => { TLOG.splice(0, TLOG.length); try { localStorage.removeItem(TLOG_KEY); } catch {} } },
+      cloud: {
+        list: async () => (await cloudCall({ action: 'titleSets' })).sets || [],
+        save: name => cloudCall({ action: 'titleSetSave', name, data: { items: TS.items, theme: TS.theme, opts: TS.opts, rundown: { rows: TS.rundown.rows, showEnd: TS.rundown.showEnd }, prompter: { text: TS.prompter.text, size: TS.prompter.size, speed: TS.prompter.speed, margin: TS.prompter.margin }, check: TS.check, assets: TS.assets } }),
+        load: async id => { const r = await cloudCall({ action: 'titleSetLoad', id }); titleCmd({ op: 'replaceAll', items: r.data.items || [] }); if (r.data.theme) titleCmd({ op: 'theme', theme: r.data.theme }); if (r.data.opts) titleCmd({ op: 'opts', opts: r.data.opts }); if (r.data.rundown) titleCmd({ op: 'rdReplace', rundown: r.data.rundown }); if (r.data.prompter) titleCmd({ op: 'prompter', set: r.data.prompter }); if (r.data.check) titleCmd({ op: 'check', set: r.data.check }); if (r.data.assets) Object.keys(r.data.assets).forEach(id => { const a = r.data.assets[id]; if (!TS.assets[id]) titleCmd({ op: 'assetAdd', id, name: a.name, data: a.data }); }); },
+        del: id => cloudCall({ action: 'titleSetDelete', id }),
+      },
+      remotes: () => ({ ctl: [...CGC].filter(c => c.kind === 'ctl').length, out: [...CGC].filter(c => c.kind === 'out').length }) });
+  }
 
   /* ---------- 音訊主線 ---------- */
   const monitorBus = ac.createGain(); monitorBus.gain.value = Number(store('wc_monvol') || 1); monitorBus.connect(ac.destination);
@@ -1947,7 +3413,7 @@ function Host(sess){
   app.innerHTML = `
   <div class="host studio ${UI.sw ? '' : 'simple'} ${UI.pro ? 'pro' : ''}" id="hroot">
     <div class="topbar">
-      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">v31.4-RC</span>
+      ${brand()}<span class="mono" style="font-size:9px;color:#79dcff" title="已載入的前端版本">${BUILD}</span>
       <span class="sep"></span>
       <div class="sess" title="${esc((info.me?.name || '') + ' · 派發：' + (info.issuerName || '') + ' · ' + (info.typeName || '') + ' · ' + LINES + ' 路' + (info.until ? ' · 到期 ' + fmtDate(info.until) : ''))}"><b>${esc(info.label || '導播台')}</b><span>${esc(info.me?.name || '')} · 派發：${esc(info.issuerName || '')}${info.issuerRole ? '（' + esc(info.issuerRole) + '）' : ''} · ${esc(info.typeName || '')} · ${LINES} 路${info.until ? ' · 到期 ' + fmtDate(info.until) : ''}</span></div>
       <div class="invk" id="invk" title="來賓邀請代碼（點一下複製）"><span>INVITE</span><b class="mono" id="invc">${esc(invite)}</b></div>
@@ -1965,11 +3431,18 @@ function Host(sess){
       <button class="btn primary" id="inv">${ic('user')}邀請來賓</button>
       <button class="btn danger" id="endb">結束</button>
     </div>
-    <div class="keybar" id="keys"><button type="button" id="layoutPrefsButton">版面偏好</button><button type="button" class="btn sm" id="routeSlots">來賓／路數指派</button><button type="button" id="sourceViewToggle" aria-pressed="false">來源監看</button><select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option></select>
-      ${Object.entries(GROUPS).filter(([,d])=>!d.direct).map(([k, d]) => `<div class="key" data-win="${k}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
-      <span class="kgap"></span>
+    <div class="keybar" id="keys"><button type="button" class="btn sm" id="routeSlots" title="${esc(GROUPS.routingg.hint)}">來賓／訊號</button>
+      ${Object.entries(GROUPS).filter(([,d])=>!d.direct&&!d.tail).map(([k, d]) => `<div class="key" data-win="${k}" title="${esc(d.hint || d.title || d.key)}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
+      <button type="button" id="sourceViewToggle" aria-pressed="false" title="顯示／隱藏來源多畫面監看">來源監看</button>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
-      <div class="key" id="swk" title="開啟／關閉切換台（PREVIEW、PROGRAM、T-Bar）（W）"><span class="led"></span>切換台</div>
+      <span class="kgap"></span>
+      <button type="button" class="key" id="layoutMenuKey" aria-haspopup="menu" aria-expanded="false" aria-controls="layoutMenu" title="版面偏好、工作區、切換台區塊">版面 ▾</button>
+      ${Object.entries(GROUPS).filter(([,d])=>d.tail).map(([k, d]) => `<div class="key" data-win="${k}" title="${esc(d.hint || d.title || d.key)}"><span class="led"></span>${d.key}</div>`).join('')}
+      <div class="layout-menu hidden" id="layoutMenu" role="menu" aria-label="版面">
+        <button type="button" id="layoutPrefsButton" role="menuitem">版面偏好…</button>
+        <label class="layout-menu-row">工作區<select class="studio-view-select" id="studioView" aria-label="工作區顯示"><option value="auto">工作區：自動</option><option value="all">完整工作站</option><option value="monitor">PVW / PGM</option></select></label>
+        <div class="key" id="swk" role="menuitemcheckbox" title="開啟／關閉切換台區塊（PREVIEW、PROGRAM、T-Bar）（W）"><span class="led"></span>顯示切換台區塊</div>
+      </div>
     </div>
     <div class="hmain">
       <div class="switcher">
@@ -2063,6 +3536,18 @@ function Host(sess){
   $('#invk').onclick = () => copyText(invite, '已複製來賓邀請代碼');
   $('#swk').classList.toggle('on', UI.sw);
   $('#swk').onclick = () => setSwMode(!UI.sw);
+  // 「版面 ▾」選單：版面偏好、工作區、切換台區塊集中在這裡（選單用 fixed 定位，不會被可捲動的功能列裁掉）
+  (() => {
+    const key = $('#layoutMenuKey'), menu = $('#layoutMenu');
+    const place = () => { const r = key.getBoundingClientRect(), w = menu.offsetWidth || 240; menu.style.top = Math.round(r.bottom + 6) + 'px'; menu.style.left = Math.round(Math.max(8, Math.min(r.right - w, innerWidth - w - 8))) + 'px'; };
+    const close = () => { if (menu.classList.contains('hidden')) return; menu.classList.add('hidden'); key.setAttribute('aria-expanded', 'false'); key.classList.remove('on'); };
+    const open = () => { menu.classList.remove('hidden'); place(); key.setAttribute('aria-expanded', 'true'); key.classList.add('on'); };
+    key.onclick = e => { e.stopPropagation(); menu.classList.contains('hidden') ? open() : close(); };
+    menu.addEventListener('click', e => { if (e.target.closest('#layoutPrefsButton,#swk')) close(); });
+    document.addEventListener('pointerdown', e => { if (!menu.contains(e.target) && e.target !== key) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    addEventListener('resize', close); $('#keys').addEventListener('scroll', () => { if (!menu.classList.contains('hidden')) place(); }, { passive: true });
+  })();
   // 簡易版＝目前的介面；專業版＝打開切換台（PVW／PGM／T-Bar）＋響度表＋峰值表＋每一路詳細連線數據
   function setProMode(on){
     UI.pro = on; store('wc_pro', on ? '1' : '0');
@@ -2653,8 +4138,8 @@ function Host(sess){
     const W = pgmCanvas.width, H = pgmCanvas.height; CUR_BUS = 'pgm';
     if (hasOut('clean') || REC.has('clean') || busNeeded('clean')) {
       if (cleanCanvas.width !== W || cleanCanvas.height !== H) { cleanCanvas.width = W; cleanCanvas.height = H; }
-      renderBase(cleanCtx, W, H); pctx.drawImage(cleanCanvas, 0, 0); drawOverlays(pctx,W,H,dt,SW.pgm);cgOverlay(pctx,W,H); ftbFill(pctx, W, H); ftbFill(cleanCtx, W, H);
-    } else { renderBase(pctx, W, H); drawOverlays(pctx,W,H,dt,SW.pgm);cgOverlay(pctx,W,H); ftbFill(pctx, W, H); }
+      renderBase(cleanCtx, W, H); pctx.drawImage(cleanCanvas, 0, 0); drawOverlays(pctx,W,H,dt,SW.pgm);cgOverlay(pctx,W,H);drawTitleBus(pctx,W,H,'pgm'); ftbFill(pctx, W, H); ftbFill(cleanCtx, W, H);
+    } else { renderBase(pctx, W, H); drawOverlays(pctx,W,H,dt,SW.pgm);cgOverlay(pctx,W,H);drawTitleBus(pctx,W,H,'pgm'); ftbFill(pctx, W, H); }
     CUR_BUS = '';
   }
   function renderPreview(){
@@ -2662,6 +4147,7 @@ function Host(sess){
     if (SW.prevTrans && SW.t > 0) { renderTrans(g, inputs.get(SW.pgm), inputs.get(SW.pvw), SW.t, W, H); g.globalAlpha = 1; }
     else { g.fillStyle = '#000'; g.fillRect(0, 0, W, H); drawSource(g, inputs.get(SW.pvw), 0, 0, W, H); }
     if (SW.pip.on) drawPip(g, W, H, 1);
+    drawTitleBus(g, W, H, 'pvw');
     CUR_BUS = '';
   }
   // 多畫面輸出（給 OBS 的監看畫面）
@@ -3664,7 +5150,7 @@ function Host(sess){
   async function scanPocket(){if(!navigator.mediaDevices?.getUserMedia)throw Error('請使用 HTTPS 開啟並確認瀏覽器支援相機');const temp=await navigator.mediaDevices.getUserMedia({video:true,audio:false});temp.getTracks().forEach(t=>t.stop());POCKET_DEVICES=await navigator.mediaDevices.enumerateDevices();renderPocket();}
   function renderPocket(){const w=WIN.pocket;if(!w?.open)return;const oldVideo=$('#pocketVideo',w.body),oldAudio=$('#pocketAudio',w.body);if(oldVideo)POCKET_PICK.video=oldVideo.value;if(oldAudio)POCKET_PICK.audio=oldAudio.value;const cams=POCKET_DEVICES.filter(d=>d.kind==='videoinput'),audio=POCKET_DEVICES.filter(d=>d.kind==='audioinput');w.body.innerHTML=`<div id="pocketControlPanel"></div><div class="wsec"><h4>DJI Pocket 訊號接收</h4><div class="note">USB 建議使用 Osmo Pocket 4／Pocket 3 的 Webcam 模式；這裡只接收系統已辨識的 UVC 視訊／音訊，不控制雲台。Pocket 2 請使用下方 DJI Mimo 網路方式；第一代 Osmo Pocket 不在 DJI Mimo 官方直播支援清單內。</div><ol class="note"><li>用可傳資料的 USB-C 線接電腦。</li><li>在 Pocket 4／Pocket 3 螢幕選擇「Webcam／網路攝影機」。</li><li>掃描、選取裝置，再按加入。實際解析度依相機與驅動協商。</li></ol><button class="btn" id="pocketScan">掃描 USB 相機（授權影像）</button><label class="lbl">影像裝置</label><select class="field full" id="pocketVideo">${cams.map((d,i)=>`<option value="${esc(d.deviceId)}" ${(POCKET_PICK.video?POCKET_PICK.video===d.deviceId:/pocket|osmo|dji/i.test(d.label))?'selected':''}>${esc(d.label||'相機 '+(i+1))}</option>`).join('')||'<option value="">請先掃描並允許相機</option>'}</select><label class="lbl">聲音來源</label><select class="field full" id="pocketAudio"><option value="">不取聲音</option>${audio.map((d,i)=>`<option value="${esc(d.deviceId)}" ${POCKET_PICK.audio===d.deviceId?'selected':''}>${esc(d.label||'音訊 '+(i+1))}</option>`).join('')}</select><button class="btn primary" id="pocketUSB">加入 DJI Pocket USB 來源</button></div><div class="wsec"><h4>DJI Mimo 無線／遠端直播（含 Pocket 4）</h4><button class="btn primary" id="pocketManaged">開啟後台管理的外網回傳頻道</button><div class="note">Pocket 4／Pocket 3／Pocket 2 由 DJI Mimo 使用自訂 RTMP，推到你的串流伺服器；WebCall 從該伺服器的 HTTPS WHEP 端點接回。Pocket 2 無線連接需相應配件。網頁不能直接接收 RTMP，也不會自動發現 Pocket 的 Wi-Fi。</div><label class="lbl">串流伺服器的 WHEP 接收網址</label><input class="field full" id="pocketWhep" placeholder="https://stream.example.com/pocket/whep"><label class="lbl">WHEP Bearer Token（選填）</label><input class="field full" type="password" id="pocketToken"><button class="btn primary" id="pocketNetwork">加入 DJI Pocket 網路來源</button><button class="btn" id="pocketWorkflow">管理／同步串流設定</button></div>`;const b=w.body,act=fn=>async()=>{try{await fn();}catch(e){toast(e.message);}};renderPocketControlPanel(b);$('#pocketAudio',b).onchange=e=>{POCKET_PICK.audio=e.target.value;};$('#pocketVideo',b).onchange=e=>{POCKET_PICK.video=e.target.value;};$('#pocketScan',b).onclick=act(scanPocket);$('#pocketUSB',b).onclick=act(async()=>{if(!canSw())return roleDeny();const video=$('#pocketVideo',b).value,aud=$('#pocketAudio',b).value;POCKET_PICK.video=video;POCKET_PICK.audio=aud;await ac.resume();if(!video)throw Error('請先掃描並選取 DJI Pocket 相機');let stream=await navigator.mediaDevices.getUserMedia({video:{deviceId:{exact:video},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30}},audio:aud?pocketAudioConstraints(aud):false});try{const x=newInput('L-'+rnd(6),'local','DJI Pocket USB');setStream(x,stream);x.isPocket=true;x.usbAudioDeviceId=aud;x.usbProbe={started:Date.now(),peak:0};setPvw(x.id);renderAll();toast(stream.getAudioTracks().length?'Pocket 已加入；請在收音診斷確認實際裝置與音量':'Pocket 已加入，但未取得音訊軌');}catch(e){stream.getTracks().forEach(t=>t.stop());throw e;}});$('#pocketNetwork',b).onclick=act(async()=>{if(!canSw())return roleDeny();const url=$('#pocketWhep',b).value.trim();if(!/^https:\/\//i.test(url))throw Error('請填入 HTTPS WHEP 網址');const x=await addWhep(url,'DJI Pocket 網路',$('#pocketToken',b).value.trim());if(x)setPvw(x.id);});$('#pocketWorkflow',b).onclick=()=>openWin('workflow');$('#pocketManaged',b).onclick=()=>{openWin('ingest');loadIngest().catch(e=>toast(e.message));};}
 
-  const WDEF = {native:{title:'原生影音引擎',w:640,h:470,render:renderNative},decode:{title:'專業檔案解碼／轉碼',w:760,h:560,render:renderDecode},capture4k:{title:'4K 擷取與製播',w:760,h:560,render:renderCapture4k},ndi:{title:'原生 NDI 收送',w:760,h:580,render:renderNdi},me:{title:'多級 M/E',w:1100,h:720,render:renderMEPanel},cgdesigner:{title:'CG 動態標題設計器',w:1150,h:850,render:renderCgDesigner},color:{title:'色輪調色',w:940,h:620,render:renderColor},scopes:{title:'影像示波器',w:1000,h:540,render:renderScopes},tracking:{title:'實體攝影機追蹤',w:900,h:700,render:renderTracking}, routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
+  const WDEF = {titles:{title:'TITLES 字幕播出',w:1000,h:760,render:renderTitles},native:{title:'原生影音引擎',w:640,h:470,render:renderNative},decode:{title:'專業檔案解碼／轉碼',w:760,h:560,render:renderDecode},capture4k:{title:'4K 擷取與製播',w:760,h:560,render:renderCapture4k},ndi:{title:'原生 NDI 收送',w:760,h:580,render:renderNdi},me:{title:'多級 M/E',w:1100,h:720,render:renderMEPanel},cgdesigner:{title:'CG 動態標題設計器',w:1150,h:850,render:renderCgDesigner},color:{title:'色輪調色',w:940,h:620,render:renderColor},scopes:{title:'影像示波器',w:1000,h:540,render:renderScopes},tracking:{title:'實體攝影機追蹤',w:900,h:700,render:renderTracking}, routing:{title:'來賓／路數指派',w:760,h:560,render:renderRouting},
     recovery:{title:'錄影恢復／待續上傳',w:760,h:640,render:renderRecovery},
     ingest:{title:'Pocket／外網 RTMP 回傳',w:740,h:640,render:renderIngest},
     pocket:{title:'DJI Pocket USB／網路訊號',w:720,h:640,render:renderPocket},
@@ -4285,7 +5771,7 @@ function Host(sess){
     const K = (k, d) => `<tr><td>${k.split(' ').map(x => `<span class="kbd">${x}</span>`).join(' ')}</td><td>${d}</td></tr>`;
     w.body.innerHTML = `<table class="ktable">
       <tr><td colspan=2 class="note">切換台關閉時：數字＝設為 PVW、Shift＋數字＝ON AIR、Space／Enter＝把 PVW 那一路切成 ON AIR</td></tr>
-      ${K('W', '開啟／關閉切換台')}${K('F1 ~ F12', '叫出場景（Shift＋F1～F12 儲存）')}${K('Y U H V', '字幕條／跑馬燈／台標／CC 字幕 開關')}${K('Z', 'PREV TRANS 轉場預覽')}${K('J', 'PGM 截圖')}${K('Shift M', '全部靜音')}${K('Shift R', '開始／停止錄影')}${K('E F D ,', '字幕圖層／場景／計時倒數／切換台設定 視窗')}${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
+      ${K('W', '開啟／關閉切換台')}${K('F1 ~ F12', '叫出場景（Shift＋F1～F12 儲存）')}${K('Y U H V', '字幕條／跑馬燈／台標／CC 字幕 開關')}${K('Z', 'PREV TRANS 轉場預覽')}${K('J', 'PGM 截圖')}${K('Shift M', '全部靜音')}${K('Shift R', '開始／停止錄影')}${K('E F D ,', '字幕播出／場景／計時倒數／切換台設定 視窗')}${K('.', '字幕 TAKE 上字（預覽中的那一則）')}${K('PgDn → ／ PgUp ←', '字幕下一則／上一則（簡報筆可用；唱詞直播時直接上字）')}${K('Delete ／ Shift＋Delete', '字幕下字／全部下字')}${K('1 ~ 9 0', '第 1～10 路送到 PREVIEW')}${K('Shift 1 ~ 9', '第 1～9 路直接切到 PROGRAM')}
       ${K('Space', 'CUT')}${K('Enter', 'AUTO（依設定的轉場）')}${K('↑ ↓', '手動推 T-Bar')}${K('B', 'FTB 淡出黑畫面')}${K('P', '子母畫面開／關')}
       ${K('T', '按住：對 PREVIEW（或選取）的來賓說話')}${K('A', '按住：群發給所有來賓')}
       ${K('M', 'PREVIEW 那一路靜音／取消')}${K('L', 'PREVIEW 那一路 PFL 監聽')}${K('G', 'PREVIEW 那一路對齊線（導播端）')}
@@ -4325,6 +5811,7 @@ function Host(sess){
     if (e.repeat && (e.code === 'KeyT' || e.code === 'KeyA')) return;
     if (ROLE.local === 'view' && e.code !== 'Escape') return;
     if (ROLE.local === 'aud' && !['KeyM', 'KeyL', 'KeyX', 'Escape', 'KeyK', 'Slash'].includes(e.code)) return;
+    if (titleHotkey(e, titleCmd, () => TS, titleCanTake)) return;   // 字幕：. 上字／PgDn → 下一則／PgUp ← 上一則／Delete 下字
     const m = /^Digit(\d)$/.exec(e.code);
     if (m) { const n = +m[1] || 10; const id = order[n - 1]; if (!id) return; e.preventDefault(); if (!UI.sw) setManual(inputs.get(id), e.shiftKey ? 'live' : 'pvw'); else e.shiftKey ? cutTo(id) : setPvw(id); return; }
     const pv = target();
@@ -4338,7 +5825,7 @@ function Host(sess){
       KeyT: () => { if (pv?.kind === 'guest' && !pv.talk) { held.add('T:' + pv.id); setTalk(pv, true); } },
       KeyA: () => { if (!IC.all) { held.add('A'); setTalkAll(true); } },
       KeyY: () => toggleOV('lt'), KeyU: () => toggleOV('tk'), KeyH: () => toggleOV('bug'), KeyV: () => toggleOV('cc'), KeyJ: () => snapshot('pgm'), KeyZ: () => setPrevTrans(!SW.prevTrans),
-      KeyE: () => toggleWin('gfx'), KeyF: () => toggleWin('scene'), KeyD: () => toggleWin('timer'), Comma: () => toggleWin('set'),
+      KeyE: () => toggleWin('titles'), KeyF: () => toggleWin('scene'), KeyD: () => toggleWin('timer'), Comma: () => toggleWin('set'),
       KeyM: () => { if (pv) { pv.mute = !pv.mute; applyGains(pv); updateTile(pv); renderMix(); toast(pv.mute ? `${pv.name} 靜音` : `${pv.name} 取消靜音`); } },
       KeyL: () => { if (pv) { pv.pfl = !pv.pfl; applyGains(pv); renderMix(); toast(pv.pfl ? `監聽 ${pv.name}` : '關閉監聽'); } },
       KeyG: () => pv && $('[data-a="gd"]', pv.el).click(),
@@ -4446,6 +5933,7 @@ function Host(sess){
       const md = conn.metadata || {};
       if (md.role === 'mon') { acceptMon(conn, md); return; }
       if (md.role === 'op') { acceptOp(conn, md); return; }
+      if (md.role === 'cg' || md.role === 'cgout') { acceptCg(conn, md); return; }
       if (md.role === 'out') {
         const o = { conn, slot: OUT_NAMED.includes(md.slot) ? md.slot : (+md.slot || 1), call: null };
         conn.on('open', () => { outputs.add(o); feedOutput(o); renderAll(); });
@@ -4724,7 +6212,7 @@ function Host(sess){
   function sendMonStats(){
     if (!mons.size) return;
     const tot = guests().reduce((a, g) => a + (g.lost ? 0 : (g.net?.kbps || 0)), 0);
-    const payload = { type: 'mstats', hostVersion:'v31.4',monitorProtocol:2,ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
+    const payload = { type: 'mstats', hostVersion:BUILD,monitorProtocol:2,ops: opsRoomState(), t: Date.now(), label: info.label || '', lines: LINES, outputs: outputs.size, pgm: inputs.get(SW.pgm)?.name || '', ret: RET.src, totalKbps: Math.round(tot),
       sources:monitorSources(),
       guests: guests().map(g => ({ id: g.id, num: numOf(g), name: g.name, lost: !!g.lost, tally: g.tally, net: g.net || null, hostWarn: g.hostWarn || '',
         state: { quality: g.state.quality, fps: g.state.fps, codec: g.state.codec, codecs: g.state.codecs, orient: g.state.orient, portrait: g.state.portrait, perf: g.state.perf, conn: g.state.conn,
@@ -5504,7 +6992,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
 
   // ---------- 多操作員：導播（可切換）／音控（只能調聲音）／監看員（唯讀） ----------
   const OPS = new Set();
-  const OPTOK = (() => { const k = 'wc_optok'; let t = null; try { t = JSON.parse(sstore(k) || 'null'); } catch {} if (!t?.dir) { t = { dir: rnd(14), aud: rnd(14), view: rnd(14) }; sstore(k, JSON.stringify(t)); } return t; })();
+  const OPTOK = (() => { const k = 'wc_optok'; let t = null; try { t = JSON.parse(sstore(k) || 'null'); } catch {} if (!t?.dir) { t = { dir: rnd(14), aud: rnd(14), view: rnd(14) }; sstore(k, JSON.stringify(t)); } if (!t.cg) { t.cg = rnd(14); sstore(k, JSON.stringify(t)); } return t; })();
   const opUrl = r => `${shareBase()}?mode=op&o=${roomKey}&r=${r}&t=${OPTOK[r]}`;
   function acceptOp(conn, md){
     const r = ['dir', 'aud', 'view'].find(k => k === md.r && String(md.t || '') === OPTOK[k]);
@@ -6222,7 +7710,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   addEventListener('beforeunload', () => peer?.destroy());
   const icMeterAll = makeAnalyser(icBus);
   setTimeout(()=>{syncWorkflow();restoreCloudJobs();},0);const workflowInterval=setInterval(()=>{if(ended)clearInterval(workflowInterval);else syncWorkflow();},10000);
-  window.__host = { audLevels: () => ({ pgm: pgmMeter(), mon: monMeter(), ic: icMeterAll() }), applyGains, OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite, AUX, AUXB, STILLS, STREAMS, OPS, OPTOK, opUrl, IFBG, LAYLIB, LV, ROLE, setLocalRole, auxTake, auxPvw, setSolo, captureAudio, applyAudio, ASNAP, addLoop, addWhep, layEditor, applyLayLib, takeLayout, toCustom, setStillFile, toggleStill, sendCue, setIfbGroup, setPgmFps, setAuxFmt, whipStart, whipStop, rebuildReturn, effRet, keyFrame, addVset, vsetEditor, vsSetCam, cam, earOf, saveEar, G3, autoKeyColor, renderLayout, get PGMFPS(){ return PGMFPS; }, get frameNo(){ return frameNo; } };
+  window.__host = { TS, titleCmd, audLevels: () => ({ pgm: pgmMeter(), mon: monMeter(), ic: icMeterAll() }), applyGains, OV, TM, REC, get PRESETS(){ return PRESETS; }, addLayout, addImage, addMedia, guestCountdown, setPanic, snapshot, savePreset, recallPreset, toggleOV, startRec, stopRec, setPrevTrans, srcSettings, mixFxPanel, buildIso, order, UI, setSwMode, setManual, inputs, SW, IC, RET, outputs, msgs, sendMsg, setTalk, setTalkAll, remote, openWin, programStream, setReturn, polls, beat, get invite(){ return invite; }, get roomKey(){ return roomKey; }, WIN, mons, changeInvite, AUX, AUXB, STILLS, STREAMS, OPS, OPTOK, opUrl, IFBG, LAYLIB, LV, ROLE, setLocalRole, auxTake, auxPvw, setSolo, captureAudio, applyAudio, ASNAP, addLoop, addWhep, layEditor, applyLayLib, takeLayout, toCustom, setStillFile, toggleStill, sendCue, setIfbGroup, setPgmFps, setAuxFmt, whipStart, whipStop, rebuildReturn, effRet, keyFrame, addVset, vsetEditor, vsSetCam, cam, earOf, saveEar, G3, autoKeyColor, renderLayout, get PGMFPS(){ return PGMFPS; }, get frameNo(){ return frameNo; } };
 }
 /* ===================== 來賓 ===================== */
 function Guest(){
@@ -7665,20 +9153,27 @@ function route(){
   }
   const mode = Q.get('mode');
   // 來賓端只提供視訊功能；不初始化或顯示任何實體控制器介面。
-  if (mode === 'guest') {
+  if (['guest', 'cgout', 'cgctl', 'prompter', 'clock'].includes(mode)) {
     document.querySelectorAll('#wc4-device-launch, #wc4-device-panel, [data-wc-device-launch]').forEach(el => el.remove());
   }
   if (mode === 'guest') Guest();
   else if (mode === 'out') Output();
   else if (mode === 'op') Operator();
+  else if (mode === 'cgctl') TitleRemote();
+  else if (mode === 'cgout') TitleOutput();
+  else if (mode === 'prompter') TitlePrompter();
+  else if (mode === 'clock') TitleClock();
   else if (mode === 'host' && !/[#&]c=/.test(location.hash) && sstore('wc_host')) HostResume();
   else Home();
 }
-if (window.Peer) route();
-else {   // 網路慢、CDN 被擋時再試一次備用來源
-  const sc = document.createElement('script'); sc.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+// 外部函式庫是 defer 載入：等 DOMContentLoaded（defer 腳本已執行完）再啟動
+function bootRoute(){
+  if (window.Peer) return route();
+  // 網路慢、CDN 被擋時改用備用來源
+  const sc = document.createElement('script'); sc.src = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'; sc.crossOrigin = 'anonymous';
   sc.onload = sc.onerror = route; document.head.appendChild(sc);
 }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootRoute, { once: true }); else bootRoute();
 </script>
 
 <script>
