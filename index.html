@@ -982,7 +982,10 @@ body.clock-page{margin:0;background:#000;color:#fff;overflow:hidden}.clk{positio
 .tui-form{display:flex;flex-direction:column;gap:8px}
 .tui-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--dim)}
 .tui-form label.chk{flex-direction:row;align-items:center;gap:6px}
-.tui-pr textarea[data-pf="text"]{min-height:180px;resize:vertical}.rd-form textarea{min-height:90px}
+.tui-pr textarea[data-pf="text"]{min-height:180px;resize:vertical}
+.prk-d{margin-top:6px;font-size:12px;color:var(--dim)}.prk-d summary{cursor:pointer}.prk{border-collapse:collapse;margin-top:6px;font-size:12px}.prk td{padding:3px 8px;border-bottom:1px solid var(--line);vertical-align:top}.prk kbd{font:600 12px var(--mono);color:var(--fg,#e8edf3);white-space:nowrap}
+.prp-help{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#000c}.prp-help.hidden{display:none}.prp-help>div{max-width:720px;padding:20px 24px;border-radius:10px;background:#15191f;color:#ddd}.prp-help .prk{font-size:15px}.prp-help .prk kbd{font-size:15px}
+.prp-bar .pill{padding:2px 8px;border-radius:10px;background:#3a1012;color:#ffb3b3;font-size:12px}.rd-form textarea{min-height:90px}
 .tui-form h4{margin:4px 0 0}
 .tui-fields,.tui-grid2,.tui-grid3{display:grid;gap:8px}
 .tui-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.tui-fields .full{grid-column:1/-1}
@@ -2057,8 +2060,9 @@ const TitleCore = (() => {
         break;
       }
       /* 提詞機 */
-      case 'prompter': { const P = S.prompter, pos = promptPos(S, now); Object.assign(P, cmd.set || {}); P.size = Math.max(24, Math.min(160, +P.size || 64)); P.speed = Math.max(0, Math.min(400, +P.speed || 0)); P.pos = pos; P.t0 = now; break; }
+      case 'prompter': { const P = S.prompter, pos = promptPos(S, now); Object.assign(P, cmd.set || {}); P.size = Math.max(24, Math.min(160, +P.size || 64)); P.speed = Math.max(-300, Math.min(400, +P.speed || 0)); /* 負數＝倒捲 */ P.pos = pos; P.t0 = now; break; }
       case 'prompterPlay': { const P = S.prompter; P.pos = promptPos(S, now); P.t0 = now; P.playing = cmd.play == null ? !P.playing : !!cmd.play; break; }
+      case 'prompterSpeed': { const P = S.prompter; P.pos = promptPos(S, now); P.t0 = now; P.speed = Math.max(-300, Math.min(400, cmd.value != null ? +cmd.value || 0 : (P.speed || 0) + (+cmd.delta || 0))); if (cmd.play != null) P.playing = !!cmd.play; break; }
       case 'prompterSeek': { const P = S.prompter; P.pos = Math.max(0, cmd.pos != null ? +cmd.pos || 0 : promptPos(S, now) + (+cmd.delta || 0)); P.t0 = now; if (cmd.pos === 0) P.playing = false; break; }
       /* 新聞排序表 */
       case 'rdAdd': { const r = rdRow(cmd.row); const at = cmd.after ? S.rundown.rows.findIndex(x => x.id === cmd.after) + 1 : S.rundown.rows.length; S.rundown.rows.splice(at > 0 ? at : S.rundown.rows.length, 0, r); break; }
@@ -2816,6 +2820,7 @@ function TitleUI(root, api){
         <div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.ctl)}"><button type="button" class="btn" data-k="cpctl">複製</button></div><div class="tui-qr" data-qr></div>
         <p class="note">目前連線：遠端控制 ${api.remotes?.().ctl || 0} 台、透明輸出 ${api.remotes?.().out || 0} 個。</p>
         ${L.prompter ? `<h4 style="margin-top:14px">提詞機（主播／記者平板）</h4><p class="note">平板打開就會跟著「提詞機」分頁同步捲動。提詞玻璃用的平板，網址後面加 <code>&amp;mirror=1</code> 會左右鏡像。</p><div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.prompter)}"><button type="button" class="btn" data-k="cppr">複製</button></div>
+        <h4 style="margin-top:14px">提詞機控制（給操作提詞的人）</h4><p class="note">這個網址可以用外接鍵盤、簡報筆（翻頁器）、遊戲手把或滑鼠滾輪控制捲動，主播自己用腳踏板／翻頁器也行。可以改字幕，請只給信任的人；導播台換控制連結後就失效。</p><div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.prompterCtl)}"><button type="button" class="btn" data-k="cpprc">複製</button></div>
         <h4 style="margin-top:14px">節目時鐘（現場螢幕）</h4><p class="note">大字顯示現在時間、節目剩餘、本段剩餘與下一條，適合放在攝影棚或現場的螢幕。</p><div class="tui-bar"><input class="field grow mono" readonly value="${esc(L.clock)}"><button type="button" class="btn" data-k="cpclk">複製</button></div>` : ''}
         <h4 style="margin-top:14px">透明字幕輸出（給 OBS／vMix）</h4><p class="note">OBS：新增「瀏覽器」來源，寬 1920、高 1080，貼上網址即可（背景自動透明）。vMix：新增 Web Browser 輸入貼上網址；要去背可選綠幕再用 Chroma Key。</p>
         <div class="tui-bar">${C.LAYERS.map(l => `<label><input type="checkbox" data-ol="${l}" ${layers.has(l) ? 'checked' : ''}> ${C.LAYER_NAMES[l]}</label>`).join('')}</div>
@@ -2824,6 +2829,7 @@ function TitleUI(root, api){
     try { qr(box.querySelector('[data-qr]'), L.ctl, 128); } catch {}
     box.querySelector('[data-k="cpctl"]').onclick = () => copyText(L.ctl, '已複製字幕控制網址');
     box.querySelector('[data-k="cppr"]')?.addEventListener('click', () => copyText(L.prompter, '已複製提詞機網址'));
+    box.querySelector('[data-k="cpprc"]')?.addEventListener('click', () => copyText(L.prompterCtl, '已複製提詞機控制網址'));
     box.querySelector('[data-k="cpclk"]')?.addEventListener('click', () => copyText(L.clock, '已複製節目時鐘網址'));
     box.querySelector('[data-k="cpout"]').onclick = () => copyText(outUrl, '已複製透明字幕輸出網址');
     box.querySelector('[data-k="opout"]').onclick = () => window.open(outUrl, '_blank', 'noopener,width=960,height=560');
@@ -2881,20 +2887,21 @@ function TitleUI(root, api){
     if (box.dataset.ready) { const t = box.querySelector('[data-pf="text"]'); if (document.activeElement !== t && t.value !== P.text) t.value = P.text; box.querySelector('[data-pk="play"]').textContent = P.playing ? '⏸ 暫停' : '▶ 開始捲動'; ['size', 'speed', 'margin'].forEach(k => { const i = box.querySelector(`[data-pf="${k}"]`); if (document.activeElement !== i) { i.value = P[k]; i.parentElement.querySelector('output').textContent = P[k]; } }); box.querySelector('[data-pf="mirror"]').checked = !!P.mirror; return; }
     box.dataset.ready = '1';
     box.innerHTML = `<div class="tui-pr"><div class="tui-form"><label>提詞稿（直接貼上；進到排序表某一條時，會自動換成那條的稿子）<textarea class="field" rows="8" data-pf="text"></textarea></label>
-        <div class="tui-grid3"><label>字級 <output></output><input type="range" min="32" max="140" step="2" data-pf="size"></label><label>速度 <output></output><input type="range" min="0" max="300" step="5" data-pf="speed"></label><label>左右留白 % <output></output><input type="range" min="0" max="30" step="1" data-pf="margin"></label></div>
+        <div class="tui-grid3"><label>字級 <output></output><input type="range" min="32" max="140" step="2" data-pf="size"></label><label>速度 <output></output><input type="range" min="-150" max="300" step="5" data-pf="speed"></label><label>左右留白 % <output></output><input type="range" min="0" max="30" step="1" data-pf="margin"></label></div>
         <div class="tui-bar"><button type="button" class="btn primary" data-pk="play">▶ 開始捲動</button><button type="button" class="btn" data-pk="slow">慢一點</button><button type="button" class="btn" data-pk="fast">快一點</button><button type="button" class="btn" data-pk="back">↑ 往回</button><button type="button" class="btn" data-pk="fwd">↓ 往前</button><button type="button" class="btn" data-pk="top">⏮ 回開頭</button><label class="chk"><input type="checkbox" data-pf="mirror"> 鏡像（提詞玻璃用）</label></div></div>
-      <div class="tui-prview" data-prv></div></div><p class="note">主播或記者的平板打開「遠端／輸出」分頁裡的提詞機網址就會同步捲動；黃色線是唸到的位置。</p>`;
+      <div class="tui-prview" data-prv></div></div><p class="note">主播或記者的平板打開「遠端／輸出」分頁裡的提詞機網址就會同步捲動；黃色線是唸到的位置。<span data-padn></span></p>
+      <details class="prk-d"><summary>外接鍵盤／簡報筆／遊戲手把怎麼控制（點一下這個視窗後生效）</summary>${prompterHelpHtml()}</details>`;
     let tt = 0; box.querySelector('[data-pf="text"]').addEventListener('input', e => { clearTimeout(tt); tt = setTimeout(() => send({ op: 'prompter', set: { text: e.target.value } }), 300); });
     ['size', 'speed', 'margin'].forEach(k => box.querySelector(`[data-pf="${k}"]`).addEventListener('input', e => { e.target.parentElement.querySelector('output').textContent = e.target.value; clearTimeout(tt); tt = setTimeout(() => send({ op: 'prompter', set: { [k]: +e.target.value } }), 80); }));
     box.querySelector('[data-pf="mirror"]').onchange = e => send({ op: 'prompter', set: { mirror: e.target.checked } });
     const P0 = () => api.get().prompter;
     box.querySelector('[data-pk="play"]').onclick = () => send({ op: 'prompterPlay' });
-    box.querySelector('[data-pk="slow"]').onclick = () => send({ op: 'prompter', set: { speed: Math.max(0, P0().speed - 10) } });
-    box.querySelector('[data-pk="fast"]').onclick = () => send({ op: 'prompter', set: { speed: Math.min(300, P0().speed + 10) } });
+    box.querySelector('[data-pk="slow"]').onclick = () => send({ op: 'prompterSpeed', delta: -10 });
+    box.querySelector('[data-pk="fast"]').onclick = () => send({ op: 'prompterSpeed', delta: 10 });
     box.querySelector('[data-pk="back"]').onclick = () => send({ op: 'prompterSeek', delta: -200 });
     box.querySelector('[data-pk="fwd"]').onclick = () => send({ op: 'prompterSeek', delta: 200 });
     box.querySelector('[data-pk="top"]').onclick = () => send({ op: 'prompterSeek', pos: 0 });
-    prView = PrompterView(box.querySelector('[data-prv]'), () => api.get(), { small: true });
+    prView = PrompterView(box.querySelector('[data-prv]'), () => api.get(), { small: true }); prompterWheel(box.querySelector('[data-prv]'), send);
     paintPrompter();
   }
   /* ---------- 圖片（台標、Logo、照片、QR Code） ---------- */
@@ -2971,7 +2978,10 @@ function TitleUI(root, api){
     raf = requestAnimationFrame(frame);
   }
   paintPane(); refresh(); raf = requestAnimationFrame(frame);
-  return { root, refresh, destroy(){ dead = true; cancelAnimationFrame(raf); } };
+  // 提詞機分頁開著、而且最後點的是這個視窗時，鍵盤／簡報筆／搖桿改控制提詞機
+  const pad = PrompterPad(send, api.get, () => pane === 'prompter' && root.isConnected && !document.hidden, n => { const el = $q('[data-padn]'); if (el) el.textContent = n ? '　🎮 已偵測到手把：' + n : ''; });
+  let lastInside = false; const md = e => { lastInside = root.contains(e.target); }; document.addEventListener('pointerdown', md, true);
+  return { root, refresh, tab: () => pane, prompterKeysOn: () => pane === 'prompter' && lastInside && root.isConnected, destroy(){ dead = true; cancelAnimationFrame(raf); pad.destroy(); document.removeEventListener('pointerdown', md, true); } };
 }
 // 字幕快捷鍵（導播台與遠端控制頁共用）；回傳 true 表示已處理
 function titleHotkey(e, send, getState, canTake){
@@ -3008,6 +3018,63 @@ function shrinkImage(file, max){
     im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('bad image')); }; im.src = url; });
 }
 
+/* ===== 提詞機外部控制：鍵盤、簡報筆（翻頁器）、遊戲手把／搖桿、滑鼠滾輪 ===== */
+const PROMPTER_KEYS_HELP = [['空白鍵／Enter／簡報筆「開始」', '開始／暫停'], ['↑ ↓', '減速／加速（按住 Shift 一次 30）'], ['PageUp／PageDown（簡報筆上一頁／下一頁）', '往回／往前約半個畫面'], ['← →', '往回／往前一行'], ['1～9', '直接設定速度（1 最慢、9 最快）'], ['0', '速度歸零（停住）'], ['R 或 -', '反向（倒捲）'], ['Home', '回開頭'], ['Esc', '暫停']];
+function prompterKeys(e, send, getS){
+  const tg = e.target; if (tg?.closest && tg.closest('input,select,textarea,[contenteditable]')) return false;
+  if (e.ctrlKey || e.metaKey || e.altKey) return false;
+  const k = e.code, P = getS().prompter || {}, step = e.shiftKey ? 30 : 10;
+  let cmd = null;
+  if (['Space', 'Enter', 'NumpadEnter', 'F5', 'Period', 'KeyB', 'MediaPlayPause'].includes(k)) cmd = { op: 'prompterPlay' };   // 簡報筆的「開始放映」送 F5／Shift+F5，「黑畫面」送 . 或 B
+  else if (k === 'Escape') cmd = { op: 'prompterPlay', play: false };
+  else if (k === 'ArrowUp' || k === 'Numpad8') cmd = { op: 'prompterSpeed', delta: -step };
+  else if (k === 'ArrowDown' || k === 'Numpad2') cmd = { op: 'prompterSpeed', delta: step };
+  else if (k === 'PageUp') cmd = { op: 'prompterSeek', delta: -300 };
+  else if (k === 'PageDown') cmd = { op: 'prompterSeek', delta: 300 };
+  else if (k === 'ArrowLeft') cmd = { op: 'prompterSeek', delta: -(P.size || 64) * 1.45 };
+  else if (k === 'ArrowRight') cmd = { op: 'prompterSeek', delta: (P.size || 64) * 1.45 };
+  else if (k === 'Home') cmd = { op: 'prompterSeek', pos: 0 };
+  else if (/^(Digit|Numpad)[1-9]$/.test(k)) cmd = { op: 'prompterSpeed', value: [15, 30, 45, 60, 80, 100, 130, 170, 220][+k.slice(-1) - 1], play: true };
+  else if (k === 'Digit0' || k === 'Numpad0') cmd = { op: 'prompterSpeed', value: 0 };
+  else if (k === 'KeyR' || k === 'Minus' || k === 'NumpadSubtract') cmd = { op: 'prompterSpeed', value: -(P.speed || 60) };
+  if (!cmd) return false;
+  e.preventDefault(); if (!e.repeat || cmd.op !== 'prompterPlay') send(cmd); return true;
+}
+// 遊戲手把（Xbox／PS／Switch Pro、USB 搖桿、部分提詞手控器）：A 開始暫停、十字鍵上下變速、LB／RB 往回往前、Y 回開頭；搖桿推多少就捲多快，放開恢復原本速度
+function PrompterPad(send, getS, active, onName){
+  if (!navigator.getGamepads) return { destroy(){} };
+  let prev = {}, hold = null, lastSent = 0, lastVal = null, t = 0, name = '';
+  const tick = () => {
+    const pads = [...(navigator.getGamepads() || [])].filter(Boolean), g = pads[0];
+    const nm = g ? g.id.replace(/\(.*?\)/g, '').trim().slice(0, 40) : ''; if (nm !== name) { name = nm; onName?.(nm); }
+    if (!g || !active()) { prev = {}; return; }
+    const btn = i => !!g.buttons[i]?.pressed, edge = i => btn(i) && !prev[i];
+    if (edge(0) || edge(9)) send({ op: 'prompterPlay' });
+    if (edge(1)) send({ op: 'prompterPlay', play: false });
+    if (edge(12)) send({ op: 'prompterSpeed', delta: -10 });
+    if (edge(13)) send({ op: 'prompterSpeed', delta: 10 });
+    if (edge(14) || edge(4)) send({ op: 'prompterSeek', delta: edge(4) ? -300 : -(getS().prompter?.size || 64) * 1.45 });
+    if (edge(15) || edge(5)) send({ op: 'prompterSeek', delta: edge(5) ? 300 : (getS().prompter?.size || 64) * 1.45 });
+    if (edge(3)) send({ op: 'prompterSeek', pos: 0 });
+    prev = {}; g.buttons.forEach((b, i) => prev[i] = b.pressed);
+    // 搖桿：取左右搖桿 Y 軸中推得比較多的那支；往下推＝往前捲
+    const ax = [g.axes[1] || 0, g.axes[3] || 0].sort((a, b) => Math.abs(b) - Math.abs(a))[0], dead = .18;
+    if (Math.abs(ax) > dead) {
+      const P = getS().prompter || {}; if (!hold) hold = { speed: P.speed, playing: P.playing };
+      const v = Math.round(Math.sign(ax) * Math.pow((Math.abs(ax) - dead) / (1 - dead), 1.6) * 300 / 5) * 5, now = Date.now();
+      if (v !== lastVal && now - lastSent > 120) { lastVal = v; lastSent = now; send({ op: 'prompterSpeed', value: v, play: true }); }
+    } else if (hold) { send({ op: 'prompterSpeed', value: hold.speed, play: hold.playing }); hold = null; lastVal = null; }
+  };
+  t = setInterval(tick, 50);
+  return { destroy(){ clearInterval(t); }, name: () => name };
+}
+// 滑鼠滾輪：在提詞畫面上滾動就往前／往回
+function prompterWheel(el, send){
+  let acc = 0, tt = 0;
+  el.addEventListener('wheel', e => { e.preventDefault(); acc += e.deltaY; clearTimeout(tt); tt = setTimeout(() => { if (acc) send({ op: 'prompterSeek', delta: Math.round(acc) }); acc = 0; }, 60); }, { passive: false });
+}
+function prompterHelpHtml(){ return `<table class="prk">${PROMPTER_KEYS_HELP.map(([k, v]) => `<tr><td><kbd>${esc(k)}</kbd></td><td>${esc(v)}</td></tr>`).join('')}<tr><td><kbd>遊戲手把／搖桿</kbd></td><td>A 開始暫停、B 暫停、十字鍵上下變速、左右一行、LB／RB 半頁、Y 回開頭；搖桿推多少捲多快，放開恢復</td></tr><tr><td><kbd>滑鼠滾輪</kbd></td><td>在提詞畫面上滾動＝往前／往回</td></tr></table>`; }
+
 /* ===================== 遠端字幕控制頁（?mode=cgctl）===================== */
 function TitleRemote(){
   const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), tok = Q.get('t') || '';
@@ -3017,7 +3084,7 @@ function TitleRemote(){
   const st = (cls, t) => { $('#cgs').innerHTML = `<span class="dot ${cls}"></span>${esc(t)}`; };
   const send = cmd => { if (conn?.open) conn.send({ type: 'cg', cmd }); else toast('尚未連上導播台，指令沒有送出'); };
   const ui = TitleUI($('#cgui'), { get: () => S, send });
-  addEventListener('keydown', e => titleHotkey(e, send, () => S));
+  addEventListener('keydown', e => { if (ui.prompterKeysOn() && prompterKeys(e, send, () => S)) return; titleHotkey(e, send, () => S); });
   $('#cgn').onchange = e => store('wc_opname', e.target.value.trim());
   if (!roomKey || !tok) { st('bad', '網址不完整，請跟導播要字幕控制連結'); return; }
   const retry = () => { if (denied) return; clearTimeout(retryT); retryT = setTimeout(dial, 3000); };
@@ -3077,15 +3144,17 @@ function TitleOutput(){
 }
 
 /* 唯讀連線：提詞機、節目時鐘頁共用（用房間金鑰連，和透明輸出一樣不需要控制權限） */
-function titleViewer(roomKey, tag, onState, onStatus){
-  let conn = null, retryT = 0; const retry = () => { clearTimeout(retryT); retryT = setTimeout(dial, 3000); };
+function titleViewer(roomKey, tag, onState, onStatus, tok){
+  const api = { send(){} }; let conn = null, retryT = 0, denied = ''; const retry = () => { clearTimeout(retryT); retryT = setTimeout(dial, 3000); };
   const peer = new Peer(PREFIX + roomKey + '-' + tag + '-' + rnd(8), PEER_OPTS);
   function dial(){ clearTimeout(retryT); if (!peer?.open) return; try { conn?.close(); } catch {} onStatus('連線導播台中…', 'wait');
-    conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'cgout' }, ...CONN_OPTS });
-    conn.on('open', () => onStatus('已連線', 'ok')); conn.on('data', d => { if (d?.type === 'cgState') onState(TitleCore.fromSnapshot(d.s, Date.now())); });
-    conn.on('close', () => { onStatus('導播台離線，重試中…', 'bad'); retry(); }); conn.on('error', retry); }
+    conn = peer.connect(hostPeerId(roomKey), { metadata: tok ? { role: 'cg', t: tok, name: '提詞機' } : { role: 'cgout' }, ...CONN_OPTS });
+    conn.on('open', () => onStatus(denied ? '已連線（' + denied + '，只能看）' : '已連線', denied ? 'wait' : 'ok')); conn.on('data', d => { if (d?.type === 'cgState') onState(TitleCore.fromSnapshot(d.s, Date.now())); if (d?.type === 'deny') { denied = '控制連結無效或已更換'; onStatus(d.error || denied, 'bad'); tok = ''; } });
+    conn.on('close', () => { onStatus(denied && !tok ? denied + '，改成只能看…' : '導播台離線，重試中…', 'bad'); retry(); }); conn.on('error', retry); }
+  api.send = cmd => { if (conn?.open && tok) conn.send({ type: 'cg', cmd }); };
   peer.on('open', dial); peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
   peer.on('error', e => { onStatus(peerErrText(e), 'bad'); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
+  return api;
 }
 /* ===================== 提詞機頁（?mode=prompter）===================== */
 function TitlePrompter(){
@@ -3098,7 +3167,19 @@ function TitlePrompter(){
   setInterval(() => { const k = TitleCore.clock(S, Date.now()); $('#prc').textContent = k.time + (k.segLeft != null ? '　本段剩 ' + TitleCore.fmtSec(k.segLeft) : '') + (k.cur ? '　▶ ' + k.cur.slug : ''); }, 500);
   try { navigator.wakeLock?.request('screen').catch(() => {}); } catch {}
   if (!roomKey) { $('#prs').textContent = '網址不完整'; return; }
-  titleViewer(roomKey, 'pr', s => { S = s; }, (t, c) => { $('#prs').innerHTML = `<span class="dot ${c}"></span>${esc(t)}`; });
+  const tok = String(Q.get('t') || '').replace(/[^0-9a-z]/gi, '').slice(0, 40);
+  const V = titleViewer(roomKey, 'pr', s => { S = s; }, (t, c) => { $('#prs').innerHTML = `<span class="dot ${c}"></span>${esc(t)}`; if (/無效|更換/.test(t)) ctl = false; }, tok);
+  let ctl = !!tok; if (!ctl) return;
+  // 控制模式（網址帶 &t=）：這台可以用鍵盤、簡報筆、遊戲手把、滑鼠滾輪控制捲動
+  $('#prb .note').textContent = '';
+  $('#prb .grow').insertAdjacentHTML('afterend', `<span class="pill">控制模式</span><span id="prsp" class="mono"></span><span id="prpad" class="note"></span><button type="button" class="btn sm" id="prhelp">按鍵說明</button>`);
+  app.insertAdjacentHTML('beforeend', `<div class="prp-help hidden" id="prh"><div><h3>提詞機控制</h3>${prompterHelpHtml()}<p class="note">點任何地方關閉</p></div></div>`);
+  $('#prhelp').onclick = e => { e.stopPropagation(); $('#prh').classList.remove('hidden'); }; $('#prh').onclick = () => $('#prh').classList.add('hidden');
+  const send = cmd => { if (ctl) V.send(cmd); };
+  addEventListener('keydown', e => { if (e.code === 'Slash' && e.shiftKey) { $('#prh').classList.toggle('hidden'); return; } prompterKeys(e, send, () => S); });
+  prompterWheel($('#prv'), send);
+  PrompterPad(send, () => S, () => !document.hidden, n => { $('#prpad').textContent = n ? '🎮 ' + n : ''; });
+  setInterval(() => { const P = S.prompter || {}; $('#prsp').textContent = (P.playing ? '▶ ' : '⏸ ') + (P.speed < 0 ? '倒捲 ' + -P.speed : '速度 ' + (P.speed || 0)); }, 200);
 }
 /* ===================== 節目時鐘頁（?mode=clock）===================== */
 function TitleClock(){
@@ -3240,7 +3321,7 @@ function Host(sess){
     if (titleUi && w.body.contains(titleUi.root)) { titleUi.refresh(); return; }
     titleUi?.destroy(); w.body.innerHTML = ''; const box = document.createElement('div'); w.body.appendChild(box);
     const cloudCall = async body => { const r = await apiCall(Object.assign({ token: sess.token }, body)); if (!r.ok) throw new Error(String(r.error || '雲端操作失敗').replace('SESSION_EXPIRED：', '')); return r; };
-    titleUi = TitleUI(box, { get: () => TS, send: cmd => titleCmd(cmd), canTake: titleCanTake, links: () => ({ ctl: cgCtlUrl(), out: cgOutUrl(), prompter: `${shareBase()}?mode=prompter&o=${roomKey}`, clock: `${shareBase()}?mode=clock&o=${roomKey}` }),
+    titleUi = TitleUI(box, { get: () => TS, send: cmd => titleCmd(cmd), canTake: titleCanTake, links: () => ({ ctl: cgCtlUrl(), out: cgOutUrl(), prompter: `${shareBase()}?mode=prompter&o=${roomKey}`, prompterCtl: `${shareBase()}?mode=prompter&o=${roomKey}&t=${OPTOK.cg}`, clock: `${shareBase()}?mode=clock&o=${roomKey}` }),
       log: { list: () => TLOG, status: () => ({ pending: TLOG.filter(r => !r.up).length, error: tlogErr }), flush: tlogFlush, clear: () => { TLOG.splice(0, TLOG.length); try { localStorage.removeItem(TLOG_KEY); } catch {} } },
       cloud: {
         list: async () => (await cloudCall({ action: 'titleSets' })).sets || [],
@@ -5811,6 +5892,7 @@ function Host(sess){
     if (e.repeat && (e.code === 'KeyT' || e.code === 'KeyA')) return;
     if (ROLE.local === 'view' && e.code !== 'Escape') return;
     if (ROLE.local === 'aud' && !['KeyM', 'KeyL', 'KeyX', 'Escape', 'KeyK', 'Slash'].includes(e.code)) return;
+    if (titleUi?.prompterKeysOn() && prompterKeys(e, titleCmd, () => TS)) return;   // 提詞機分頁使用中：鍵盤／簡報筆改控制提詞機
     if (titleHotkey(e, titleCmd, () => TS, titleCanTake)) return;   // 字幕：. 上字／PgDn → 下一則／PgUp ← 上一則／Delete 下字
     const m = /^Digit(\d)$/.exec(e.code);
     if (m) { const n = +m[1] || 10; const id = order[n - 1]; if (!id) return; e.preventDefault(); if (!UI.sw) setManual(inputs.get(id), e.shiftKey ? 'live' : 'pvw'); else e.shiftKey ? cutTo(id) : setPvw(id); return; }
