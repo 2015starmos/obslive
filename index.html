@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="webcall-version" content="2026.1113.3140">
+<meta name="webcall-version" content="2026.1117.3120">
 <script>
 /* V4 精簡固定版：不載入舊版 wc_pkg，也不自動下載舊企業面板。 */
 (function(){
@@ -6143,10 +6143,12 @@ function Host(sess){
     });
   }
   function start(){
-    peer = new Peer(hostPeerId(roomKey), PEER_OPTS);
-    peer.on('open', () => { idTries = 0; pst('ok', 'ONLINE'); });
-    peer.on('disconnected', () => { if (ended) return; pst('wait', '訊號伺服器重連中'); setTimeout(() => !peer.destroyed && peer.reconnect(), 2000); });
+    const currentPeer=peer=new Peer(hostPeerId(roomKey),PEER_OPTS);
+    peer.on('open',()=>{if(peer!==currentPeer||ended)return;idTries=0;pst('ok','ONLINE');});
+    peer.on('disconnected',()=>{if(ended||peer!==currentPeer)return;pst('wait','訊號伺服器重連中');setTimeout(()=>{if(!ended&&peer===currentPeer&&!currentPeer.destroyed&&currentPeer.disconnected){try{currentPeer.reconnect();}catch{pst('bad','訊號伺服器重連失敗');}}},2000);});
+    setTimeout(()=>{if(!ended&&peer===currentPeer&&!currentPeer.open)pst('bad','訊號伺服器連線逾時（尚未 ONLINE）');},15000);
     peer.on('error', e => {
+      if(peer!==currentPeer||ended)return;
       if (e.type === 'unavailable-id') {
         peer.destroy(); if (ended) return;
         // 重新整理時舊連線還沒釋放：等幾秒重試；一直被占用＝其他導播台正在使用這組邀請代碼
@@ -8604,7 +8606,7 @@ function GuestMain(inv, roomKey){
       ${t('mvid', 'film', filePlaying ? '影片播放中' : '播放影片', filePlaying, !ctl.allowVideo)}${t('mbeauty', 'sparkle', '美顏', fx.beauty.on)}
       ${t('mgd', 'grid', GUIDE_NAMES[guides].replace('對齊線：', '對齊線 '), !!guides)}${t('mpip', 'pip', '子母畫面')}
       ${t('mtorch', 'torch', torchOn ? '手電筒開' : '手電筒', torchOn, !torchCap)}${t('mchat', 'chat', '傳訊息')}
-      ${t('mzoom', 'zoom', zoom.value.toFixed(1) + '× 變焦')}${t('msave', 'torch', saver ? '省電中' : '省電模式', saver)}${t('mset', 'gear', '設定')}</div>
+      ${t('mzoom', 'zoom', zoom.value.toFixed(1) + '× 變焦')}${t('msave', 'torch', saver ? '省電中' : '省電模式', saver)}${t('mset', 'gear', '設定')}${t('mnet','gear','連線診斷')}</div>
       <div class="tip">雙指縮放＝變焦（${zoom.hw ? '鏡頭硬體' : '數位'} ${zoom.min}×～${zoom.max}×），點兩下回到 1×。</div>`, sh => {
       $('#mflip', sh).onclick = () => { flip(); closeSheet(); };
       $('#mshare', sh).onclick = sheetShare;
@@ -8615,7 +8617,7 @@ function GuestMain(inv, roomKey){
       $('#mtorch', sh).onclick = () => { setTorch(!torchOn); setTimeout(sheetMore, 200); };
       $('#mchat', sh).onclick = sheetChat;
       $('#mzoom', sh).onclick = () => setZoom(1);
-      $('#mset', sh).onclick = sheetSettings;
+      $('#mset', sh).onclick = sheetSettings;$('#mnet',sh).onclick=guestConnectionDiagnostics;
       $('#msave', sh).onclick = () => { setSaver(!saver); sheetMore(); };
     });
   }
@@ -8980,32 +8982,45 @@ function GuestMain(inv, roomKey){
 
   /* ---------- 連線 ---------- */
   async function keepAwake(){ try { if (joined && 'wakeLock' in navigator && !document.hidden) wake = await navigator.wakeLock.request('screen'); } catch {} }
-  function connect(){
-    clearTimeout(retryT);
-    if (!joined) return;
-    st('wait', '連線中…');
-    if (!peer || peer.destroyed) {
-      peer = new Peer(PREFIX + roomKey + '-g-' + rnd(8), PEER_OPTS);
-      peer.on('open', dial);
-      peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
-      peer.on('error', e => { st('bad', peerErrText(e)); if (e.type === 'peer-unavailable' || e.type === 'network') retry(); });
-    } else if (peer.open) dial();
+  let gConnectTimer=null,gMediaTimer=null,gAttempt=0,gPhase='preview';
+  const gEvents=[];
+  function gLog(stage,error){gPhase=stage;gEvents.unshift({at:new Date().toISOString(),stage,error:error?String(error).slice(0,160):''});gEvents.length=Math.min(gEvents.length,20);}
+  function guestNetSnapshot(){return {build:BUILD,stage:gPhase,attempts:gAttempt,joined,signal:{open:!!peer?.open,disconnected:!!peer?.disconnected,destroyed:!!peer?.destroyed},data:{open:!!conn?.open,ice:conn?.peerConnection?.iceConnectionState||'not-created'},media:{state:call?.peerConnection?.connectionState||'not-created',ice:call?.peerConnection?.iceConnectionState||'not-created'},turnConfigured:CONFIG.ICE_SERVERS.some(s=>[].concat(s.urls||[]).some(u=>/^turns?:/.test(u))),events:gEvents.slice()};}
+  async function guestConnectionDiagnostics(){
+    const d=guestNetSnapshot();let room;
+    try{room=await Promise.race([roomOpen(roomKey),new Promise(resolve=>setTimeout(()=>resolve({unknown:true}),4000))]);}catch{room={unknown:true};}
+    d.room=room.unknown?'後端狀態未確認':room.open?'後端心跳顯示房間開啟':'後端心跳顯示房間未開啟';
+    const text=JSON.stringify(d,null,2);
+    uiModal(`<h2>連線診斷</h2><p>本機相機正常，不等於已接通導播。以下顯示版本、連線階段與錯誤，方便判斷卡在哪一步。</p><textarea readonly class="field" rows="12" style="width:100%">${esc(text)}</textarea><div class="acts"><button class="btn" data-close>關閉</button><button class="btn primary" id="gnetcopy">複製診斷</button><button class="btn" id="gnetretry">重新連線</button></div>`,(m,close)=>{ $('#gnetcopy',m).onclick=()=>copyText(text);$('#gnetretry',m).onclick=()=>{close();if(joined){const old=conn;conn=null;try{old?.close();}catch{}connect();}}; });
   }
-  function retry(){ clearTimeout(retryT); if (joined) retryT = setTimeout(connect, 3000); }
+  function connect(){
+    clearTimeout(retryT);clearTimeout(gConnectTimer);
+    if(!joined)return;
+    if(conn?.open)return;
+    gAttempt++;gLog('signaling');st('wait','連接訊號伺服器…');
+    if(!peer||peer.destroyed){
+      const p=peer=new Peer(PREFIX+roomKey+'-g-'+rnd(8),PEER_OPTS);
+      p.on('open',()=>{if(peer===p&&joined){clearTimeout(gConnectTimer);gLog('signaling-ready');dial();}});
+      p.on('disconnected',()=>{if(peer!==p||!joined)return;gLog('signaling-disconnected');st('wait','訊號伺服器已中斷，重連中…');retry();});
+      p.on('error',e=>{if(peer!==p||!joined)return;gLog('signal-error',e.type||e.message);st('bad',peerErrText(e));if(['peer-unavailable','network','socket-error','socket-closed','server-error','disconnected','webrtc'].includes(e.type))retry();});
+    }else if(peer.open){dial();return;}
+    else if(peer.disconnected){try{peer.reconnect();}catch(e){gLog('reconnect-error',e.message);retry();}}
+    const p=peer;
+    gConnectTimer=setTimeout(()=>{if(!joined||peer!==p||p.open)return;gLog('signal-timeout');st('bad','訊號伺服器逾時，正在重試');peer=null;try{p.destroy();}catch{}retry();},12000);
+  }
+  function retry(){clearTimeout(retryT);if(joined)retryT=setTimeout(connect,3000);}
   function dial(){
-    const hid = hostPeerId(roomKey), name = of ? '第二機位' : (store('wc_name') || '來賓');
-    try { conn?.close(); } catch {} try { call?.close(); } catch {}
-    conn = peer.connect(hid, { metadata: { role: 'guest', name, cid, of: of || undefined }, ...CONN_OPTS });
-    conn.on('open', () => {
-      makeCall();
-      startQuality();
-      st('ok', '已連線');
-      $('#tally').classList.remove('hidden');
-      sendState();
-    });
-    conn.on('data', d => onData(d));
-    conn.on('close', () => { if (joined) { st('wait', '與導播台中斷，重新連線中…'); $('#tally').classList.add('hidden'); showIntercom(false); tallyState = 'off'; paintFrame(); retry(); } });
-    conn.on('error', () => joined && retry());
+    if(!joined||!peer?.open)return;
+    clearTimeout(gConnectTimer);clearTimeout(retryT);
+    const hid=hostPeerId(roomKey),name=of?'第二機位':(store('wc_name')||'來賓');
+    const old=conn;conn=null;try{old?.close();}catch{}const oldCall=call;call=null;try{oldCall?.close();}catch{}
+    gLog('data-handshake');st('wait','尋找導播台／建立資料通道…');
+    const connection=conn=peer.connect(hid,{metadata:{role:'guest',name,cid,of:of||undefined},...CONN_OPTS});
+    gConnectTimer=setTimeout(()=>{if(!joined||conn!==connection||connection.open)return;gLog('data-timeout',connection.peerConnection?.iceConnectionState||'no-ice');st('bad','導播資料通道逾時；請確認導播 ONLINE，或查看「更多→連線診斷」');conn=null;try{connection.close();}catch{}retry();},15000);
+    connection.on('open',()=>{if(!joined||conn!==connection)return;clearTimeout(gConnectTimer);clearTimeout(retryT);gLog('data-ready');st('wait','控制已連線，正在接通影音…');makeCall();startQuality();$('#tally').classList.remove('hidden');sendState();});
+    connection.on('data',d=>{if(conn===connection&&joined)onData(d);});
+    connection.on('close',()=>{if(!joined||conn!==connection)return;clearTimeout(gConnectTimer);conn=null;gLog('data-closed');st('wait','與導播台中斷，重新連線中…');$('#tally').classList.add('hidden');showIntercom(false);tallyState='off';paintFrame();retry();});
+    connection.on('error',e=>{if(!joined||conn!==connection)return;clearTimeout(gConnectTimer);gLog('data-error',e?.type||e?.message);st('bad','資料通道錯誤，正在重試');conn=null;try{connection.close();}catch{}retry();});
   }
   function redial(){ if (!conn?.open) return; try { call?.close(); } catch {} setTimeout(makeCall, 300); }
   function makeCall(){
@@ -9017,9 +9032,12 @@ function GuestMain(inv, roomKey){
       Object.keys(sentTracks).forEach(k => { if (!sentTracks[k]) delete sentTracks[k]; });
       SND = null;
       const out = new MediaStream(Object.values(sentTracks));
-      call = peer.call(hid, out, { metadata: { role: 'guest', name, atracks: { pgm: sentTracks.pgm?.id, ic: sentTracks.ic?.id, media: mix.track.id } } });
+      const mediaCall=call=peer.call(hid,out,{metadata:{role:'guest',name,atracks:{pgm:sentTracks.pgm?.id,ic:sentTracks.ic?.id,media:mix.track.id}}});
+      gLog('media-handshake');clearTimeout(gMediaTimer);gMediaTimer=setTimeout(()=>{if(!joined||call!==mediaCall)return;const pc=mediaCall.peerConnection;if(pc?.connectionState==='connected')return;gLog('media-timeout',pc?.iceConnectionState||'no-ice');st('bad','影音協商逾時；請查看連線診斷（可能需要 TURN 中繼）');},15000);
+      mediaCall.peerConnection?.addEventListener?.('connectionstatechange',()=>{if(!joined||call!==mediaCall)return;const state=mediaCall.peerConnection.connectionState;if(state==='connected'){clearTimeout(gMediaTimer);gLog('connected');st('ok','已連線');}else if(state==='failed'){clearTimeout(gMediaTimer);gLog('media-failed',mediaCall.peerConnection.iceConnectionState);st('bad','影音連線失敗；可從更多功能重新連線');}});
       syncSenders();
-      call.on('stream', s => {
+      mediaCall.on('stream', s => {
+        if(!joined||call!==mediaCall)return;clearTimeout(gMediaTimer);gLog('connected');st('ok','已連線');
         retA.srcObject = new MediaStream(s.getAudioTracks()); ensureRetPlaying();
         retMeter = streamMeter(new MediaStream(s.getAudioTracks()));
         try { retScope = s.getAudioTracks().length ? makeScope(audioCtx().createMediaStreamSource(new MediaStream(s.getAudioTracks()))) : null; } catch { retScope = null; }
@@ -9029,8 +9047,8 @@ function GuestMain(inv, roomKey){
         retV.onresize = retUpd; setTimeout(retUpd, 1500);
         setTimeout(() => { if (retA.paused) $('#gau').classList.remove('hidden'); }, 2000);
       });
-      call.on('error', () => {});
-      setTimeout(() => setBitrate(call?.peerConnection, QUALITY[tier].kbps), 1500);
+      mediaCall.on('error',e=>{if(!joined||call!==mediaCall)return;clearTimeout(gMediaTimer);gLog('media-error',e?.type||e?.message);st('bad','影音連線錯誤；請查看連線診斷');});
+      setTimeout(() => {if(call===mediaCall)setBitrate(mediaCall.peerConnection,QUALITY[tier].kbps);},1500);
     }
   }
   function onData(d){
@@ -9079,7 +9097,7 @@ function GuestMain(inv, roomKey){
   function leave(msg){
     try { conn?.open && conn.send({ type: 'bye' }); } catch {}
     stopCC();
-    joined = false; clearTimeout(retryT); clearInterval(statT);
+    joined = false; clearTimeout(retryT);clearTimeout(gConnectTimer);clearTimeout(gMediaTimer);gLog('left'); clearInterval(statT);
     try { conn?.close(); } catch {} try { call?.close(); } catch {} try { peer?.destroy(); } catch {}
     peer = null; call = null; conn = null; wake?.release?.().catch(() => {});
     stopShare(); if (filePlaying) stopVideo();
@@ -9140,7 +9158,7 @@ function GuestMain(inv, roomKey){
   tier = initialTier();
   sheetJoin();
   getMedia().then(() => st('', '預覽中')).catch(e => { st('bad', '無法開啟相機／麥克風'); toast(e.message); });
-  window.__guest = { get aud(){ return { AUD, rawMode, pgm: pgmSend(), ic: icSend() }; }, get mix(){ return ensureMix(); }, setIcMutesPgm, setMonMedia, setRetMute, setVideoAudio, setPgmMic, setIcMic, fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
+  window.__guest = { connectionDiagnostics:guestNetSnapshot, get aud(){ return { AUD, rawMode, pgm: pgmSend(), ic: icSend() }; }, get mix(){ return ensureMix(); }, setIcMutesPgm, setMonMedia, setRetMute, setVideoAudio, setPgmMic, setIcMic, fx, get state(){ return stateObj(); }, setZoom, applyBeauty, applyBg, get zoom(){ return zoom; }, retA, get tier(){ return tier; } };
 }
 /* ===================== 首頁：導播登入 → 房間代碼 → 來賓邀請代碼 ===================== */
 function Home(msg){
