@@ -597,7 +597,7 @@ table.mtx td.bad{color:#ff8a8a}
 body.opp{overflow:auto}
 .op{min-height:100vh;display:flex;flex-direction:column}
 .op header{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#0e1116;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.oprole{font-weight:700}.oprole.r-dir{background:var(--live);color:#fff;border-color:var(--live)}.oprole.r-aud{background:var(--warn);color:#1a1200;border-color:var(--warn)}
+.oprole{font-weight:700}.oprole.r-dir{background:var(--live);color:#fff;border-color:var(--live)}.oprole.r-aud{background:var(--warn);color:#1a1200;border-color:var(--warn)}.oprole.r-td{background:#7c3aed;color:#fff;border-color:#7c3aed}.oprole.r-ad{background:#0ea5e9;color:#04121a;border-color:#0ea5e9}.oprole.r-fd{background:#22c55e;color:#04140a;border-color:#22c55e}.oprole.r-ae{background:#64748b;color:#fff;border-color:#64748b}
 .opmain{flex:1;display:grid;grid-template-columns:minmax(320px,1.2fr) minmax(320px,1fr);gap:12px;padding:12px}
 @media (max-width:900px){.opmain{grid-template-columns:1fr}}
 .opvbox{position:relative;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden;border:1px solid var(--line2)}
@@ -6568,7 +6568,14 @@ function Host(sess){
    * =================================================================================== */
   // ---------- 權限（這台導播台的角色；遠端操作員另外用連結驗證） ----------
   const ROLE = { local: 'dir', bypass: false };
-  const ROLE_NAME = { dir: '導播', aud: '音控', view: '監看員' };
+  const ROLE_NAME = { dir: '導播', td: 'TD 技術導播', ad: 'AD 助理導播', fd: 'FD 現場指導', ae: 'AE 助理工程', aud: '音控', view: '監看員' };
+  // 遠端操作員的角色與權限（導播可在 OPERATORS 視窗勾選調整，存在這台電腦）
+  const OPROLES = ['dir', 'td', 'ad', 'fd', 'ae', 'aud', 'view'];
+  const OPCAP_KEYS = [['sw', '切換 PGM（TAKE／CUT／AUTO／FTB）'], ['pvw', '預備 PVW'], ['aux', 'AUX 母線'], ['gfx', '圖層／字幕條／圖庫'], ['scene', '場景'], ['audio', '聲音（推桿／靜音／母線）'], ['cue', '提示導播（Cue）']];
+  const OPCAP_DEF = { dir: 'sw pvw aux gfx scene audio cue', td: 'sw pvw aux gfx scene cue', ad: 'pvw gfx cue', fd: 'cue', ae: 'aux audio cue', aud: 'audio cue', view: '' };
+  const OPCAPS = (() => { let saved = {}; try { saved = JSON.parse(store('wc_opcaps') || '{}') || {}; } catch {} const out = {}; OPROLES.forEach(r => { out[r] = {}; OPCAP_KEYS.forEach(([k]) => { out[r][k] = r === 'dir' ? true : typeof saved[r]?.[k] === 'boolean' ? saved[r][k] : OPCAP_DEF[r].split(' ').includes(k); }); }); return out; })();
+  const OPNEED = { take: 'sw', cut: 'sw', auto: 'sw', ftb: 'sw', pvw: 'pvw', auxpvw: 'aux', auxtake: 'aux', ov: 'gfx', still: 'gfx', scene: 'scene', laytake: 'scene', fader: 'audio', mute: 'audio', solo: 'audio', afv: 'audio', bus: 'audio', dly: 'audio', asnap: 'audio', cue: 'cue' };
+  const CUELOG = [];
   function canSw(){ return opsLocalAllowed('switcher') && (ROLE.local === 'dir' || ROLE.bypass); }
   function canAud(){ return opsLocalAllowed('audio') && (ROLE.local !== 'view' || ROLE.bypass); }
   function roleDeny(){ toast(ROLE.local === 'aud' ? '目前是「音控」權限：只能調整聲音，不能切換畫面' : '目前是「監看員」權限：只能看畫面'); }
@@ -7296,10 +7303,10 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
 
   // ---------- 多操作員：導播（可切換）／音控（只能調聲音）／監看員（唯讀） ----------
   const OPS = new Set();
-  const OPTOK = (() => { const k = 'wc_optok'; let t = null; try { t = JSON.parse(sstore(k) || 'null'); } catch {} if (!t?.dir) { t = { dir: rnd(14), aud: rnd(14), view: rnd(14) }; sstore(k, JSON.stringify(t)); } if (!t.cg) { t.cg = rnd(14); sstore(k, JSON.stringify(t)); } if (!t.pr) { t.pr = rnd(14); sstore(k, JSON.stringify(t)); } return t; })();
+  const OPTOK = (() => { const k = 'wc_optok'; let t = null; try { t = JSON.parse(sstore(k) || 'null'); } catch {} if (!t?.dir) { t = { dir: rnd(14), aud: rnd(14), view: rnd(14) }; sstore(k, JSON.stringify(t)); } if (!t.cg) { t.cg = rnd(14); sstore(k, JSON.stringify(t)); } if (!t.pr) { t.pr = rnd(14); sstore(k, JSON.stringify(t)); } let add = false; ['td', 'ad', 'fd', 'ae'].forEach(r2 => { if (!t[r2]) { t[r2] = rnd(14); add = true; } }); if (add) sstore(k, JSON.stringify(t)); return t; })();
   const opUrl = r => `${shareBase()}?mode=op&o=${roomKey}&r=${r}&t=${OPTOK[r]}`;
   function acceptOp(conn, md){
-    const r = ['dir', 'aud', 'view'].find(k => k === md.r && String(md.t || '') === OPTOK[k]);
+    const r = OPROLES.find(k => k === md.r && String(md.t || '') === OPTOK[k]);
     const go = () => {
       if (!r) { conn.send({ type: 'deny', error: '操作員連結無效或已經更換，請跟導播要新的連結' }); setTimeout(() => conn.close(), 400); return; }
       const o = { conn, r, name: String(md.name || '操作員').slice(0, 20), calls: new Map(), t: Date.now() }; OPS.add(o);
@@ -7313,7 +7320,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   const opState = () => ({ type: 'opState', sw: UI.sw, pgm: SW.pgm, pvw: SW.pvw, ftb: SW.ftbOn, trans: SW.type,
     inputs: order.map(id => { const x = inputs.get(id); return { id, n: numOf(x), name: x.name, kind: x.kind, tally: x.tally, fader: x.fader, mute: x.mute, solo: !!x.solo, afv: x.afv !== false, bus: x.bus, dly: x.dly || 0, lost: !!x.lost }; }),
     aux: AUX.map(a => ({ name: a.name, mode: a.mode, pgm: a.pgm, pvw: a.pvw })), stills: STILLS.map(x => ({ n: x.slot, name: x.name, has: !!x.img, on: x.on })), ov: Object.fromEntries(OVK.map(k => [k, OV[k].on])) });
-  function opSend(o){ try { o.conn.open && o.conn.send(opState()); } catch {} }
+  function opSend(o){ try { o.conn.open && o.conn.send({ ...opState(), caps: OPCAPS[o.r] }); } catch {} }
   let opBT = 0; function opBroadcast(){ if (!OPS.size) return; clearTimeout(opBT); opBT = setTimeout(() => OPS.forEach(opSend), 60); }
   setInterval(() => { if (ended || !OPS.size) return; OPS.forEach(opSend); }, 1000);
   setInterval(() => {   // 音量表 10 次／秒
@@ -7332,8 +7339,9 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
       setTimeout(() => setBitrate(c.peerConnection, what === 'mv' ? 2500 : 3500), 1500); return;
     }
     const AUDK = ['fader', 'mute', 'solo', 'afv', 'bus', 'dly', 'asnap'], SWK = ['pvw', 'cut', 'auto', 'ftb', 'take', 'auxpvw', 'auxtake', 'ov', 'still', 'scene', 'laytake'];
-    if (AUDK.includes(d.type) && o.r === 'view') return o.conn.send({ type: 'deny2', error: '監看員只能看畫面' });
-    if (SWK.includes(d.type) && o.r !== 'dir') return o.conn.send({ type: 'deny2', error: o.r === 'aud' ? '音控不能切換畫面' : '監看員只能看畫面' });
+    const need = OPNEED[d.type] || (AUDK.includes(d.type) ? 'audio' : SWK.includes(d.type) ? 'sw' : null);
+    if (need && !OPCAPS[o.r]?.[need]) return o.conn.send({ type: 'deny2', error: `${ROLE_NAME[o.r]}沒有「${OPCAP_KEYS.find(x => x[0] === need)[1]}」權限` });
+    if (d.type === 'cue') { const text = String(d.text || '').trim().slice(0, 60); if (!text) return; CUELOG.unshift({ t: Date.now(), r: o.r, name: o.name, text }); CUELOG.length = Math.min(CUELOG.length, 30); toast(`📣 ${ROLE_NAME[o.r]}「${o.name}」：${text}`); softRender('ops'); return; }
     const x = inputs.get(d.id);
     ROLE.bypass = true;
     try {
@@ -7366,15 +7374,17 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     w.body.innerHTML = `<div class="wsec"><h4>這台導播台的權限（防誤觸鎖定）</h4><div class="row">${['dir', 'aud', 'view'].map(r => `<button class="btn sm grow ${ROLE.local === r ? 'on' : ''}" data-lr="${r}">${ROLE_NAME[r]}</button>`).join('')}</div>
         <div class="note">${esc(desc[ROLE.local])}。例如導播暫時離開位置、交給音控同事時，鎖成「音控」就不會誤切畫面。</div></div>
       <div class="wsec"><h4>遠端操作員連結 <span>對方用瀏覽器打開即可，不用帳號</span></h4>
-        ${['dir', 'aud', 'view'].map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><span class="note" style="margin:0">${esc(desc[r])}</span><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button></div></div>`).join('')}
+        ${OPROLES.map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><div class="row" style="flex-wrap:wrap;gap:4px 12px;margin:2px 0 4px">${r === 'dir' ? '<span class="note" style="margin:0">全部功能（固定）</span>' : OPCAP_KEYS.map(([k, n]) => `<label class="note" style="margin:0;display:inline-flex;gap:4px;align-items:center;cursor:pointer"><input type="checkbox" data-cap="${r}:${k}" ${OPCAPS[r][k] ? 'checked' : ''}>${n}</label>`).join('')}</div><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button></div></div>`).join('')}
         <div class="row" style="margin-top:6px"><button class="btn sm danger" id="oprst">更換所有連結（含字幕控制、提詞控制；踢掉目前的操作員）</button></div>
         <div class="note">連結只有這次導播有效；重新開導播台或更換邀請代碼後，請重新複製。請只給信任的同事。</div></div>
-      <div class="wsec"><h4>目前連線的操作員 <span>${OPS.size} 位</span></h4>${[...OPS].map(o => `<div class="row" style="margin:3px 0"><span class="tag ${o.r === 'dir' ? 'live' : o.r === 'aud' ? 'pvwt' : 'info'}">${ROLE_NAME[o.r]}</span><span class="grow">${esc(o.name)} <span class="note" style="margin:0">${fmtTime(o.t)} 連線${o.calls.size ? ' · 看 ' + [...o.calls.keys()].join(',').toUpperCase() : ''}</span></span><button class="btn sm danger" data-ok="${o.t}">中斷</button></div>`).join('') || '<div class="note">沒有</div>'}</div>`;
+      <div class="wsec"><h4>目前連線的操作員 <span>${OPS.size} 位</span></h4>${[...OPS].map(o => `<div class="row" style="margin:3px 0"><span class="tag ${o.r === 'dir' ? 'live' : o.r === 'aud' ? 'pvwt' : 'info'}">${ROLE_NAME[o.r]}</span><span class="grow">${esc(o.name)} <span class="note" style="margin:0">${fmtTime(o.t)} 連線${o.calls.size ? ' · 看 ' + [...o.calls.keys()].join(',').toUpperCase() : ''}</span></span><button class="btn sm danger" data-ok="${o.t}">中斷</button></div>`).join('') || '<div class="note">沒有</div>'}</div>
+      <div class="wsec"><h4>操作員提示（Cue） <span>最近 ${CUELOG.length} 則</span></h4>${CUELOG.slice(0, 12).map(c => `<div class="row" style="margin:3px 0"><span class="mono note" style="margin:0">${fmtTime(c.t)}</span><span class="tag info">${esc(ROLE_NAME[c.r])}</span><span class="grow">${esc(c.name)}：<b>${esc(c.text)}</b></span></div>`).join('') || '<div class="note">FD／AD 等操作員按「提示導播」時會顯示在這裡，並跳出通知。</div>'}</div>`;
     const B = w.body;
+    $$('[data-cap]', B).forEach(c => c.onchange = () => { const [r, k] = c.dataset.cap.split(':'); OPCAPS[r][k] = c.checked; store('wc_opcaps', JSON.stringify(OPCAPS)); OPS.forEach(opSend); toast(`已更新${ROLE_NAME[r]}權限，立即生效`); });
     $$('[data-lr]', B).forEach(b => b.onclick = () => setLocalRole(b.dataset.lr));
     $$('[data-ou]', B).forEach(b => b.onclick = () => copyText(opUrl(b.dataset.ou), `已複製${ROLE_NAME[b.dataset.ou]}連結`));
     $$('[data-oq]', B).forEach(b => b.onclick = () => uiModal(`<h2>${ROLE_NAME[b.dataset.oq]}連結</h2><div class="qr" id="opqr" style="justify-self:center"></div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m => qr($('#opqr', m), opUrl(b.dataset.oq), 220)));
-    $('#oprst', B).onclick = async () => { if (!(await uiConfirm('更換操作員連結', '目前連線的操作員都會被中斷，舊連結會失效。', '更換'))) return; ['dir', 'aud', 'view', 'cg', 'pr'].forEach(k => OPTOK[k] = rnd(14)); sstore('wc_optok', JSON.stringify(OPTOK)); OPS.forEach(o => { try { o.conn.send({ type: 'deny', error: '導播已更換操作員連結' }); o.conn.close(); } catch {} }); CGC.forEach(c => { if (c.kind !== 'out') try { c.conn.send({ type: 'deny', error: '導播已更換字幕／提詞控制連結' }); c.conn.close(); } catch {} }); renderOps(); try { titleUi?.refresh(); } catch {} toast('已更換操作員、字幕控制、提詞控制連結'); };
+    $('#oprst', B).onclick = async () => { if (!(await uiConfirm('更換操作員連結', '目前連線的操作員都會被中斷，舊連結會失效。', '更換'))) return; [...OPROLES, 'cg', 'pr'].forEach(k => OPTOK[k] = rnd(14)); sstore('wc_optok', JSON.stringify(OPTOK)); OPS.forEach(o => { try { o.conn.send({ type: 'deny', error: '導播已更換操作員連結' }); o.conn.close(); } catch {} }); CGC.forEach(c => { if (c.kind !== 'out') try { c.conn.send({ type: 'deny', error: '導播已更換字幕／提詞控制連結' }); c.conn.close(); } catch {} }); renderOps(); try { titleUi?.refresh(); } catch {} toast('已更換操作員、字幕控制、提詞控制連結'); };
     $$('[data-ok]', B).forEach(b => b.onclick = () => { const o = [...OPS].find(x => String(x.t) === b.dataset.ok); if (o) { try { o.conn.send({ type: 'deny', error: '導播中斷了你的連線' }); o.conn.close(); } catch {} } });
   }
 
@@ -9439,15 +9449,15 @@ function Output(){
 
 /* ===================== 遠端操作員（導播／音控／監看員） ===================== */
 function Operator(){
-  const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), R = ['dir', 'aud', 'view'].includes(Q.get('r')) ? Q.get('r') : 'view', tok = Q.get('t') || '';
-  const RN = { dir: '導播', aud: '音控', view: '監看員' };
+  const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), R = ['dir', 'td', 'ad', 'fd', 'ae', 'aud', 'view'].includes(Q.get('r')) ? Q.get('r') : 'view', tok = Q.get('t') || '';
+  const RN = { dir: '導播', td: 'TD 技術導播', ad: 'AD 助理導播', fd: 'FD 現場指導', ae: 'AE 助理工程', aud: '音控', view: '監看員' };
   document.body.className = 'opp';
   const views = [['mv', 'MULTIVIEW'], ['pgm', 'PGM 節目'], ['pvw', 'PREVIEW'], ['clean', 'CLEAN'], ['aux1', 'AUX 1'], ['aux2', 'AUX 2'], ['aux3', 'AUX 3'], ['aux4', 'AUX 4']];
   app.innerHTML = `<div class="op">
     <header>${brand()}<span class="pill oprole r-${R}">${RN[R]}</span><b id="opl" class="grow"></b><span class="pill" id="ops"><span class="dot wait"></span>連線中</span>
       <input class="field sm" id="opn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:120px"></header>
-    <div class="opmain"><section class="opv"><div class="row" style="padding:6px 0"><select class="field sm" id="opw">${views.map(([k, n]) => `<option value="${k}" ${k === (R === 'aud' ? 'pgm' : 'mv') ? 'selected' : ''}>${n}</option>`).join('')}</select>
-        <label class="note" style="margin:0"><input type="checkbox" id="opa" ${R === 'aud' ? 'checked' : ''}> 聽聲音</label><span class="grow"></span><span class="note" style="margin:0" id="opsrc"></span></div>
+    <div class="opmain"><section class="opv"><div class="row" style="padding:6px 0"><select class="field sm" id="opw">${views.map(([k, n]) => `<option value="${k}" ${k === (['aud', 'fd', 'ae'].includes(R) ? 'pgm' : 'mv') ? 'selected' : ''}>${n}</option>`).join('')}</select>
+        <label class="note" style="margin:0"><input type="checkbox" id="opa" ${['aud', 'ae'].includes(R) ? 'checked' : ''}> 聽聲音</label><span class="grow"></span><span class="note" style="margin:0" id="opsrc"></span></div>
         <div class="opvbox"><video id="opvid" autoplay playsinline muted></video><div class="opnov" id="opnov">等待畫面…</div></div>
         ${R !== 'view' ? '<div class="busm" id="opbus"></div>' : ''}</section>
       <section class="opc" id="opc"><div class="note">連線中…</div></section></div></div>`;
@@ -9461,13 +9471,20 @@ function Operator(){
   const lvPct = d => clamp((d + 60) / 60, 0, 1) * 100;
   function render(){
     if (!S) return;
-    const ns = opPage + '|' + Math.floor((C.clientWidth || innerWidth) / 80) + '|' + R + '|' + S.sw + '|' + S.inputs.map(x => x.id + x.name).join(',') + '|' + S.aux.map(a => a.name + a.mode).join(',') + '|' + S.stills.map(x => x.has).join('');
+    const ns = opPage + '|' + Math.floor((C.clientWidth || innerWidth) / 80) + '|' + R + '|' + JSON.stringify(S.caps || {}) + '|' + S.sw + '|' + S.inputs.map(x => x.id + x.name).join(',') + '|' + S.aux.map(a => a.name + a.mode).join(',') + '|' + S.stills.map(x => x.has).join('');
     if (ns !== sig) { sig = ns; build(); }
     patch();
   }
   function build(){
-    const IN = S.inputs;
-    if (R === 'dir') {
+    const IN = S.inputs, K = S.caps || { dir: { sw: 1, pvw: 1, aux: 1, gfx: 1, scene: 1, audio: 1 }, aud: { audio: 1 } }[R] || {};
+    const consoleOn = !!(K.sw || K.pvw || K.gfx || K.aux || K.scene);
+    const mixHtml = () => `<div class="mixer opmix">${IN.map(x => `<div class="strip" data-id="${x.id}"><span class="num">${x.n}</span><div class="nm" title="${esc(x.name)}">${esc(x.name)}</div>
+          <div class="fwrap"><div class="vu"><i data-lv></i></div><input type="range" min="0" max="150" data-f></div><span class="db" data-db></span>
+          <button class="mb mute" data-m>MUTE</button><button class="mb solo" data-s>SOLO</button><button class="mb" data-a>AFV</button>
+          <button class="mb" data-b="pgm">PGM</button>${S.aux.map((a, i) => `<button class="mb" data-b="aux${i + 1}" title="AUX ${i + 1} ${esc(a.name)}"></button>`).join('')}<button class="mb" data-b="ifb">IFB</button>
+          <input type="number" class="field sm" min="0" max="1500" step="10" data-d title="延遲補償（毫秒）" style="width:100%"></div>`).join('') || '<div class="note">還沒有來源</div>'}</div>
+        <div class="wsec" style="margin-top:8px"><h4>音頻快照</h4><div class="row" style="flex-wrap:wrap">${Array.from({ length: 8 }, (_, i) => `<button class="btn sm" data-as="${i}">A${i + 1}</button>`).join('')}</div><div class="note">快照在導播台的「音頻矩陣」儲存。</div></div>`;
+    if (consoleOn) {
       const per = Math.max(1, Math.floor(((C.clientWidth || innerWidth) - 68) / 92) - 1), pages = Math.max(1,Math.ceil(IN.length/per));
       opPage = Math.max(0,Math.min(opPage,pages-1));
       const rowKeys = (bus) => `<button type="button" class="cc-key cc-black" data-${bus}="" ${S.sw ? '' : 'disabled'}><b>BLK</b><small>黑畫面</small></button>` + IN.slice(opPage*per,(opPage+1)*per).map(x => `<button type="button" class="cc-key" data-${bus}="${esc(x.id)}"><b>${x.n}</b><small>${esc(x.name)}</small></button>`).join('');
@@ -9475,16 +9492,24 @@ function Operator(){
         <div class="wsec"><h4>圖層／圖庫</h4><div class="row" style="flex-wrap:wrap">${[['lt', '字幕條'], ['tk', '跑馬燈'], ['bn', '突發'], ['bug', '台標'], ['cc', 'CC'], ['tm', '倒數']].map(([k, n]) => `<button class="dsk" data-ov="${k}"><span class="led"></span>${n}</button>`).join('')}${S.stills.filter(x => x.has).map(x => `<button class="dsk" data-st="${x.n}"><span class="led"></span>S${x.n}</button>`).join('')}</div></div>
         <div class="wsec"><h4>AUX 母線</h4>${S.aux.map((a, i) => `<div class="row" style="margin:4px 0"><b style="width:90px">AUX ${i + 1}<br><small class="note" style="margin:0">${esc(a.name)}</small></b>${a.mode === 'src' ? `<select class="field sm grow" data-ap="${i}"><option value="">PVW：黑畫面</option>${IN.map(x => `<option value="${x.id}">PVW：${x.n}. ${esc(x.name)}</option>`).join('')}</select><span class="note" style="margin:0" data-apg="${i}"></span><button class="tbtn cut" data-at="${i}" style="height:34px">TAKE</button>` : `<span class="note grow" style="margin:0">跟著 ${esc(a.mode.toUpperCase())}</span>`}</div>`).join('')}</div>
         <div class="wsec"><h4>場景</h4><div class="row" style="flex-wrap:wrap">${Array.from({ length: 12 }, (_, i) => `<button class="btn sm" data-sc="${i}">F${i + 1}</button>`).join('')}</div></div>`;
-    } else if (R === 'aud') {
-      C.innerHTML = `<div class="mixer opmix">${IN.map(x => `<div class="strip" data-id="${x.id}"><span class="num">${x.n}</span><div class="nm" title="${esc(x.name)}">${esc(x.name)}</div>
-          <div class="fwrap"><div class="vu"><i data-lv></i></div><input type="range" min="0" max="150" data-f></div><span class="db" data-db></span>
-          <button class="mb mute" data-m>MUTE</button><button class="mb solo" data-s>SOLO</button><button class="mb" data-a>AFV</button>
-          <button class="mb" data-b="pgm">PGM</button>${S.aux.map((a, i) => `<button class="mb" data-b="aux${i + 1}" title="AUX ${i + 1} ${esc(a.name)}"></button>`).join('')}<button class="mb" data-b="ifb">IFB</button>
-          <input type="number" class="field sm" min="0" max="1500" step="10" data-d title="延遲補償（毫秒）" style="width:100%"></div>`).join('') || '<div class="note">還沒有來源</div>'}</div>
-        <div class="wsec" style="margin-top:8px"><h4>音頻快照</h4><div class="row" style="flex-wrap:wrap">${Array.from({ length: 8 }, (_, i) => `<button class="btn sm" data-as="${i}">A${i + 1}</button>`).join('')}</div><div class="note">快照在導播台的「音頻矩陣」儲存。</div></div>`;
+    } else if (K.audio) {
+      C.innerHTML = mixHtml();
     } else {
-      C.innerHTML = `<div class="wsec"><h4>來源狀態</h4><div id="opvl"></div><div class="note">監看員是唯讀模式，不能操作任何參數。</div></div>`;
+      C.innerHTML = `<div class="wsec"><h4>來源狀態</h4><div id="opvl"></div><div class="note">${K.cue ? '可以用下方按鈕提示導播，不能操作畫面或聲音。' : '唯讀模式，不能操作任何參數。'}</div></div>`;
     }
+    if (consoleOn) {
+      const drop = el => el?.remove(), secOf = t => $$('.wsec', C).find(x => $('h4', x)?.textContent.trim().startsWith(t));
+      if (!K.sw) { drop($('[data-c]', C)?.closest('section.cc-functions')); $$('.cc-row', C).filter(x => !x.classList.contains('cc-preview')).forEach(drop); }
+      if (!K.pvw) $$('.cc-row.cc-preview', C).forEach(drop);
+      if (!K.sw && !K.pvw) { drop($('.cc-buses', C)); drop($('.cc-tools', C)); }
+      if (!K.gfx) drop(secOf('圖層'));
+      if (!K.aux) drop(secOf('AUX'));
+      if (!K.scene) drop(secOf('場景'));
+      if (K.audio && R !== 'dir') C.insertAdjacentHTML('beforeend', mixHtml());
+    }
+    if (K.cue) C.insertAdjacentHTML('beforeend', `<div class="wsec" style="margin-top:8px"><h4>提示導播（Cue）</h4><div class="row" style="flex-wrap:wrap">${['Stand by 就緒', '現場 OK', '主持人準備好', '需要更多時間', '準備收尾', '有狀況，請等一下'].map(t => `<button class="btn sm" data-cue="${esc(t)}">${esc(t)}</button>`).join('')}</div><div class="row" style="margin-top:6px"><input class="field sm grow" id="opcuet" maxlength="60" placeholder="自訂提示，例如：來賓 2 麥克風沒聲音"><button class="btn sm primary" id="opcues">送出</button></div></div>`);
+    $$('[data-cue]', C).forEach(b => b.onclick = () => { send({ type: 'cue', text: b.dataset.cue }); toast('已提示導播：' + b.dataset.cue); });
+    const cueBtn = $('#opcues', C); if (cueBtn) { const go = () => { const t = $('#opcuet', C).value.trim(); if (!t) return; send({ type: 'cue', text: t }); $('#opcuet', C).value = ''; toast('已提示導播'); }; cueBtn.onclick = go; $('#opcuet', C).onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) go(); }; }
     $$('[data-oppage]', C).forEach(b => b.onclick = () => { opPage += Number(b.dataset.oppage); sig=''; render(); });
     $$('[data-pv]', C).forEach(b => b.onclick = () => send({ type: 'pvw', id: b.dataset.pv || null }));
     $$('[data-pg]', C).forEach(b => b.onclick = () => send({ type: 'take', id: b.dataset.pg || null }));
