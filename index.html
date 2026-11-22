@@ -530,6 +530,9 @@ body.out video{position:fixed;inset:0;width:100vw;height:100vh}
 .wtab{flex:none;height:28px;padding:0 12px;border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;background:none;color:var(--dim);font:600 12px var(--sans);cursor:pointer}
 .wtab:hover{color:var(--text);background:#ffffff08}
 .wtab.on{background:var(--s1);border-color:var(--line);color:#fff;box-shadow:inset 0 2px 0 var(--cyan)}
+.wtab .wdet{margin-left:6px;padding:0 3px;border-radius:3px;opacity:.55;font-size:11px}.wtab .wdet:hover{opacity:1;background:#ffffff1a}
+.win > header .wact{font:600 11px var(--sans);height:24px;padding:0 7px;white-space:nowrap}
+body.wc-pop{margin:0;height:100vh;overflow:hidden;background:var(--bg,#0b0d10)}body.wc-pop>.win{position:fixed!important;inset:0!important;left:0!important;top:0!important;width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;border-radius:0;resize:none}body.wc-pop>.win>header{cursor:default}body.wc-pop .feature-resize-edge,body.wc-pop [data-pop]{display:none!important}
 .swfn{display:flex;gap:3px}
 .swfn button{height:20px;padding:0 7px;border-radius:4px;border:1px solid var(--line2);background:#1d222b;color:var(--dim);font:600 10.5px var(--sans);cursor:pointer}
 .swfn button:hover{color:#fff;border-color:var(--cyan)}
@@ -1161,8 +1164,10 @@ function imageFileToDataUrl(file, W = 1280, H = 720){
 }
 const deviceName = () => { const u = navigator.userAgent; return /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows' : /Linux/.test(u) ? 'Linux' : '裝置'; };
 const Q = new URLSearchParams(location.search);
-const $ = (s, el = document) => el.querySelector(s);
-const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const POPDOCS = new Set();   // 已移到獨立瀏覽器視窗的功能視窗
+const $ = (s, el = document) => { const r = el.querySelector(s); if (r || el !== document || !POPDOCS.size) return r; for (const d of POPDOCS) { try { const x = d.querySelector(s); if (x) return x; } catch {} } return null; };
+const $$ = (s, el = document) => { const r = [...el.querySelectorAll(s)]; if (el === document) POPDOCS.forEach(d => { try { r.push(...d.querySelectorAll(s)); } catch {} }); return r; };
+const wcById = id => document.getElementById(id) || [...POPDOCS].reduce((f, d) => f || d.getElementById(id), null);
 const app = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rnd = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
@@ -3682,7 +3687,7 @@ function Host(sess){
       <button class="btn" id="mcrRelay" title="將節目影像與聲音送到派發者的主控來源">PGM 送主控</button><button class="btn danger" id="endb">結束</button>
     </div>
     <div class="keybar" id="keys"><button type="button" class="btn sm" id="routeSlots" title="${esc(GROUPS.routingg.hint)}">來賓／訊號</button>
-      ${Object.entries(GROUPS).filter(([,d])=>!d.direct&&!d.tail).map(([k, d]) => `<div class="key" data-win="${k}" title="${esc(d.hint || d.title || d.key)}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
+      ${Object.entries(GROUPS).filter(([,d])=>!d.direct&&!d.tail&&!d.solo).map(([k, d]) => `<div class="key" data-win="${k}" title="${esc(d.hint || d.title || d.key)}"><span class="led"></span>${d.key}${k === 'msgq' ? '<span class="bdg hidden" id="mbdg">0</span><span class="bdg bdg2 hidden" id="hbdg">0</span>' : ''}</div>`).join('')}
       <button type="button" id="sourceViewToggle" aria-pressed="false" title="顯示／隱藏來源多畫面監看">來源監看</button>
       <div class="key" id="shk" title="分享導播電腦的螢幕"><span class="led"></span>分享畫面</div>
       <span class="kgap"></span>
@@ -4488,14 +4493,14 @@ function Host(sess){
     if (document.hidden) return;
     inputs.forEach(inp => { const v = inp.meter(); const b = $('.tv .vu i', inp.el); if (b) b.style.height = v * 100 + '%'; inp._lv = v; });
     $('#pgmvu').style.width = pgmMeter() * 100 + '%';
-    if (WIN.mix?.open) inputs.forEach(inp => { const v = inp.postMeter(), b = document.getElementById('mx-' + inp.id); if (b) b.style.height = v * 100 + '%';
+    if (WIN.mix?.open) inputs.forEach(inp => { const v = inp.postMeter(), b = wcById('mx-' + inp.id); if (b) b.style.height = v * 100 + '%';
       if (UI.pro) { const db = v <= 0 ? -Infinity : v * 60 - 60, n = performance.now(), P = inp._pk = inp._pk || { v: -Infinity, t: 0, clip: 0 };
         if (db >= P.v || n - P.t > 1500) { P.v = db; P.t = n; } if (db >= -1) P.clip = n;
-        const e = document.getElementById('mxpk-' + inp.id); if (e) e.textContent = P.v === -Infinity ? '–∞' : P.v.toFixed(1);
-        const c = document.getElementById('mxcl-' + inp.id); if (c) c.classList.toggle('clip', n - P.clip < 2000); } });
-    if (WIN.mix?.open) { const b = document.getElementById('mx-mon'); if (b) b.style.height = monMeter() * 100 + '%'; }
-    if (WIN.aud?.open) { const b = document.getElementById('aud-mon'); if (b) b.style.width = monMeter() * 100 + '%'; }
-    if (WIN.ic?.open) { const b = document.getElementById('ic-me'); if (b) b.style.width = IC.meter() * 100 + '%'; guests().forEach(g => { const e = document.getElementById('ic-' + g.id); if (e) e.style.width = (g.state.icMic ? g._lv || 0 : 0) * 100 + '%'; }); }
+        const e = wcById('mxpk-' + inp.id); if (e) e.textContent = P.v === -Infinity ? '–∞' : P.v.toFixed(1);
+        const c = wcById('mxcl-' + inp.id); if (c) c.classList.toggle('clip', n - P.clip < 2000); } });
+    if (WIN.mix?.open) { const b = wcById('mx-mon'); if (b) b.style.height = monMeter() * 100 + '%'; }
+    if (WIN.aud?.open) { const b = wcById('aud-mon'); if (b) b.style.width = monMeter() * 100 + '%'; }
+    if (WIN.ic?.open) { const b = wcById('ic-me'); if (b) b.style.width = IC.meter() * 100 + '%'; guests().forEach(g => { const e = wcById('ic-' + g.id); if (e) e.style.width = (g.state.icMic ? g._lv || 0 : 0) * 100 + '%'; }); }
   })();
 
   /* =============== 字幕圖層繪製 =============== */
@@ -5443,11 +5448,14 @@ function Host(sess){
     const r = saved || { x: Math.max(10, innerWidth - d.w - 30 - n * 24), y: 70 + n * 24, w: d.w, h: d.h };
     r.x = clamp(r.x, 0, innerWidth - 120); r.y = clamp(r.y, 0, innerHeight - 60);
     Object.assign(el.style, { left: r.x + 'px', top: r.y + 'px', width: Math.min(r.w, innerWidth - 10) + 'px', height: Math.min(r.h, innerHeight - 20) + 'px' });
-    el.innerHTML = `<header><span class="led"></span><b>${d.title}</b><span class="grow"></span><button class="btn ghost sm icon" data-x>${ic('x')}</button></header>`;
+    el.innerHTML = `<header><span class="led"></span><b>${d.title}</b><span class="grow"></span>${d.solo ? '<button class="btn ghost sm wact" data-redock title="放回原本的合併視窗分頁">↩ 合併回分頁</button>' : (d.tabs?.length > 1 ? '<button class="btn ghost sm wact" data-splitall title="把這個視窗的每個分頁都拆成獨立視窗，可同時開啟">拆成獨立視窗</button>' : '')}<button class="btn ghost sm wact" data-pop title="移到獨立的瀏覽器視窗（可拖到第二螢幕）">⧉ 新視窗</button><button class="btn ghost sm icon" data-x>${ic('x')}</button></header>`;
     document.body.appendChild(el);
     const G = GW[fid] = { id: fid, el, open: false, cur: null };
     enableFeatureResizing(G);
     $('[data-x]', el).onclick = () => closeGroup(fid);
+    $('[data-pop]', el).onclick = () => popOutGroup(fid);
+    $('[data-redock]', el) && ($('[data-redock]', el).onclick = () => redockTab(GROUPS[fid].tabs[0]));
+    $('[data-splitall]', el) && ($('[data-splitall]', el).onclick = () => splitGroup(fid));
     el.addEventListener('pointerdown', () => { focusWin(G); if (G.cur && WIN[G.cur]) WIN[G.cur].busy = true; });
     const hd = $('header', el); let drag = null;
     hd.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; drag = { x: e.clientX - el.offsetLeft, y: e.clientY - el.offsetTop }; hd.setPointerCapture(e.pointerId); });
@@ -5459,8 +5467,8 @@ function Host(sess){
   function ensureGroup(gid){
     if (GW[gid]) return GW[gid];
     const d = GROUPS[gid], one = d.tabs.length === 1, w0 = WDEF[d.tabs[0]];
-    const G = makeFrame(gid, one ? { title: w0.title, w: w0.w, h: w0.h } : d);
-    if (!one) { const tb = document.createElement('div'); tb.className = 'wtabs'; tb.innerHTML = d.tabs.map(t => `<button class="wtab" data-tab="${t}">${TABN[t] || t}</button>`).join(''); G.el.appendChild(tb); $$('[data-tab]', tb).forEach(b => b.onclick = () => openWin(b.dataset.tab, true)); }
+    const G = makeFrame(gid, one ? { title: w0.title, w: w0.w, h: w0.h, solo: d.solo } : d);
+    if (!one) { const tb = document.createElement('div'); tb.className = 'wtabs'; tb.innerHTML = d.tabs.map(t => `<button class="wtab" data-tab="${t}">${TABN[t] || t}<span class="wdet" data-detach="${t}" title="拆成獨立視窗">⧉</span></button>`).join(''); G.el.appendChild(tb); $$('[data-tab]', tb).forEach(b => b.onclick = e => { if (e.target.closest('[data-detach]')) { e.stopPropagation(); detachTab(b.dataset.tab, true); return; } openWin(b.dataset.tab, true); }); }
     d.tabs.forEach(t => { const b = document.createElement('div'); b.className = 'wb hidden'; b.dataset.w = t; G.el.appendChild(b); WIN[t] = { id: t, el: G.el, body: b, open: false, gid }; });
     return G;
   }
@@ -5472,13 +5480,14 @@ function Host(sess){
   }
   function openWin(id, force){
     id = WALIAS[id] || id;
+    if (DETACHED.has(id) && GOF[id] !== 'solo_' + id && WDEF[id]) detachTab(id, false);
     const permission = {ifb:'localIfb',ic:'localIfb',ear:'localIfb',ret:'localReturn',mix:'audio',mtx:'audio',aud:'audio'}[id]; if (permission && !opsLocalAllowed(permission)) return toast('帳號的此功能權限已關閉');
     const gid = GOF[id]; if (!gid || !WDEF[id]) return;
     const G = ensureGroup(gid), w = WIN[id];
     if (w.open && !force) { focusWin(G); return; }
     GROUPS[gid].tabs.forEach(t => { WIN[t].open = t === id; WIN[t].body.classList.toggle('hidden', t !== id); });
     if(G.el.classList.contains('layout-preset-docked')){layoutManager?.capture(G.el.dataset.layoutPanel,true);G.el.dataset.layoutHidden='false';}
-    G.open = true; G.cur = id; G.el.dataset.w = id; G.el.classList.remove('hidden'); focusWin(G); updTabs();
+    G.open = true; G.cur = id; G.el.dataset.w = id; G.el.classList.remove('hidden'); focusWin(G); updTabs(); if (POPS.has(gid)) { try { POPS.get(gid).focus(); } catch {} }
     keyEl(id)?.classList.add('on');
     if(G.el.classList.contains('keyboard-temporarily-hidden'))G.el.classList.remove('keyboard-temporarily-hidden');
     if (id === 'msg') { unread = 0; $('#mbdg').classList.add('hidden'); }
@@ -5487,6 +5496,7 @@ function Host(sess){
   }
   function dockStudioGroup(G,id){
     if(G.el.classList.contains('layout-preset-docked'))return;
+    if(G.el.ownerDocument!==document)return;
     if(G.el.parentElement!==document.body)document.body.appendChild(G.el);
     G.el.classList.add('floating-feature');
     G.el.classList.toggle('keyboard-temporarily-hidden',keyboardMode);
@@ -5511,17 +5521,82 @@ function Host(sess){
   function softRender(id, sig){
     const w = WIN[id]; if (!w?.open) return;
     if (sig !== undefined && w.sig === sig) return;
-    const ae = document.activeElement;
+    const ae = w.el.ownerDocument.activeElement;
     if (w.busy || (ae && w.el.contains(ae) && ae.matches('input,select,textarea'))) { w.pending = sig === undefined ? '*' : sig; return; }
     w.sig = sig; w.pending = null; WDEF[id].render();
   }
   addEventListener('pointerup', () => setTimeout(() => Object.values(WIN).forEach(w => { w.busy = false; if (w.pending != null && w.open) { const p = w.pending; w.pending = null; softRender(w.id, p === '*' ? undefined : p); } }), 50), true);
   addEventListener('focusout', () => setTimeout(() => Object.values(WIN).forEach(w => { if (w.pending != null && w.open && !w.busy) { const p = w.pending; w.pending = null; softRender(w.id, p === '*' ? undefined : p); } }), 50), true);
-  function saveWin(w){ if (!w.open||w.el.classList.contains('layout-preset-docked')) return; store('wc_win_' + w.id, JSON.stringify({ x: w.el.offsetLeft, y: w.el.offsetTop, w: w.el.offsetWidth, h: w.el.offsetHeight })); }
-  function closeGroup(gid){ const G = GW[gid];if(G?.el.classList.contains('layout-preset-docked'))layoutManager?.capture(G.el.dataset.layoutPanel,false); if (!G) return; G.open = false; G.el.classList.add('hidden'); GROUPS[gid].tabs.forEach(t => { if (WIN[t]) WIN[t].open = false; }); $(`.key[data-win="${gid}"]`)?.classList.remove('on'); }
+  function saveWin(w){ if (!w.open||w.el.classList.contains('layout-preset-docked')||w.el.ownerDocument!==document) return; store('wc_win_' + w.id, JSON.stringify({ x: w.el.offsetLeft, y: w.el.offsetTop, w: w.el.offsetWidth, h: w.el.offsetHeight })); }
+  function closeGroup(gid){ if (POPS.has(gid)) popInGroup(gid); const G = GW[gid];if(G?.el.classList.contains('layout-preset-docked'))layoutManager?.capture(G.el.dataset.layoutPanel,false); if (!G) return; G.open = false; G.el.classList.add('hidden'); GROUPS[gid].tabs.forEach(t => { if (WIN[t]) WIN[t].open = false; }); $(`.key[data-win="${gid}"]`)?.classList.remove('on'); }
   function closeWin(id){ id = WALIAS[id] || id; if (GOF[id]) closeGroup(GOF[id]); }
   function focusWin(w){ $$('.win').forEach(x => x.classList.remove('focus')); w.el.classList.add('focus'); w.el.style.zIndex = ++zTop; }
-  $$('.key[data-win]').forEach(k => k.onclick = () => { const gid = k.dataset.win, G = GW[gid]; if (G?.open) closeGroup(gid); else openWin(G?.cur && tabVisible(G.cur) ? G.cur : GROUPS[gid].tabs.find(tabVisible)); });
+  $$('.key[data-win]').forEach(k => k.onclick = () => { const gid = k.dataset.win, G = GW[gid];
+    const solos = (ORIGTABS[gid] || []).filter(t => GOF[t] === 'solo_' + t && tabVisible(t));
+    if (!GROUPS[gid].tabs.some(tabVisible) && solos.length) { const anyOpen = solos.some(t => GW['solo_' + t]?.open); solos.forEach(t => anyOpen ? closeGroup('solo_' + t) : openWin(t)); return; }
+    if (G?.open) closeGroup(gid); else openWin(G?.cur && tabVisible(G.cur) ? G.cur : GROUPS[gid].tabs.find(tabVisible)); });
+
+  /* ---------- 獨立視窗：分頁拆出來、可同時開；也可移到另一個瀏覽器視窗（第二螢幕） ---------- */
+  const ORIGTABS = {}; Object.entries(GROUPS).forEach(([g, d]) => ORIGTABS[g] = d.tabs.slice());
+  const DETACHED = new Set((() => { try { const v = JSON.parse(store('wc_detached') || '[]'); return Array.isArray(v) ? v : []; } catch { return []; } })());
+  const POPS = new Map();
+  const saveDetached = () => store('wc_detached', JSON.stringify([...DETACHED]));
+  function dropFrame(gid){ const G = GW[gid]; if (!G) return; if (POPS.has(gid)) popInGroup(gid); G.el.remove(); delete GW[gid]; }
+  function detachTab(t, open, force){
+    const pid = GOF[t]; if (!pid || pid === 'solo_' + t || !WDEF[t]) return;
+    const P = GROUPS[pid]; if (P.tabs.length < (force ? 1 : 2)) return;   // 只有一個分頁的視窗本來就是獨立的
+    const parentOpenTab = GW[pid]?.open ? GW[pid].cur : null;
+    if (GW[pid]) { GROUPS[pid].tabs.forEach(x => { if (WIN[x]) delete WIN[x]; }); dropFrame(pid); }
+    P.tabs = P.tabs.filter(x => x !== t);
+    const nid = 'solo_' + t, d = WDEF[t];
+    GROUPS[nid] = { key: TABN[t] || d.title, title: d.title, w: d.w, h: d.h, tabs: [t], solo: true, parent: pid };
+    GOF[t] = nid; DETACHED.add(t); saveDetached();
+    const keepTab = parentOpenTab && parentOpenTab !== t ? parentOpenTab : parentOpenTab ? P.tabs.find(tabVisible) : null;
+    if (keepTab) openWin(keepTab, true);
+    if (open || parentOpenTab === t) openWin(t, true);
+  }
+  function splitGroup(gid){ const tabs = GROUPS[gid].tabs.slice(), cur = GW[gid]?.cur; tabs.filter(tabVisible).forEach(t => detachTab(t, false, true)); tabs.filter(tabVisible).forEach(t => { if (GOF[t] === 'solo_' + t) openWin(t, true); }); if (cur && GOF[cur] === 'solo_' + cur) openWin(cur, true); toast('已拆成獨立視窗；每個視窗右上角「↩ 合併回分頁」可以放回去'); }
+  function redockTab(t){
+    const nid = 'solo_' + t, S = GROUPS[nid]; if (!S) return; const pid = S.parent, wasOpen = GW[nid]?.open;
+    dropFrame(nid); delete WIN[t]; delete GROUPS[nid];
+    const P = GROUPS[pid], keepOpen = GW[pid]?.open ? GW[pid].cur : null;
+    if (GW[pid]) { P.tabs.forEach(x => { if (WIN[x]) delete WIN[x]; }); dropFrame(pid); }
+    P.tabs = ORIGTABS[pid].filter(x => x === t || P.tabs.includes(x));
+    GOF[t] = pid; DETACHED.delete(t); saveDetached();
+    if (wasOpen) openWin(t, true); else if (keepOpen) openWin(keepOpen, true);
+  }
+  function popOutGroup(gid){
+    const G = GW[gid]; if (!G) return; if (POPS.has(gid)) { try { POPS.get(gid).focus(); } catch {} return; }
+    if (G.el.classList.contains('layout-preset-docked')) return toast('這個視窗目前固定在版面中，請先改成浮動視窗再移出');
+    const r = G.el.getBoundingClientRect();
+    const w = window.open('', 'wc_pop_' + gid + '_' + rnd(4), `popup,width=${Math.round(r.width) || 800},height=${Math.round(r.height) || 600},left=${Math.round(screenX + r.left)},top=${Math.round(screenY + r.top)}`);
+    if (!w) return toast('瀏覽器擋住了新視窗，請允許這個網站開啟彈出式視窗');
+    const d = w.document; d.open(); d.write('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="wc-pop"></body></html>'); d.close();
+    d.title = (GROUPS[gid].title || GROUPS[gid].key || 'WebCall') + ' · WebCall';
+    [...document.documentElement.attributes].forEach(a => { try { d.documentElement.setAttribute(a.name, a.value); } catch {} });
+    document.body.classList.forEach(c => d.body.classList.add(c));
+    document.querySelectorAll('style,link[rel="stylesheet"]').forEach(n => d.head.appendChild(d.importNode(n, true)));
+    G.el.classList.remove('hidden', 'keyboard-temporarily-hidden');
+    d.body.appendChild(d.adoptNode(G.el)); POPS.set(gid, w); POPDOCS.add(d);
+    $$('video', G.el).forEach(v => { if (v.srcObject || v.src) v.play().catch(() => {}); });
+    ['pointerup', 'focusout'].forEach(type => w.addEventListener(type, () => window.dispatchEvent(new Event(type)), true));
+    w.addEventListener('pagehide', () => { if (POPS.get(gid) === w) popInGroup(gid, true); });
+    const watch = setInterval(() => { if (POPS.get(gid) !== w) return clearInterval(watch); if (w.closed) { clearInterval(watch); popInGroup(gid, true); } }, 800);
+    if (G.cur) softRender(G.cur);
+  }
+  function popInGroup(gid, closedByUser){
+    const w = POPS.get(gid); if (!w) return; POPS.delete(gid); const G = GW[gid];
+    try { POPDOCS.delete(w.document); } catch {} POPDOCS.forEach(d => { if (d.defaultView === w || !d.defaultView) POPDOCS.delete(d); });
+    if (G && G.el.ownerDocument !== document) {
+      document.body.appendChild(document.adoptNode(G.el));
+      const r = G.el.getBoundingClientRect(); G.el.style.left = clamp(r.left, 0, Math.max(0, innerWidth - 120)) + 'px'; G.el.style.top = clamp(r.top, 0, Math.max(0, innerHeight - 60)) + 'px';
+      $$('video', G.el).forEach(v => { if (v.srcObject || v.src) v.play().catch(() => {}); });
+      if (closedByUser && G.open) { focusWin(G); if (G.cur) softRender(G.cur); }
+    }
+    if (!closedByUser) { try { w.close(); } catch {} }
+  }
+  addEventListener('pagehide', () => POPS.forEach(w => { try { w.close(); } catch {} }));
+  [...DETACHED].forEach(t => { const g = GOF[t]; if (WDEF[t] && g && g !== 'solo_' + t && GROUPS[g].tabs.length) detachTab(t, false, true); else if (!WDEF[t] || !g) DETACHED.delete(t); });
   function renderAll(){ softRender('aud'); renderDock(); renderPipBar(); renderSwitcherLabels(); Object.keys(WIN).forEach(id => WIN[id].open && WDEF[id].render()); $('#kg').textContent = `${liveGuests().length}/${LINES}`; $('#ko').textContent = outputs.size; layoutGrid(); }
 
   async function devices(kind){ const d = await navigator.mediaDevices.enumerateDevices().catch(() => []); return d.filter(x => x.kind === kind); }
@@ -7090,7 +7165,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         if (cs === 'failed' && S.want) { whipStop(S, true); setTimeout(() => S.want && whipStart(S), 3000); }
         softRender('strm');
       };
-      clearInterval(S.statT); S.statT = setInterval(async () => { if (!S.pc) return clearInterval(S.statT); const s = await readStats(S.pc, S.prev, 'outbound'); if (s) { if (S.prev) S.kb = s.kbps + (s.akbps || 0); S.prev = s; const e = document.getElementById('stkb-' + S.id); if (e) e.textContent = fmtKbps(S.kb || 0) + (S.t0 ? ' · ' + fmtDur(Date.now() - S.t0) : ''); } }, 2000);
+      clearInterval(S.statT); S.statT = setInterval(async () => { if (!S.pc) return clearInterval(S.statT); const s = await readStats(S.pc, S.prev, 'outbound'); if (s) { if (S.prev) S.kb = s.kbps + (s.akbps || 0); S.prev = s; const e = wcById('stkb-' + S.id); if (e) e.textContent = fmtKbps(S.kb || 0) + (S.t0 ? ' · ' + fmtDur(Date.now() - S.t0) : ''); } }, 2000);
     } catch (e) {
       S.err = /Failed to fetch|NetworkError|Load failed/i.test(e.message || '') ? '連不到伺服器（網址錯誤，或伺服器沒有允許跨網域 CORS）' : (e.message || String(e));
       whipStop(S, true); S.st = '';
@@ -7308,8 +7383,8 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     if (ended) return;
     requestAnimationFrame(proMeters);
     if (document.hidden) return;
-    if (WIN.mtx?.open) { order.forEach(id => paintPPM(document.getElementById('mt-' + id), LV.in[id])); paintPPM(document.getElementById('mb-pgm'), LV.pgm); paintPPM(document.getElementById('mb-mon'), LV.mon); AUX.forEach(a => paintPPM(document.getElementById('mb-aux' + a.i), LV.aux[a.i])); }
-    if (WIN.aux?.open) AUX.forEach(a => { paintPPM(document.getElementById('auxppm-' + a.i), LV.aux[a.i]); const c = document.getElementById('auxth-' + a.i); if (c) c.getContext('2d').drawImage(a.canvas, 0, 0, c.width, c.height); });
+    if (WIN.mtx?.open) { order.forEach(id => paintPPM(wcById('mt-' + id), LV.in[id])); paintPPM(wcById('mb-pgm'), LV.pgm); paintPPM(wcById('mb-mon'), LV.mon); AUX.forEach(a => paintPPM(wcById('mb-aux' + a.i), LV.aux[a.i])); }
+    if (WIN.aux?.open) AUX.forEach(a => { paintPPM(wcById('auxppm-' + a.i), LV.aux[a.i]); const c = wcById('auxth-' + a.i); if (c) c.getContext('2d').drawImage(a.canvas, 0, 0, c.width, c.height); });
   })();
 
   /* ===================================================================================
