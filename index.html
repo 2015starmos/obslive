@@ -3415,7 +3415,7 @@ function Host(sess){
   const localOperator = () => info?.me?.name || info?.me?.account || '導播台';
   const TITLE_AIR_OPS = ['take', 'clear', 'next', 'prev', 'live', 'scoreAdj', 'tap'];
   function titleCmd(cmd, by){
-    if (!by && TITLE_AIR_OPS.includes(cmd?.op) && !canSw()) { roleDeny(); return; }   // 本機鎖成音控／監看員時不能改播出中的字幕（遠端字幕控制與自動上下字不受影響）
+    if (!by && TITLE_AIR_OPS.includes(cmd?.op) && !canSw('gfx')) { roleDeny(); return; }   // 本機鎖成音控／監看員時不能改播出中的字幕（遠端字幕控制與自動上下字不受影響）
     const before = airMap();
     if (TitleCore.apply(TS, cmd, Date.now())) { tlogDiff(before, by || localOperator()); TitleCore.save(TS); titleSync(); }
   }
@@ -3434,7 +3434,7 @@ function Host(sess){
       const used = new Set(); TS.items.filter(x => x.follow && x.follow === curName).forEach(x => { const l = TitleCore.layerOf(x); if (used.has(l)) return; used.add(l); if (TS.pgm[l]?.item?.id !== x.id) titleCmd({ op: 'take', id: x.id }, '自動（跟著畫面）'); });
     }, Math.max(0, +TS.opts.followDelay || 0) * 1000);
   }
-  function titleCanTake(){ if (canSw()) return true; roleDeny(); return false; }
+  function titleCanTake(){ if (canSw('gfx')) return true; roleDeny(); return false; }
   function drawTitleBus(g, W, H, bus){ if (TS.pvw || TS.leaving.length || Object.keys(TS.pgm).length) TitleCore.draw(g, W, H, TS, Date.now(), { bus }); }
   const titleTickT = setInterval(() => { if (ended) return clearInterval(titleTickT); const before = airMap(); if (TitleCore.tick(TS, Date.now())) { tlogDiff(before, '自動', '自動下字（時長到）'); TitleCore.save(TS); titleSync(); } try { followCheck(); } catch {} }, 250);
   if (TS.restored) setTimeout(() => toast(`已恢復重新整理前正在播出的 ${TS.restored} 層字幕`), 1500);
@@ -4191,7 +4191,7 @@ function Host(sess){
   }
 
   /* =============== 切換台 =============== */
-  function setPvw(id){ if (!canSw()) return roleDeny(); SW.pvw = id; renderSwitcherLabels(); updateTally(); }
+  function setPvw(id){ if (!canSw('pvw')) return roleDeny(); SW.pvw = id; renderSwitcherLabels(); updateTally(); }
   function cutTo(id){ if (!canSw()) return roleDeny(); if (SW.pgm === id) return; followArm = true; const old = SW.pgm; SW.pgm = id; SW.pvw = old ?? SW.pvw; SW.t = 0; SW.anim = null; SW.base = SW.tpos; renderSwitcherLabels(); updateTally(); }
   function swap(){ const a = SW.pgm; SW.pgm = SW.pvw; SW.pvw = a; }
   function doCut(){
@@ -4752,8 +4752,8 @@ function Host(sess){
     $$('[data-dsk]').forEach(box => {
       box.innerHTML = `<span class="lbl" style="margin:0">圖層</span>` + DSKS.map(([k, n]) => `<button class="dsk ${OV[k].on ? 'on' : ''}" data-ov="${k}" title="${n}${OV[k].tie ? '（TIE：跟著下次轉場）' : ''}"><span class="led"></span>${n}${OV[k].tie ? '<small>TIE</small>' : ''}</button>`).join('')
         + STILLS.filter(x => x.img).map(x => `<button class="dsk ${x.on ? 'on' : ''}" data-st="${x.slot}" title="圖庫 ${x.slot}：${esc(x.name)}${x.tie ? '（TIE）' : ''}"><span class="led"></span>S${x.slot}${x.tie ? '<small>TIE</small>' : ''}</button>`).join('');
-      $$('[data-ov]', box).forEach(b => b.onclick = () => { if (!canSw()) return; toggleOV(b.dataset.ov); });
-      $$('[data-st]', box).forEach(b => b.onclick = () => { if (!canSw()) return; toggleStill(+b.dataset.st); });
+      $$('[data-ov]', box).forEach(b => b.onclick = () => { if (!canSw('gfx')) return roleDeny(); toggleOV(b.dataset.ov); });
+      $$('[data-st]', box).forEach(b => b.onclick = () => { if (!canSw('gfx')) return roleDeny(); toggleStill(+b.dataset.st); });
     });
   }
 
@@ -5028,7 +5028,7 @@ function Host(sess){
     store('wc_presets', JSON.stringify(PRESETS)); toast(`已存成「${PRESETS[i].name}」（F${i + 1}）`); softRender('scene');
   }
   function recallPreset(i, viaTrans){
-    if (!canSw()) return roleDeny();
+    if (!canSw('scene')) return roleDeny();
     const P = PRESETS[i]; if (!P) return toast(`F${i + 1} 還沒有存場景（Shift+F${i + 1} 儲存目前狀態）`);
     const d = P.data;
     if (d.sw !== UI.sw) setSwMode(d.sw);
@@ -5077,7 +5077,7 @@ function Host(sess){
       <div class="wsec"><h4>淡入淡出時間</h4><div class="row"><input type="range" min="0" max="1500" step="50" value="${OV.fade}" id="gfd" style="flex:1"><span class="mono" id="gfdv">${OV.fade}ms</span></div>
         <div class="note">鍵盤：Y 字幕條、U 跑馬燈、H 台標、V CC 字幕。勾 TIE 的圖層會跟著下一次 CUT／AUTO 一起切換。</div></div>`;
     const B2 = w.body;
-    $$('[data-on]', B2).forEach(b => b.onclick = () => { if (canSw()) toggleOV(b.dataset.on); });
+    $$('[data-on]', B2).forEach(b => b.onclick = () => { if (canSw('gfx')) toggleOV(b.dataset.on); });
     $$('[data-tie]', B2).forEach(c => c.onchange = () => { OV[c.dataset.tie].tie = c.checked; saveOV(); renderDsk(); });
     $('#gl1', B2).oninput = e => { L.l1 = e.target.value; saveOV(); }; $('#gl2', B2).oninput = e => { L.l2 = e.target.value; saveOV(); };
     $$('[data-lst]', B2).forEach(b => b.onclick = () => { L.style = b.dataset.lst; saveOV(); renderGfx(); });
@@ -6147,7 +6147,7 @@ function Host(sess){
     w.body.innerHTML=`<div class="wsec"><h4>來賓／來源指派</h4><div class="note">切換鍵位決定 PROGRAM／PREVIEW 按鍵順序；OUT 是給 OBS 的獨立輸出編號，兩者分開設定。指定已使用的 OUT，原來源會改為未指派。</div>${order.map((id,index)=>{const g=inputs.get(id);return `<div class="wsec"><b>${esc(g.name)}</b> <small>${g.kind==='guest'?'來賓':'來源'}${g.lost?' · 已離線':''}</small><div class="row"><label class="grow">切換鍵位<select class="field full" data-route-order="${esc(id)}" aria-label="${esc(g.name)} 切換鍵位">${order.map((other,i)=>`<option value="${i}" ${i===index?'selected':''}>${i+1} · ${esc(inputs.get(other)?.name||'')}</option>`).join('')}</select></label><label class="grow">獨立輸出<select class="field full" data-route-slot="${esc(id)}" aria-label="${esc(g.name)} 獨立輸出"><option value="0">未指派</option>${Array.from({length:LINES},(_,i)=>`<option value="${i+1}" ${g.slot===i+1?'selected':''}>OUT ${i+1}</option>`).join('')}</select></label><button class="btn sm" data-route-pvw="${esc(id)}">送 PREVIEW</button></div></div>`;}).join('')||'<div class="note">尚無來賓或來源連線。</div>'}</div>`;
     $$('[data-route-slot]',w.body).forEach(select=>select.onchange=()=>{if(!canSw()){roleDeny();return renderRouting();}const g=inputs.get(select.dataset.routeSlot);if(g)setSlot(g,Number(select.value));renderRouting();});
     $$('[data-route-order]',w.body).forEach(select=>select.onchange=()=>{if(!canSw()){roleDeny();return renderRouting();}moveSourcePosition(select.dataset.routeOrder,Number(select.value));});
-    $$('[data-route-pvw]',w.body).forEach(button=>button.onclick=()=>{if(!canSw())return roleDeny();setPvw(button.dataset.routePvw);});
+    $$('[data-route-pvw]',w.body).forEach(button=>button.onclick=()=>{if(!canSw('pvw'))return roleDeny();setPvw(button.dataset.routePvw);});
   }
   function moveSourcePosition(id,index){const previous=order.indexOf(id);if(previous<0||!Number.isInteger(index)||index<0||index>=order.length)return;order.splice(previous,1);order.splice(index,0,id);renderAll();renderRouting();}
   function setSlot(inp, ns){
@@ -6576,18 +6576,23 @@ function Host(sess){
   const OPCAPS = (() => { let saved = {}; try { saved = JSON.parse(store('wc_opcaps') || '{}') || {}; } catch {} const out = {}; OPROLES.forEach(r => { out[r] = {}; OPCAP_KEYS.forEach(([k]) => { out[r][k] = r === 'dir' ? true : typeof saved[r]?.[k] === 'boolean' ? saved[r][k] : OPCAP_DEF[r].split(' ').includes(k); }); }); return out; })();
   const OPNEED = { take: 'sw', cut: 'sw', auto: 'sw', ftb: 'sw', pvw: 'pvw', auxpvw: 'aux', auxtake: 'aux', ov: 'gfx', still: 'gfx', scene: 'scene', laytake: 'scene', fader: 'audio', mute: 'audio', solo: 'audio', afv: 'audio', bus: 'audio', dly: 'audio', asnap: 'audio', cue: 'cue' };
   const CUELOG = [];
-  function canSw(){ return opsLocalAllowed('switcher') && (ROLE.local === 'dir' || ROLE.bypass); }
-  function canAud(){ return opsLocalAllowed('audio') && (ROLE.local !== 'view' || ROLE.bypass); }
-  function roleDeny(){ toast(ROLE.local === 'aud' ? '目前是「音控」權限：只能調整聲音，不能切換畫面' : '目前是「監看員」權限：只能看畫面'); }
+  // 本機防誤觸鎖定：導播＝全部；其他角色照 OPERATORS 視窗勾選的權限（與遠端連結同一套）
+  const roleCan = k => ROLE.local === 'dir' || ROLE.bypass || !!OPCAPS[ROLE.local]?.[k];
+  function canSw(kind = 'sw'){ return opsLocalAllowed('switcher') && roleCan(kind); }
+  function canAud(){ return opsLocalAllowed('audio') && roleCan('audio'); }
+  const roleCapText = r => r === 'dir' ? '全部功能' : (OPCAP_KEYS.filter(([k]) => k !== 'cue' && OPCAPS[r]?.[k]).map(x => x[1]).join('、') || '唯讀，只能看畫面');
+  function roleDeny(){ toast(`目前是「${ROLE_NAME[ROLE.local]}」權限：${roleCapText(ROLE.local)}`); }
   $('#modeb').insertAdjacentHTML('afterend', '<span class="pill rolep hidden" id="rolep"></span>');
   function setLocalRole(r){
     ROLE.local = r;
     ['aud', 'view'].forEach(k => { $('#hroot').classList.toggle('role-' + k, r === k); document.body.classList.toggle('role-' + k, r === k); });
     const p = $('#rolep'); p.classList.toggle('hidden', r === 'dir'); p.textContent = '🔒 ' + ROLE_NAME[r] + '模式';
-    toast(r === 'dir' ? '導播權限：全部功能' : r === 'aud' ? '音控權限：只能調推桿、靜音、SOLO、母線，不能切換畫面' : '監看員權限：唯讀，只能看 PVW／PGM');
+    store('wc_localrole', r);
+    toast(`${ROLE_NAME[r]}權限：${roleCapText(r)}`);
     softRender('ops');
   }
   $('#rolep').onclick = () => openWin('ops');
+  { const saved = store('wc_localrole'); if (saved && saved !== 'dir' && ROLE_NAME[saved]) setTimeout(() => setLocalRole(saved), 0); }
 
   // ---------- PPM 峰值表（EBU Type I：瞬間上升，24 dB／2.8 秒回落；2 秒峰值保持） ----------
   function makePPM(node){
@@ -6692,9 +6697,9 @@ function Host(sess){
       });
     });
   }
-  function auxPvw(a, id){ if (!canSw()) return roleDeny(); a.pvw = id || null; softRender('aux'); opBroadcast(); }
+  function auxPvw(a, id){ if (!canSw('aux')) return roleDeny(); a.pvw = id || null; softRender('aux'); opBroadcast(); }
   function auxTake(a){
-    if (!canSw()) return roleDeny();
+    if (!canSw('aux')) return roleDeny();
     if (a.mode !== 'src') { a.mode = 'src'; saveAux(); }
     if (!a.pvw) return toast(`AUX ${a.i + 1} 的 PVW 沒有選來源`);
     const old = a.pgm; a.from = a.trans === 'mix' && old ? old : null; a.pgm = a.pvw; a.pvw = old; a.t = 0; a.anim = a.from ? { t0: performance.now() } : null;
@@ -6718,7 +6723,7 @@ function Host(sess){
           </div></div></div>`).join('')}`;
     const B = w.body;
     $$('[data-an]', B).forEach(x => x.onchange = () => { AUX[+x.dataset.an].name = x.value.trim() || 'AUX ' + (+x.dataset.an + 1); saveAux(); softRender('out'); });
-    $$('[data-am2]', B).forEach(x => x.onchange = () => { if (!canSw()) { roleDeny(); return renderAuxWin(); } AUX[+x.dataset.am2].mode = x.value; saveAux(); renderAuxWin(); order.forEach(id => updateTile(inputs.get(id))); });
+    $$('[data-am2]', B).forEach(x => x.onchange = () => { if (!canSw('aux')) { roleDeny(); return renderAuxWin(); } AUX[+x.dataset.am2].mode = x.value; saveAux(); renderAuxWin(); order.forEach(id => updateTile(inputs.get(id))); });
     $$('[data-ar]', B).forEach(x => x.onchange = () => setAuxFmt(AUX[+x.dataset.ar], x.value, 0));
     $$('[data-af]', B).forEach(x => x.onchange = () => setAuxFmt(AUX[+x.dataset.af], '', +x.value));
     $$('[data-at]', B).forEach(x => x.onchange = () => { AUX[+x.dataset.at].trans = x.value; saveAux(); });
@@ -6891,7 +6896,7 @@ function Host(sess){
       </div>`).join('')}</div>`;
     const B = w.body, S = n => STILLS[+n - 1];
     $$('[data-sn]', B).forEach(i => i.onchange = () => { S(i.dataset.sn).name = i.value.trim(); saveStills(); renderDsk(); });
-    $$('[data-son]', B).forEach(b => b.onclick = () => { if (!canSw()) return roleDeny(); toggleStill(+b.dataset.son); });
+    $$('[data-son]', B).forEach(b => b.onclick = () => { if (!canSw('gfx')) return roleDeny(); toggleStill(+b.dataset.son); });
     $$('[data-stie]', B).forEach(c => c.onchange = () => { S(c.dataset.stie).tie = c.checked; saveStills(); renderDsk(); });
     $$('[data-sf]', B).forEach(f => f.onchange = () => { if (f.files[0]) setStillFile(+f.dataset.sf, f.files[0]); });
     $$('[data-sx]', B).forEach(b => b.onclick = () => { Object.assign(S(b.dataset.sx), { url: '', img: null, on: false, a: 0, name: '' }); saveStills(); renderDsk(); renderStill(); });
@@ -6993,7 +6998,7 @@ function Host(sess){
     });
   }
   function takeLayout(x){
-    if (!canSw()) return roleDeny();
+    if (!canSw('scene')) return roleDeny();
     if (UI.sw) { if (SW.pgm === x.id) return; setPvw(x.id); if (SW.type === 'cut') doCut(); else doAuto(); }
     else { setPvw(x.id); SW.pvw = x.id; doCut(); }
     toast(`已 TAKE「${x.name}」上 PGM`);
@@ -7022,7 +7027,7 @@ function Host(sess){
     $$('[data-le]', B).forEach(b => b.onclick = () => { const x = inputs.get(b.dataset.le); x.layout.type === 'vset' ? vsetEditor(x) : layEditor(x); });
     $$('[data-lt2]', B).forEach(b => b.onclick = () => takeLayout(inputs.get(b.dataset.lt2)));
     $$('[data-la]', B).forEach(b => b.onclick = () => { const i = +b.dataset.la; applyLayLib(LAYLIB[i], inputs.get($(`[data-lto="${i}"]`, B).value)); renderLayLib(); toast(`已載入「${LAYLIB[i].name}」`); });
-    $$('[data-lk]', B).forEach(b => b.onclick = () => { if (!canSw()) return roleDeny(); const i = +b.dataset.lk; const x = applyLayLib(LAYLIB[i], inputs.get($(`[data-lto="${i}"]`, B).value)); setTimeout(() => takeLayout(x), 60); renderLayLib(); });
+    $$('[data-lk]', B).forEach(b => b.onclick = () => { if (!canSw('scene')) return roleDeny(); const i = +b.dataset.lk; const x = applyLayLib(LAYLIB[i], inputs.get($(`[data-lto="${i}"]`, B).value)); setTimeout(() => takeLayout(x), 60); renderLayLib(); });
     $$('[data-ld]', B).forEach(b => b.onclick = () => { LAYLIB.splice(+b.dataset.ld, 1); saveLaylib(); renderLayLib(); });
     $$('[data-lp]', B).forEach(c => { const e = LAYLIB[+c.dataset.lp], g = c.getContext('2d'); g.fillStyle = '#0b1220'; g.fillRect(0, 0, 128, 72); e.boxes.forEach((b, i) => { g.fillStyle = ['#2b4466', '#3d2b66', '#2b6644', '#66502b'][i % 4]; g.fillRect(b.x * 128, b.y * 72, b.w * 128, b.h * 72); g.strokeStyle = '#fff8'; g.strokeRect(b.x * 128 + .5, b.y * 72 + .5, b.w * 128 - 1, b.h * 72 - 1); g.fillStyle = '#fff'; g.font = '700 10px sans-serif'; g.fillText(i + 1, b.x * 128 + 3, b.y * 72 + 11); }); });
   }
@@ -7371,8 +7376,8 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   function renderOps(){
     const w = WIN.ops; if (!w?.open) return;
     const desc = { dir: '可以切換 PVW／PGM、CUT／AUTO、AUX TAKE、圖層、場景，也能調聲音', aud: '只能調推桿、MUTE、SOLO、AFV、母線分配、延遲、音頻快照；可以看 PGM 並聽節目聲音', view: '唯讀：只能看 MULTIVIEW／PGM／PVW／AUX，不能操作任何參數' };
-    w.body.innerHTML = `<div class="wsec"><h4>這台導播台的權限（防誤觸鎖定）</h4><div class="row">${['dir', 'aud', 'view'].map(r => `<button class="btn sm grow ${ROLE.local === r ? 'on' : ''}" data-lr="${r}">${ROLE_NAME[r]}</button>`).join('')}</div>
-        <div class="note">${esc(desc[ROLE.local])}。例如導播暫時離開位置、交給音控同事時，鎖成「音控」就不會誤切畫面。</div></div>
+    w.body.innerHTML = `<div class="wsec"><h4>這台導播台的權限（防誤觸鎖定）</h4><div class="row" style="flex-wrap:wrap">${OPROLES.map(r => `<button class="btn sm grow ${ROLE.local === r ? 'on' : ''}" data-lr="${r}">${ROLE_NAME[r]}</button>`).join('')}</div>
+        <div class="note">${esc(ROLE.local === 'dir' ? desc.dir : roleCapText(ROLE.local))}。可用權限跟下方各角色勾選的一樣。例如導播暫時離開位置、交給音控同事時，鎖成「音控」就不會誤切畫面。</div></div>
       <div class="wsec"><h4>遠端操作員連結 <span>對方用瀏覽器打開即可，不用帳號</span></h4>
         ${OPROLES.map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><div class="row" style="flex-wrap:wrap;gap:4px 12px;margin:2px 0 4px">${r === 'dir' ? '<span class="note" style="margin:0">全部功能（固定）</span>' : OPCAP_KEYS.map(([k, n]) => `<label class="note" style="margin:0;display:inline-flex;gap:4px;align-items:center;cursor:pointer"><input type="checkbox" data-cap="${r}:${k}" ${OPCAPS[r][k] ? 'checked' : ''}>${n}</label>`).join('')}</div><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button></div></div>`).join('')}
         <div class="row" style="margin-top:6px"><button class="btn sm danger" id="oprst">更換所有連結（含字幕控制、提詞控制；踢掉目前的操作員）</button></div>
