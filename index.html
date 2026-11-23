@@ -1458,8 +1458,15 @@ function videoCodecs(){
   const tune = pc => { try { pc.getReceivers().forEach(r => { try { if ('jitterBufferTarget' in r) r.jitterBufferTarget = 0; if ('playoutDelayHint' in r) r.playoutDelayHint = 0; } catch {} }); } catch {} };
   P.setRemoteDescription = function(...a){ const p = srd.apply(this, a); Promise.resolve(p).then(() => tune(this)).catch(() => {}); return p; };
 })();
+/* 閒置偵測：記錄最後一次操作（同一台電腦的分頁共用）；導播台播出中（有來源、錄影、推流、遠端操作員）算有在用 */
+let WC_LAST_INPUT = Date.now(), wcActSaved = 0;
+const wcMarkAct = () => { WC_LAST_INPUT = Date.now(); if (WC_LAST_INPUT - wcActSaved > 10000) { wcActSaved = WC_LAST_INPUT; try { localStorage.setItem('wc_act', String(WC_LAST_INPUT)); } catch {} } };
+['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, wcMarkAct, { passive: true, capture: true }));
+const wcIdleSec = () => { let shared = 0; try { shared = +(localStorage.getItem('wc_act') || 0); } catch {} return Math.round((Date.now() - Math.max(WC_LAST_INPUT, shared)) / 1000); };
+const wcLive = () => { try { return !!window.__WC_LIVE?.(); } catch { return false; } };
 async function apiCall(body){
   if (!CONFIG.API_URL) throw new Error('尚未設定代碼平台網址（index.html 的 CONFIG.API_URL）');
+  if (body && body.token) body = { idle: wcIdleSec(), live: wcLive() || undefined, ...body };
   const r = await fetch(CONFIG.API_URL, { method: 'POST', body: JSON.stringify(body) });
   if (!r.ok) throw new Error('代碼平台回應錯誤（' + r.status + '）');
   return r.json();
@@ -7383,6 +7390,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   function opSend(o){ try { o.conn.open && o.conn.send({ ...opState(), caps: opEff(o.r), lockedBy: ROLE.lock || '' }); } catch {} }
   let opBT = 0; function opBroadcast(){ if (!OPS.size) return; clearTimeout(opBT); opBT = setTimeout(() => OPS.forEach(opSend), 60); }
   setInterval(() => { if (ended || !OPS.size) return; OPS.forEach(opSend); }, 1000);
+  window.__WC_LIVE = () => !ended && (inputs.size > 0 || REC.size > 0 || STREAMS.some(x => x.on || x.want) || OPS.size > 0);
   let opTp = -1; setInterval(() => { if (ended || !OPS.size) return; const k = SW.tpos.toFixed(3) + SW.base; if (k === String(opTp)) return; opTp = k; const p = { type: 'opT', tpos: SW.tpos, base: SW.base }; OPS.forEach(o => { try { o.conn.open && o.conn.send(p); } catch {} }); }, 100);
   setInterval(() => {   // 音量表 10 次／秒
     if (ended || !OPS.size) return;
@@ -9333,7 +9341,7 @@ function Home(msg){
   let me = null; try { me = JSON.parse(sstore('wc_me') || 'null'); } catch {}
   let tok = sstore('wc_tok');
   // 保持登入：這台電腦記得登入（30 天），打開就直接進入，不用等伺服器；背景再確認一次
-  if (!tok && !msg) { const rt = store('wc_rtok'); let rme = null; try { rme = JSON.parse(store('wc_rme') || 'null'); } catch {}
+  if (!tok && !msg) { const rt = store('wc_rtok') || store('wc_ltok'); let rme = null; try { rme = JSON.parse(store('wc_rme') || store('wc_lme') || 'null'); } catch {}
     if (rt && rme) { tok = rt; me = rme; sstore('wc_tok', rt); sstore('wc_me', JSON.stringify(rme));
       apiCall({ action: 'me', token: rt }).then(r => { if (r.ok) { sstore('wc_me', JSON.stringify(r.me)); store('wc_rme', JSON.stringify(r.me)); } else if (/SESSION_EXPIRED/.test(r.error || '') && !sstore('wc_host')) { logoutAll(); Home('登入已過期，請重新登入'); } }).catch(() => {}); } }
   if (tok && me) return HostSetup(tok, me, msg);
@@ -9374,6 +9382,7 @@ function Home(msg){
       if (r.me && r.me.mustChangePw) { await hostChangePw(r.token, pw); r.me.mustChangePw = false; }   // 臨時密碼：先改成自己的
       store('wc_acc', a); sstore('wc_tok', r.token); sstore('wc_me', JSON.stringify(r.me));
       if (rm) { store('wc_rtok', r.token); store('wc_rme', JSON.stringify(r.me)); } else { store('wc_rtok', null); store('wc_rme', null); }
+      store('wc_ltok', r.token); store('wc_lme', JSON.stringify(r.me)); try { localStorage.setItem('wc_act', String(Date.now())); } catch {}   // 重新整理或開新分頁不用重新登入（閒置太久伺服器會自動讓它失效）
       HostSetup(r.token, r.me);
     } catch (err) { $('#herr').textContent = err.message; $('#lgo').disabled = false; $('#lgo').innerHTML = ic('lock') + '登入'; }
   };
@@ -9457,7 +9466,7 @@ function hostTfa(r0){
 function logoutAll(){
   const tok = sstore('wc_tok'); if (tok) apiCall({ action: 'logout', token: tok }).catch(() => {});
   ['wc_tok', 'wc_me', 'wc_host'].forEach(k => sstore(k, null));
-  ['wc_rtok', 'wc_rme'].forEach(k => store(k, null));
+  ['wc_rtok', 'wc_rme', 'wc_ltok', 'wc_lme'].forEach(k => store(k, null));
 }
 // 登入後：輸入房間代碼＋設定來賓邀請代碼
 function HostSetup(tok, me, msg){
@@ -10095,7 +10104,26 @@ function loadIce(){
   const fresh = CONFIG.API_URL ? apiCall({ action: 'ice' }).then(r => { const list = (r && r.iceServers) || []; if (list.length) { applyIce(list); try { localStorage.setItem('wc_ice', JSON.stringify({ exp: Date.now() + 5 * 3600e3, list })); } catch {} } }).catch(() => {}) : Promise.resolve();
   return cached && cached.exp > Date.now() ? Promise.resolve() : Promise.race([fresh, new Promise(r => setTimeout(r, 3500))]);
 }
+/* 閒置自動登出（導播端）：依帳號設定的分鐘數；播出中不會登出；到時間前 1 分鐘提醒 */
+let WC_IDLE_T = 0;
+function wcIdleWatch(){
+  clearInterval(WC_IDLE_T);
+  WC_IDLE_T = setInterval(() => {
+    const tok = sstore('wc_tok'); let me = null; try { me = JSON.parse(sstore('wc_me') || 'null'); } catch {}
+    const lim = Number(me?.idleMin) || 0, bar = document.getElementById('wcIdleWarn');
+    if (!tok || !lim || ['guest', 'op', 'panel', 'out', 'cgout', 'cgctl', 'prompter', 'clock'].includes(Q.get('mode'))) { bar?.remove(); return; }
+    if (wcLive()) { wcMarkAct(); bar?.remove(); return; }
+    const left = lim * 60 - wcIdleSec();
+    if (left <= 0) { clearInterval(WC_IDLE_T); logoutAll(); sstore('wc_idle_msg', `超過 ${lim} 分鐘沒有操作，已自動登出`); location.reload(); return; }
+    if (left <= 60) {
+      if (!bar) { const d = document.createElement('div'); d.id = 'wcIdleWarn'; d.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:99999;background:#3b2a0a;border:1px solid #f5b84b;color:#ffd88a;padding:10px 16px;border-radius:10px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px #0008;font-size:14px'; d.innerHTML = '<span id="wcIdleTxt"></span><button class="btn sm primary" id="wcIdleKeep">繼續使用</button>'; document.body.appendChild(d); d.querySelector('#wcIdleKeep').onclick = () => { wcActSaved = 0; wcMarkAct(); d.remove(); }; }
+      const t = document.getElementById('wcIdleTxt'); if (t) t.textContent = `已經 ${lim} 分鐘沒有操作，${Math.max(0, Math.ceil(left))} 秒後自動登出`;
+    } else bar?.remove();
+  }, 5000);
+}
 function route(){
+  { const im = sstore('wc_idle_msg'); if (im) { sstore('wc_idle_msg', null); setTimeout(() => toast(im), 900); } }
+  wcIdleWatch();
   window.__WC_OK = true;
   if (!window.Peer) {
     app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 函式庫沒有載入，請確認網路可連到 cdnjs.cloudflare.com 或 unpkg.com，然後重新整理。</p></div></div>`;
