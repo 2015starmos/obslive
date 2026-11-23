@@ -7443,7 +7443,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         <div class="note">${esc(ROLE.local === 'dir' ? desc.dir : roleCapText(ROLE.local))}。可用權限跟下方各角色勾選的一樣。例如導播暫時離開位置、交給音控同事時，鎖成「音控」就不會誤切畫面。</div></div>
       <div class="wsec"><h4>遠端操作員連結 <span>對方用瀏覽器打開即可，不用帳號</span></h4>${ROLE.lock ? `<div class="note" style="color:var(--warn,#f5b84b)">你的帳號是「${ROLE_NAME[ROLE.lock]}」：遠端連結（含控制面板）最多只能用到你自己有的功能，也不能修改下面的勾選。</div>` : ''}
         ${OPROLES.map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><div class="row" style="flex-wrap:wrap;gap:4px 12px;margin:2px 0 4px">${r === 'dir' ? '<span class="note" style="margin:0">全部功能（固定）</span>' : OPCAP_KEYS.map(([k, n]) => `<label class="note" style="margin:0;display:inline-flex;gap:4px;align-items:center;cursor:pointer"><input type="checkbox" data-cap="${r}:${k}" ${OPCAPS[r][k] ? 'checked' : ''}>${n}</label>`).join('')}</div><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button><button class="btn sm" data-pu="${r}" title="按鈕面板（像 vMix Panel）：手機、平板、另一台電腦都能用">🎛 面板</button><button class="btn sm" data-pq="${r}">面板 QR</button></div></div>`).join('')}
-        <div class="row" style="margin-top:6px"><button class="btn sm danger" id="oprst">更換所有連結（含字幕控制、提詞控制；踢掉目前的操作員）</button></div>
+        <div class="row" style="margin-top:6px"><button class="btn sm" id="opdemo" title="不會影響這台導播台，用來教學、練習、確認各角色看到什麼">🎓 模擬練習面板</button><button class="btn sm danger" id="oprst">更換所有連結（含字幕控制、提詞控制；踢掉目前的操作員）</button></div>
         <div class="note">連結只有這次導播有效；重新開導播台或更換邀請代碼後，請重新複製。請只給信任的同事。</div></div>
       <div class="wsec"><h4>目前連線的操作員 <span>${OPS.size} 位</span></h4>${[...OPS].map(o => `<div class="row" style="margin:3px 0"><span class="tag ${o.r === 'dir' ? 'live' : o.r === 'aud' ? 'pvwt' : 'info'}">${ROLE_NAME[o.r]}</span><span class="grow">${esc(o.name)} <span class="note" style="margin:0">${fmtTime(o.t)} 連線${o.calls.size ? ' · 看 ' + [...o.calls.keys()].join(',').toUpperCase() : ''}</span></span><button class="btn sm danger" data-ok="${o.t}">中斷</button></div>`).join('') || '<div class="note">沒有</div>'}</div>
       <div class="wsec"><h4>操作員提示（Cue） <span>最近 ${CUELOG.length} 則</span></h4>${CUELOG.slice(0, 12).map(c => `<div class="row" style="margin:3px 0"><span class="mono note" style="margin:0">${fmtTime(c.t)}</span><span class="tag info">${esc(ROLE_NAME[c.r])}</span><span class="grow">${esc(c.name)}：<b>${esc(c.text)}</b></span></div>`).join('') || '<div class="note">FD／AD 等操作員按「提示導播」時會顯示在這裡，並跳出通知。</div>'}</div>`;
@@ -7454,6 +7454,7 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     $$('[data-pu]', B).forEach(b => b.onclick = () => copyText(opUrl(b.dataset.pu).replace('mode=op', 'mode=panel'), `已複製${ROLE_NAME[b.dataset.pu]}控制面板連結`));
     $$('[data-pq]', B).forEach(b => b.onclick = () => uiModal(`<h2>${ROLE_NAME[b.dataset.pq]}控制面板</h2><p class="note">用手機或平板掃描，就能用按鈕面板控制這台導播台（權限跟${ROLE_NAME[b.dataset.pq]}一樣）。</p><div class="qr" id="pnqr" style="justify-self:center"></div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m => qr($('#pnqr', m), opUrl(b.dataset.pq).replace('mode=op', 'mode=panel'), 220)));
     $$('[data-oq]', B).forEach(b => b.onclick = () => uiModal(`<h2>${ROLE_NAME[b.dataset.oq]}連結</h2><div class="qr" id="opqr" style="justify-self:center"></div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m => qr($('#opqr', m), opUrl(b.dataset.oq), 220)));
+    $('#opdemo', B) && ($('#opdemo', B).onclick = () => window.open(`${shareBase()}?mode=panel&demo=1&r=${ROLE.lock || 'dir'}`, '_blank'));
     $('#oprst', B).onclick = async () => { if (!(await uiConfirm('更換操作員連結', '目前連線的操作員都會被中斷，舊連結會失效。', '更換'))) return; [...OPROLES, 'cg', 'pr'].forEach(k => OPTOK[k] = rnd(14)); sstore('wc_optok', JSON.stringify(OPTOK)); OPS.forEach(o => { try { o.conn.send({ type: 'deny', error: '導播已更換操作員連結' }); o.conn.close(); } catch {} }); CGC.forEach(c => { if (c.kind !== 'out') try { c.conn.send({ type: 'deny', error: '導播已更換字幕／提詞控制連結' }); c.conn.close(); } catch {} }); renderOps(); try { titleUi?.refresh(); } catch {} toast('已更換操作員、字幕控制、提詞控制連結'); };
     $$('[data-ok]', B).forEach(b => b.onclick = () => { const o = [...OPS].find(x => String(x.t) === b.dataset.ok); if (o) { try { o.conn.send({ type: 'deny', error: '導播中斷了你的連線' }); o.conn.close(); } catch {} } });
   }
@@ -9355,6 +9356,7 @@ function Home(msg){
       <span class="lbl">來賓 · 輸入邀請代碼</span>
       <div class="row"><input class="field mono" id="gk" placeholder="例：K7QX2M 或貼上連結" autocomplete="off" style="letter-spacing:.08em"><button class="btn" id="ggo">加入</button></div>
     </div>
+    <div style="text-align:center;margin-top:8px"><a class="note" href="?mode=panel&demo=1&r=dir" style="color:var(--dim)">🎓 模擬練習控制面板（不用帳號、不影響任何導播台）</a></div>
   </div></div>`;
   $('#lfg').onclick = () => hostForgot($('#la').value.trim());
   $('#lf').onsubmit = async e => {
@@ -9573,6 +9575,26 @@ function Output(){
  * 遠端控制面板（像 vMix Panel Builder）：手機、平板、另一台電腦都能控制導播台
  * 連線與權限跟「遠端操作員連結」相同；面板配置存在這台裝置，可以自己排版、加自訂按鈕、匯出匯入
  * =================================================================================== */
+/* 遠端操作員／控制面板用的訊號連線：手機在 5G、切換 App、掃 QR 回來時很容易斷線，
+ * 斷了就整個重建（逾時 12 秒、逐步拉長重試間隔），回到前景或網路恢復時立刻重連 */
+function opSignal(roomKey, tag, h){
+  let p = null, timer = 0, tries = 0;
+  const again = () => { clearTimeout(timer); tries++; timer = setTimeout(make, Math.min(15000, 1200 * tries)); };
+  function make(){
+    clearTimeout(timer); try { p?.destroy(); } catch {}
+    const me = p = new Peer(PREFIX + roomKey + '-' + tag + '-' + rnd(8), PEER_OPTS);
+    h.status?.('wait', tries ? `重新連接訊號伺服器…（第 ${tries} 次）` : '連接訊號伺服器…');
+    me.on('open', () => { if (p !== me) return; tries = 0; clearTimeout(timer); h.open(me); });
+    me.on('call', c => { if (p === me) h.call?.(c); });
+    me.on('disconnected', () => { if (p !== me || me.destroyed) return; h.status?.('wait', '訊號伺服器中斷，重連中…'); try { me.reconnect(); } catch {} clearTimeout(timer); timer = setTimeout(() => { if (p === me && !me.open) again(); }, 8000); });
+    me.on('error', e => { if (p !== me) return; if (e.type === 'peer-unavailable') { h.status?.('bad', peerErrText(e)); return h.redial?.(); } h.status?.('bad', peerErrText(e) + '，自動重試中'); if (['network', 'socket-error', 'socket-closed', 'server-error', 'disconnected', 'unavailable-id', 'webrtc'].includes(e.type)) again(); });
+    timer = setTimeout(() => { if (p === me && !me.open) { h.status?.('bad', '訊號伺服器逾時，正在重試'); again(); } }, 12000);
+  }
+  const wake = () => { if (document.visibilityState !== 'visible') return; if (!p || (!p.open && !p.disconnected)) { tries = 0; make(); } else if (p.disconnected) { try { p.reconnect(); } catch { make(); } } else h.wake?.(); };
+  document.addEventListener('visibilitychange', wake); addEventListener('online', () => { tries = 0; make(); }); addEventListener('pageshow', e => { if (e.persisted) { tries = 0; make(); } });
+  make();
+  return { get peer(){ return p; } };
+}
 function Panel(){
   const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), R = ['dir', 'td', 'ad', 'fd', 'ae', 'aud', 'view'].includes(Q.get('r')) ? Q.get('r') : 'view', tok = Q.get('t') || '';
   const RN = { dir: '導播', td: 'TD 技術導播', ad: 'AD 助理導播', fd: 'FD 現場指導', ae: 'AE 助理工程', aud: '音控', view: '監看員' };
@@ -9591,6 +9613,7 @@ function Panel(){
   let L; try { L = JSON.parse(localStorage.getItem(LKEY) || 'null'); } catch {} if (!L?.pages?.length) L = defLayout();
   const save = () => { try { localStorage.setItem(LKEY, JSON.stringify(L)); } catch {} };
   let page = Math.min(+(store('wc_panel_pg') || 0), L.pages.length - 1), edit = false;
+  const DEMO_ON = Q.get('demo') === '1'; let DEMO = null;
   let peer, conn, retryT, S = null, LVL = { in: {}, pgm: -90, aux: [] }, denied = false, watching = '', sig = '';
   const TM = { run: false, t0: 0, acc: 0, down: 0 };   // 節目計時器（只在這台裝置）
   document.body.className = 'pnb';
@@ -9599,7 +9622,7 @@ function Panel(){
       <button class="btn sm" id="pne">✏️ 編輯面板</button><button class="btn sm" id="pnf" title="全螢幕">⛶</button></header>
     <nav class="pnt" id="pnt"></nav><div class="pnbar hidden" id="pnbar"></div><main class="png" id="png"></main></div>`;
   const G = $('#png');
-  const send = d => { if (conn?.open) { conn.send(d); try { navigator.vibrate?.(8); } catch {} } };
+  const send = d => { try { navigator.vibrate?.(8); } catch {} if (DEMO) return DEMO.handle(d); if (conn?.open) conn.send(d); };
   const st = (c, t) => { $('#pns').innerHTML = `<span class="dot ${c}"></span>${esc(t)}`; };
   const caps = () => S?.caps || {};
   const can = k => !k || !!caps()[k];   // 導播台送來的是「實際可用」的權限（已扣掉導播台帳號沒有的功能）
@@ -9775,15 +9798,98 @@ function Panel(){
     });
   }
 
+  /* ---------- 模擬練習模式：不用真的導播台，在這台裝置模擬一台切換台（教學、練習、確認各角色權限） ---------- */
+  function startDemo(){
+    const DEF = { dir: 'sw pvw aux gfx scene audio rec cue', td: 'sw pvw aux gfx scene rec cue', ad: 'pvw gfx cue', fd: 'cue', ae: 'aux audio cue', aud: 'audio cue', view: '' };
+    const capsOf = r => Object.fromEntries('sw pvw aux gfx scene audio rec cue'.split(' ').map(k => [k, DEF[r].split(' ').includes(k)]));
+    const COL = ['#c0392b', '#2471a3', '#1e8449', '#b9770e', '#7d3c98', '#117a65'], NM = ['主播', '來賓 A', '現場 SNG', 'CAM 4', '空拍', '片頭'];
+    const D = { type: 'opState', sw: true, pgm: 'c1', pvw: 'c2', ftb: false, caps: capsOf(R), lockedBy: '',
+      inputs: NM.map((n, i) => ({ id: 'c' + (i + 1), n: i + 1, name: n, kind: 'cam', tally: '', fader: 1, mute: false, solo: false, afv: true, bus: { pgm: true, ifb: 'auto', aux: ['afv', 'off', 'off', 'off'] }, dly: 0, lost: false })),
+      aux: [{ name: '現場回送', mode: 'src', pgm: 'c1', pvw: null }, { name: '跟隨 PGM', mode: 'pgm' }], stills: [{ n: 1, name: '台標', has: true, on: false }, { n: 2, name: '天氣圖', has: true, on: false }],
+      ov: { lt: false, tk: false, bug: true, cc: false, tm: false, bn: false }, tpos: 0, base: 0, ttype: 'mix', tdur: 800, transList: [['mix', 'MIX 溶接'], ['dip', 'DIP 過場色'], ['wipe', 'WIPE 劃變'], ['cut', 'CUT 直切']],
+      rec: 0, finalizing: 0, streams: [{ id: 's1', name: 'YouTube', on: false, want: false }, { id: 's2', name: 'Facebook', on: false, want: false }] };
+    const tally = () => D.inputs.forEach(x => x.tally = x.id === D.pgm ? 'live' : x.id === D.pvw ? 'pvw' : '');
+    let anim = null, swapAt = 0;
+    const push = () => { tally(); onMsg(JSON.parse(JSON.stringify(D))); };
+    const swap = () => { const o = D.pgm; D.pgm = D.pvw; D.pvw = o; D.tpos = 0; D.base = 0; push(); };
+    const deny = need => { toast(`（模擬）${RN[R]}沒有「${{ sw: '切換 PGM', pvw: '預備 PVW', aux: 'AUX', gfx: '圖層', scene: '場景', audio: '聲音', rec: '錄影／推流', cue: '提示' }[need]}」權限，真的導播台也會擋下`); };
+    const NEEDK = { take: 'sw', cut: 'sw', auto: 'sw', ftb: 'sw', tbar: 'sw', trans: 'sw', tdur: 'sw', pvw: 'pvw', auxpvw: 'aux', auxtake: 'aux', ov: 'gfx', still: 'gfx', scene: 'scene', fader: 'audio', mute: 'audio', solo: 'audio', afv: 'audio', bus: 'audio', rec: 'rec', stream: 'rec', cue: 'cue' };
+    DEMO = { handle(d){
+      if (d.type === 'watch') { const c = CV[d.what] || CV.pgm; curStream = d.what ? c.captureStream(25) : null; const v = G.querySelector('[data-v]'); if (v) { v.srcObject = curStream; v.play().catch(() => {}); } return; }
+      const need = NEEDK[d.type]; if (need && !D.caps[need]) return deny(need);
+      const x = D.inputs.find(y => y.id === d.id);
+      switch (d.type) {
+        case 'pvw': D.pvw = d.id || null; break;
+        case 'take': if (d.id === D.pgm) return; D.pvw = D.pgm; D.pgm = d.id || null; D.tpos = 0; break;
+        case 'cut': swap(); return;
+        case 'auto': if (D.ttype === 'cut') return swap(); anim = { t0: performance.now(), from: D.tpos, dur: D.tdur }; return;
+        case 'ftb': D.ftb = !D.ftb; break;
+        case 'tbar': D.tpos = clamp(+d.v, 0, 1); if (D.tpos >= .999) return swap(); break;
+        case 'trans': D.ttype = d.k; break;
+        case 'tdur': D.tdur = clamp(+d.v || 800, 100, 5000); break;
+        case 'ov': D.ov[d.k] = !D.ov[d.k]; break;
+        case 'still': { const s2 = D.stills.find(y => y.n === d.n); if (s2) s2.on = !s2.on; break; }
+        case 'scene': toast(`（模擬）載入場景 F${d.i + 1}`); D.pvw = D.inputs[d.i % D.inputs.length].id; break;
+        case 'auxpvw': D.aux[d.i].pvw = d.id || null; break;
+        case 'auxtake': D.aux[d.i].pgm = D.aux[d.i].pvw; break;
+        case 'fader': if (x) x.fader = clamp(+d.v, 0, 1.5); break;
+        case 'mute': if (x) x.mute = !!d.v; break;
+        case 'rec': D.rec = D.rec ? 0 : 1; toast(D.rec ? '（模擬）開始錄影' : '（模擬）停止錄影'); break;
+        case 'stream': { const s2 = D.streams.find(y => y.id === d.id); if (s2) { s2.want = !!d.v; s2.on = !!d.v; toast(`（模擬）推流「${s2.name}」${s2.on ? '開始' : '停止'}`); } break; }
+        case 'cue': toast(`（模擬）導播收到提示：${d.text}`); return;
+        case 'asnap': toast('（模擬）套用音頻快照'); return;
+      }
+      push();
+    } };
+    // 模擬畫面：每個來源畫一個彩色測試畫面，PGM 依 T-Bar 混合
+    const W = 640, H = 360, mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+    const CV = { pgm: mk(), pvw: mk(), mv: mk(), clean: mk(), aux1: mk(), aux2: mk() };
+    const src = (ctx, id, x, y, w, h) => { const i = D.inputs.findIndex(z => z.id === id); if (i < 0) { ctx.fillStyle = '#000'; ctx.fillRect(x, y, w, h); return; }
+      const t = performance.now() / 1000; ctx.fillStyle = COL[i]; ctx.fillRect(x, y, w, h); ctx.fillStyle = '#ffffff22'; for (let k = 0; k < 6; k++) ctx.fillRect(x + ((t * 40 + k * w / 6) % w), y, w / 24, h);
+      ctx.fillStyle = '#fff'; ctx.font = `bold ${h / 6}px sans-serif`; ctx.textAlign = 'center'; ctx.fillText(`${i + 1}. ${D.inputs[i].name}`, x + w / 2, y + h / 2); ctx.font = `${h / 12}px monospace`; ctx.fillText(new Date().toLocaleTimeString('zh-TW', { hour12: false }), x + w / 2, y + h / 2 + h / 7); ctx.textAlign = 'left'; };
+    const program = (ctx, clean) => { src(ctx, D.pgm, 0, 0, W, H);
+      if (D.tpos > 0 && D.pvw) { ctx.save(); if (D.ttype === 'wipe') { ctx.beginPath(); ctx.rect(0, 0, W * D.tpos, H); ctx.clip(); } else ctx.globalAlpha = D.ttype === 'dip' ? Math.max(0, D.tpos * 2 - 1) : D.tpos; src(ctx, D.pvw, 0, 0, W, H); ctx.restore(); if (D.ttype === 'dip') { ctx.fillStyle = `rgba(0,0,0,${1 - Math.abs(D.tpos * 2 - 1)})`; ctx.fillRect(0, 0, W, H); } }
+      if (clean) return;
+      if (D.ov.bug || D.stills[0].on) { ctx.fillStyle = '#ffffffdd'; ctx.font = 'bold 22px sans-serif'; ctx.fillText('WebCall TV', W - 150, 36); }
+      if (D.stills[1].on) { ctx.fillStyle = '#0b3d91ee'; ctx.fillRect(W - 230, 60, 200, 120); ctx.fillStyle = '#fff'; ctx.font = '18px sans-serif'; ctx.fillText('☀ 臺北 24°C', W - 200, 125); }
+      if (D.ov.lt) { ctx.fillStyle = '#b91c1cee'; ctx.fillRect(30, H - 92, 380, 34); ctx.fillStyle = '#0b1226ee'; ctx.fillRect(30, H - 58, 380, 28); ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('模擬字幕條：記者 現場報導', 42, H - 68); ctx.font = '15px sans-serif'; ctx.fillText('WebCall 模擬練習', 42, H - 38); }
+      if (D.ov.tk) { ctx.fillStyle = '#000c'; ctx.fillRect(0, H - 24, W, 24); ctx.fillStyle = '#ffd34d'; ctx.font = '15px sans-serif'; ctx.fillText('跑馬燈：這是模擬練習畫面　｜　按鈕操作會即時反映', W - ((performance.now() / 8) % (W + 500)), H - 7); }
+      if (D.ov.bn) { ctx.fillStyle = '#d00'; ctx.fillRect(0, 0, 150, 34); ctx.fillStyle = '#fff'; ctx.font = 'bold 20px sans-serif'; ctx.fillText('突發新聞', 22, 24); }
+      if (D.ftb) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
+      if (D.rec) { ctx.fillStyle = '#f33'; ctx.beginPath(); ctx.arc(20, H - 330, 8, 0, 7); ctx.fill(); } };
+    (function loop(){ requestAnimationFrame(loop);
+      if (anim) { const p = (performance.now() - anim.t0) / anim.dur; D.tpos = clamp(anim.from + p * (1 - anim.from), 0, 1); if (S) { S.tpos = D.tpos; paintT(); } if (p >= 1) { anim = null; swap(); } }
+      const g = c => c.getContext('2d'); program(g(CV.pgm)); program(g(CV.clean), true); src(g(CV.pvw), D.pvw, 0, 0, W, H); src(g(CV.aux1), D.aux[0].pgm, 0, 0, W, H); program(g(CV.aux2));
+      const m = g(CV.mv); m.fillStyle = '#111'; m.fillRect(0, 0, W, H); m.drawImage(CV.pvw, 0, 0, W / 2, H / 2); m.drawImage(CV.pgm, W / 2, 0, W / 2, H / 2);
+      m.strokeStyle = '#2ecc71'; m.lineWidth = 4; m.strokeRect(2, 2, W / 2 - 4, H / 2 - 4); m.strokeStyle = '#e74c3c'; m.strokeRect(W / 2 + 2, 2, W / 2 - 4, H / 2 - 4);
+      D.inputs.forEach((x, i) => { const cw = W / 3, ch = H / 4, cx = (i % 3) * cw, cy = H / 2 + Math.floor(i / 3) * ch; src(m, x.id, cx + 2, cy + 2, cw - 4, ch - 4); if (x.tally) { m.strokeStyle = x.tally === 'live' ? '#e74c3c' : '#2ecc71'; m.strokeRect(cx + 2, cy + 2, cw - 4, ch - 4); } }); })();
+    setInterval(() => { const lv = { type: 'opLv', in: {}, pgm: -90, aux: [] }; let mx = -90; D.inputs.forEach(x => { const v = x.mute ? -90 : Math.round(-28 + Math.random() * 18 + 20 * Math.log10(Math.max(.01, x.fader))); lv.in[x.id] = v; if (D.pgm === x.id || (x.bus.pgm && !x.afv)) mx = Math.max(mx, v); }); lv.pgm = mx; onMsg(lv); }, 100);
+    st('ok', '模擬練習中'); $('#pnl').textContent = '模擬練習：不會影響任何真的導播台';
+    const rs = document.createElement('select'); rs.className = 'field sm'; rs.title = '切換要模擬的角色'; rs.innerHTML = Object.keys(DEF).map(r => `<option value="${r}" ${r === R ? 'selected' : ''}>模擬：${RN[r]}</option>`).join('');
+    rs.onchange = () => { const u = new URL(location.href); u.searchParams.set('r', rs.value); location.href = u.href; }; $('#pns').after(rs);
+    push();
+  }
+
   /* ---------- 連線（跟遠端操作員同一套） ---------- */
   let curStream = null;
+  function onMsg(d){
+    if (!d) return;
+    if (d.type === 'deny') { denied = true; st('bad', '無法連線'); G.innerHTML = `<div class="wsec" style="padding:20px"><h4>無法連線</h4><div>${esc(d.error || '')}</div></div>`; return; }
+    if (d.type === 'deny2') return toast(d.error);
+    if (d.type === 'opHello') { $('#pnl').textContent = `${d.label || '導播台'}${d.director ? ' · 導播 ' + d.director : ''}`; }
+    if (d.type === 'opState') { const first = !S; S = d; const ns = JSON.stringify([S.caps, S.inputs.map(x => x.id + x.name), S.stills.map(x => x.has), S.streams.map(x => x.id + x.name), S.aux.map(a => a.mode), S.transList?.length]); if (first || ns !== sig) { sig = ns; if (!edit || first) renderAll(); } else patch(); }
+    if (d.type === 'opT' && S) { S.tpos = d.tpos; S.base = d.base; paintT(); }
+    if (d.type === 'opLv') { LVL = d; paintLv(); }
+  }
   function retry(){ clearTimeout(retryT); if (!denied) retryT = setTimeout(dial, 3000); }
   function dial(){
     clearTimeout(retryT); if (!peer?.open || denied) return;
     try { conn?.close(); } catch {}
     conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'op', r: R, t: tok, name: ($('#pnn').value.trim() || RN[R]) + '（面板）' }, ...CONN_OPTS });
+    { const c0 = conn; st('wait', '尋找導播台…'); setTimeout(() => { if (conn === c0 && !c0.open && !denied) { st('bad', '找到導播台但資料通道打不開（行動網路可能擋住），重試中…'); retry(); } }, 15000); }
     conn.on('open', () => { st('ok', '已連線'); watching = '__'; renderAll(); });
-    conn.on('data', d => {
+    conn.on('data', d => onMsg(d));
+    conn.on('data_unused', d => {
       if (!d) return;
       if (d.type === 'deny') { denied = true; st('bad', '無法連線'); G.innerHTML = `<div class="wsec" style="padding:20px"><h4>無法連線</h4><div>${esc(d.error || '')}</div></div>`; return; }
       if (d.type === 'deny2') return toast(d.error);
@@ -9795,11 +9901,9 @@ function Panel(){
     conn.on('close', () => { if (!denied) { st('wait', '導播台離線，重試中…'); retry(); } });
     conn.on('error', retry);
   }
-  peer = new Peer(PREFIX + roomKey + '-op-' + rnd(8), PEER_OPTS);
-  peer.on('open', dial);
-  peer.on('call', call => { call.answer(); call.on('stream', s => { curStream = s; const v = G.querySelector('[data-v]'); if (v) { v.srcObject = s; v.play().catch(() => {}); } }); });
-  peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
-  peer.on('error', e => { st('bad', peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
+  if (DEMO_ON) { startDemo(); renderAll(); return; }
+  opSignal(roomKey, 'op', { open: p => { peer = p; dial(); }, status: st, redial: retry, wake: () => { if (!conn?.open) dial(); },
+    call: call => { call.answer(); call.on('stream', s => { curStream = s; const v = G.querySelector('[data-v]'); if (v) { v.srcObject = s; v.play().catch(() => {}); } }); } });
   renderAll();
 }
 
@@ -9922,6 +10026,7 @@ function Operator(){
     clearTimeout(retryT); if (!peer?.open || denied) return;
     try { conn?.close(); } catch {}
     conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'op', r: R, t: tok, name: $('#opn').value.trim() || RN[R] }, ...CONN_OPTS });
+    { const c0 = conn; st('wait', '尋找導播台…'); setTimeout(() => { if (conn === c0 && !c0.open && !denied) { st('bad', '找到導播台但資料通道打不開（行動網路可能擋住），重試中…'); retry(); } }, 15000); }
     conn.on('open', () => { st('ok', '已連線'); send({ type: 'watch', what: $('#opw').value }); });
     conn.on('data', d => {
       if (!d) return;
@@ -9934,11 +10039,8 @@ function Operator(){
     conn.on('close', () => { if (!denied) { st('wait', '導播台離線，重試中…'); v.srcObject = null; $('#opnov').classList.remove('hidden'); retry(); } });
     conn.on('error', retry);
   }
-  peer = new Peer(PREFIX + roomKey + '-op-' + rnd(8), PEER_OPTS);
-  peer.on('open', dial);
-  peer.on('call', call => { call.answer(); call.on('stream', s => { v.srcObject = s; v.muted = !$('#opa').checked; v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); $('#opnov').classList.add('hidden'); }); });
-  peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
-  peer.on('error', e => { st('bad', peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
+  opSignal(roomKey, 'op', { open: p => { peer = p; dial(); }, status: st, redial: retry, wake: () => { if (!conn?.open) dial(); },
+    call: call => { call.answer(); call.on('stream', s => { v.srcObject = s; v.muted = !$('#opa').checked; v.play().catch(() => { v.muted = true; v.play().catch(() => {}); }); $('#opnov').classList.add('hidden'); }); } });
   addEventListener('pointerdown', () => { if ($('#opa').checked && v.muted) { v.muted = false; v.play().catch(() => {}); } });
 }
 
