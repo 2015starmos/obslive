@@ -1014,6 +1014,41 @@ html.cgout-root,html.cgout-root body.cgout{background:transparent!important;marg
 body.cgout #app{background:transparent!important}
 body.cgout #cgc{position:fixed;inset:0;width:100vw;height:100vh;object-fit:contain}
 body.cgout #cgdbg{position:fixed;left:8px;bottom:8px;font:12px var(--mono);color:#fff;background:#000a;padding:4px 8px;border-radius:4px}
+/* ===== 遠端控制面板（vMix Panel 風格） ===== */
+body.pnb{background:#1b1e24;overflow:hidden}body.pnb #app{height:var(--wc-vh,100dvh)!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.pn{min-height:100vh;display:flex;flex-direction:column;color:#e8ecf2;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.pnh{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#11141a;border-bottom:1px solid #2b3240;position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.pnh #pnl{font-size:13px;color:#9fb0c8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pnt{display:flex;gap:4px;padding:6px 10px 0;overflow-x:auto}.pnt button{background:#2a303b;color:#cfd8e6;border:1px solid #3a4352;border-bottom:0;border-radius:8px 8px 0 0;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.pnt button.on{background:#3b4658;color:#fff;font-weight:700}
+.pnbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#262b35;border-top:1px solid #3a4352}
+.png{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-flow:row dense;gap:8px;padding:8px 10px 20px;align-content:start;align-items:start}
+.pnblk{grid-column:span var(--sp,1);grid-row:span var(--rs,1);align-self:stretch;background:linear-gradient(#323946,#272d37);border:2px solid var(--bc);border-radius:10px;padding:6px 8px 8px;min-width:0;box-shadow:inset 0 1px #ffffff12}
+.pnblk.dis{opacity:.45;pointer-events:none}.pnblk h4{margin:0 0 6px;font-size:11px;letter-spacing:.06em;color:#c9d3e2;display:flex;align-items:center;gap:6px;text-transform:uppercase}.pnblk h4>span:first-child{background:var(--bc);padding:1px 8px;border-radius:4px;color:#fff}
+.pned{margin-left:auto;display:flex;gap:3px;pointer-events:auto}.pned button,.pned select{background:#1b2029;color:#e8ecf2;border:1px solid #4a5568;border-radius:5px;font-size:12px;padding:2px 6px;cursor:pointer}
+.pnbtns{display:flex;flex-wrap:wrap;gap:6px}
+.pnb2{position:relative;min-width:64px;min-height:48px;padding:6px 10px;border-radius:9px;border:1px solid #11151b;background:linear-gradient(#5a6372,#3b424e);color:#fff;font:600 13px/1.15 inherit;cursor:pointer;box-shadow:0 2px 0 #0008,inset 0 1px #ffffff2a;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.pnb2:active,.pnb2.hit{transform:translateY(1px);filter:brightness(1.25)}.pnb2.sm{min-height:36px;min-width:52px;font-size:12px}.pnb2.big{min-height:64px;font-size:16px}.pnb2.sq{min-width:54px}
+.pnb2 .led{width:8px;height:8px;border-radius:50%;background:#1c2128;box-shadow:inset 0 1px 2px #000}.pnb2.on .led{background:#ffd34d;box-shadow:0 0 8px #ffd34d}.pnb2.on{background:linear-gradient(#8a7a2a,#5d5214)}
+.pnb2.live{background:linear-gradient(#e0353a,#a3151a)!important}.pnb2.live .led{background:#fff;box-shadow:0 0 8px #fff}
+.pnb2.cust{background:linear-gradient(color-mix(in srgb,var(--bc) 85%,#fff 15%),var(--bc))}.pnb2.cust.on{outline:3px solid #ffd34d;outline-offset:1px}.pnb2 kbd{position:absolute;right:4px;top:3px;font-size:9px;opacity:.7;font-family:monospace}
+.pnkeys{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
+.pnk{min-height:62px;border-radius:50% / 38%;border:1px solid #0b0e12;background:radial-gradient(circle at 50% 30%,#d9dde3,#8d939c 70%,#6c727b);color:#111;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;box-shadow:0 3px 0 #0009,inset 0 2px #fff8}
+.pnk b{font-size:15px}.pnk small{font-size:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pnk.live{background:radial-gradient(circle at 50% 30%,#ff9a9a,#e32a2a 65%,#a51010);color:#fff}.pnk.next{background:radial-gradient(circle at 50% 30%,#b8ffb0,#3fbf3a 65%,#1f7d1c);color:#fff}.pnk:active{transform:translateY(2px)}
+.pntr{display:grid;grid-template-columns:70px 1fr;gap:8px;min-height:230px;height:calc(100% - 22px)}
+.pntb{position:relative;border-radius:8px;background:repeating-linear-gradient(to bottom,transparent 0 13px,#8796a94d 13px 14px) #20252e;border:1px solid #4a5568;cursor:ns-resize;touch-action:none}
+.pntbs{position:absolute;left:50%;top:14px;bottom:14px;width:10px;margin-left:-5px;border-radius:5px;background:#05070a;box-shadow:inset 0 1px 3px #000}
+.pntbh{position:absolute;left:6px;right:6px;height:28px;border-radius:6px;background:linear-gradient(#f0f2f5,#9aa2ad);box-shadow:0 3px 6px #000a;border:1px solid #333}
+.pntrb{display:flex;flex-direction:column;gap:6px}
+.pnmix{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.pnch{flex:0 0 74px;display:flex;flex-direction:column;align-items:center;gap:4px;background:#1f242c;border-radius:8px;padding:6px 4px;border:1px solid #333b48}.pnch.onair{border-color:#e32a2a}
+.pnfw{display:flex;gap:4px;height:170px;align-items:stretch}.pnfw input[type=range]{writing-mode:vertical-lr;direction:rtl;width:30px;height:100%;accent-color:#9aa6b8}
+.pnvu{width:8px;background:#0b0e12;border-radius:3px;position:relative;overflow:hidden}.pnvu i{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(to top,#2ecc71 0 70%,#f1c40f 70% 88%,#e74c3c 88%);transition:height .08s linear}
+.pnchn{font-size:10px;text-align:center;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pnvid{position:relative;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden}.pnvid video{width:100%;height:100%;object-fit:contain}
+.pntm{font:700 clamp(28px,6vw,54px)/1.1 ui-monospace,monospace;text-align:center;padding:6px 0;color:#fff;text-shadow:0 0 10px #000}.pntm.warn{color:#ffcf4a}.pntm.over{color:#ff4d4d;animation:pnblink 1s steps(2) infinite}@keyframes pnblink{50%{opacity:.3}}
+.pncrow{display:flex;gap:4px;flex-wrap:wrap;align-items:center;background:#1f242c;padding:6px;border-radius:6px}
+@media(max-width:900px){.png{grid-template-columns:repeat(2,minmax(0,1fr))}.pnblk{grid-column:span min(var(--sp,1),2)}}
+@media(max-width:600px){.png{grid-template-columns:1fr;padding:6px}.pnblk{grid-column:span 1;grid-row:span 1}.pnh .brand,.pnh #pnn{display:none}.pnkeys{grid-template-columns:repeat(auto-fill,minmax(64px,1fr))}.pntr{grid-template-columns:60px 1fr;min-height:200px}}
 </style>
 </head>
 <body>
@@ -3454,7 +3489,7 @@ function Host(sess){
       if (!ok) { try { conn.send({ type: 'deny', error: '字幕控制連結無效或已經更換，請跟導播要新的連結' }); } catch {} setTimeout(() => conn.close(), 400); return; }
       const c = { conn, kind, name: String(md.name || '').slice(0, 20) }; CGC.add(c);
       conn.send({ type: 'cgHello', kind, label: info.label || '' }); sendAssets(c); conn.send({ type: 'cgState', s: TitleCore.snapshot(TS, Date.now()) });
-      if (kind === 'ctl') { conn.on('data', d => { if (d?.type === 'cg' && d.cmd) titleCmd(d.cmd, '遠端：' + (c.name || '字幕')); }); toast(`🔤 字幕控制「${c.name || '遠端'}」已連線`); }
+      if (kind === 'ctl') { conn.on('data', d => { if (d?.type === 'cg' && d.cmd) { if (ROLE.lock && ROLE.lock !== 'dir' && !OPCAPS[ROLE.lock]?.gfx) return toast('遠端字幕控制被擋下：這台導播台的帳號沒有圖層權限'); titleCmd(d.cmd, '遠端：' + (c.name || '字幕')); } }); toast(`🔤 字幕控制「${c.name || '遠端'}」已連線`); }
       if (kind === 'pr') { conn.on('data', d => { if (d?.type === 'cg' && d.cmd && /^prompter/.test(String(d.cmd.op || ''))) titleCmd(d.cmd, '提詞：' + (c.name || '提詞機')); }); toast('📜 提詞機控制已連線'); }   // 提詞控制連結只能捲動提詞，不能動字幕
       conn.on('close', () => { CGC.delete(c); try { titleUi?.refresh(); } catch {} });
       try { titleUi?.refresh(); } catch {}
@@ -6571,10 +6606,10 @@ function Host(sess){
   const ROLE_NAME = { dir: '導播', td: 'TD 技術導播', ad: 'AD 助理導播', fd: 'FD 現場指導', ae: 'AE 助理工程', aud: '音控', view: '監看員' };
   // 遠端操作員的角色與權限（導播可在 OPERATORS 視窗勾選調整，存在這台電腦）
   const OPROLES = ['dir', 'td', 'ad', 'fd', 'ae', 'aud', 'view'];
-  const OPCAP_KEYS = [['sw', '切換 PGM（TAKE／CUT／AUTO／FTB）'], ['pvw', '預備 PVW'], ['aux', 'AUX 母線'], ['gfx', '圖層／字幕條／圖庫'], ['scene', '場景'], ['audio', '聲音（推桿／靜音／母線）'], ['cue', '提示導播（Cue）']];
-  const OPCAP_DEF = { dir: 'sw pvw aux gfx scene audio cue', td: 'sw pvw aux gfx scene cue', ad: 'pvw gfx cue', fd: 'cue', ae: 'aux audio cue', aud: 'audio cue', view: '' };
+  const OPCAP_KEYS = [['sw', '切換 PGM（TAKE／CUT／AUTO／FTB）'], ['pvw', '預備 PVW'], ['aux', 'AUX 母線'], ['gfx', '圖層／字幕條／圖庫'], ['scene', '場景'], ['audio', '聲音（推桿／靜音／母線）'], ['rec', '錄影／推流開關'], ['cue', '提示導播（Cue）']];
+  const OPCAP_DEF = { dir: 'sw pvw aux gfx scene audio rec cue', td: 'sw pvw aux gfx scene rec cue', ad: 'pvw gfx cue', fd: 'cue', ae: 'aux audio cue', aud: 'audio cue', view: '' };
   const OPCAPS = (() => { let saved = {}; try { saved = JSON.parse(store('wc_opcaps') || '{}') || {}; } catch {} const out = {}; OPROLES.forEach(r => { out[r] = {}; OPCAP_KEYS.forEach(([k]) => { out[r][k] = r === 'dir' ? true : typeof saved[r]?.[k] === 'boolean' ? saved[r][k] : OPCAP_DEF[r].split(' ').includes(k); }); }); return out; })();
-  const OPNEED = { take: 'sw', cut: 'sw', auto: 'sw', ftb: 'sw', pvw: 'pvw', auxpvw: 'aux', auxtake: 'aux', ov: 'gfx', still: 'gfx', scene: 'scene', laytake: 'scene', fader: 'audio', mute: 'audio', solo: 'audio', afv: 'audio', bus: 'audio', dly: 'audio', asnap: 'audio', cue: 'cue' };
+  const OPNEED = { take: 'sw', cut: 'sw', auto: 'sw', ftb: 'sw', pvw: 'pvw', auxpvw: 'aux', auxtake: 'aux', ov: 'gfx', still: 'gfx', scene: 'scene', laytake: 'scene', tbar: 'sw', trans: 'sw', tdur: 'sw', rec: 'rec', stream: 'rec', fader: 'audio', mute: 'audio', solo: 'audio', afv: 'audio', bus: 'audio', dly: 'audio', asnap: 'audio', cue: 'cue' };
   const CUELOG = [];
   // 本機防誤觸鎖定：導播＝全部；其他角色照 OPERATORS 視窗勾選的權限（與遠端連結同一套）
   const roleCan = k => ROLE.local === 'dir' || ROLE.bypass || !!OPCAPS[ROLE.local]?.[k];
@@ -6584,6 +6619,7 @@ function Host(sess){
   function roleDeny(){ toast(`目前是「${ROLE_NAME[ROLE.local]}」權限：${roleCapText(ROLE.local)}`); }
   $('#modeb').insertAdjacentHTML('afterend', '<span class="pill rolep hidden" id="rolep"></span>');
   function setLocalRole(r){
+    if (ROLE.lock && r !== ROLE.lock) { toast(`你的帳號是「${ROLE_NAME[ROLE.lock]}」，只能使用這個角色的功能（要換請由管理員調整帳號角色）`); return; }
     ROLE.local = r;
     ['aud', 'view'].forEach(k => { $('#hroot').classList.toggle('role-' + k, r === k); document.body.classList.toggle('role-' + k, r === k); });
     const p = $('#rolep'); p.classList.toggle('hidden', r === 'dir'); p.textContent = '🔒 ' + ROLE_NAME[r] + '模式';
@@ -6592,7 +6628,10 @@ function Host(sess){
     softRender('ops');
   }
   $('#rolep').onclick = () => openWin('ops');
-  { const saved = store('wc_localrole'); if (saved && saved !== 'dir' && ROLE_NAME[saved]) setTimeout(() => setLocalRole(saved), 0); }
+  { let acct = null; try { acct = JSON.parse(sstore('wc_me') || 'null'); } catch {}
+    const forced = acct && acct.opRole && acct.opRole !== 'dir' && ROLE_NAME[acct.opRole] ? acct.opRole : '';
+    if (forced) { ROLE.lock = forced; setTimeout(() => { setLocalRole(forced); toast(`帳號角色：${ROLE_NAME[forced]}，只能使用：${roleCapText(forced)}`); }, 0); }   // 帳號本身就是 TD／AD／FD／AE／音控／使用者：固定鎖在該角色
+    else { const saved = store('wc_localrole'); if (saved && saved !== 'dir' && ROLE_NAME[saved]) setTimeout(() => setLocalRole(saved), 0); } }
 
   // ---------- PPM 峰值表（EBU Type I：瞬間上升，24 dB／2.8 秒回落；2 秒峰值保持） ----------
   function makePPM(node){
@@ -7324,10 +7363,27 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
   }
   const opState = () => ({ type: 'opState', sw: UI.sw, pgm: SW.pgm, pvw: SW.pvw, ftb: SW.ftbOn, trans: SW.type,
     inputs: order.map(id => { const x = inputs.get(id); return { id, n: numOf(x), name: x.name, kind: x.kind, tally: x.tally, fader: x.fader, mute: x.mute, solo: !!x.solo, afv: x.afv !== false, bus: x.bus, dly: x.dly || 0, lost: !!x.lost }; }),
-    aux: AUX.map(a => ({ name: a.name, mode: a.mode, pgm: a.pgm, pvw: a.pvw })), stills: STILLS.map(x => ({ n: x.slot, name: x.name, has: !!x.img, on: x.on })), ov: Object.fromEntries(OVK.map(k => [k, OV[k].on])) });
-  function opSend(o){ try { o.conn.open && o.conn.send({ ...opState(), caps: OPCAPS[o.r] }); } catch {} }
+    aux: AUX.map(a => ({ name: a.name, mode: a.mode, pgm: a.pgm, pvw: a.pvw })), stills: STILLS.map(x => ({ n: x.slot, name: x.name, has: !!x.img, on: x.on })), ov: Object.fromEntries(OVK.map(k => [k, OV[k].on])),
+    tpos: SW.tpos, base: SW.base, ttype: SW.type, tdur: SW.dur, transList: TRANS, rec: REC.size, finalizing: FINALIZING.size, streams: STREAMS.map(x => ({ id: x.id, name: x.name, on: !!x.on, want: !!x.want })) });
+  /* 遠端操作員／控制面板實際能用的權限＝角色勾選的權限
+   *   ∩ 這台導播台登入帳號本身的角色（帳號是 TD 就不能開出比 TD 大的遠端權限）
+   *   ∩ 帳號的細項功能權限（切換畫面、音控、錄影、推流被關掉，遠端也不能用） */
+  const OPS_OF_CAP = { sw: 'switcher', pvw: 'switcher', aux: 'switcher', scene: 'switcher', gfx: 'switcher', audio: 'audio' };
+  function opEff(r){
+    const out = {};
+    OPCAP_KEYS.forEach(([k]) => {
+      let v = r === 'dir' ? true : !!OPCAPS[r]?.[k];
+      if (ROLE.lock && ROLE.lock !== 'dir') v = v && !!OPCAPS[ROLE.lock]?.[k];
+      if (OPS_OF_CAP[k] && !opsLocalAllowed(OPS_OF_CAP[k])) v = false;
+      if (k === 'rec' && !opsLocalAllowed('localRecord') && !opsLocalAllowed('streamControl')) v = false;
+      out[k] = v;
+    });
+    return out;
+  }
+  function opSend(o){ try { o.conn.open && o.conn.send({ ...opState(), caps: opEff(o.r), lockedBy: ROLE.lock || '' }); } catch {} }
   let opBT = 0; function opBroadcast(){ if (!OPS.size) return; clearTimeout(opBT); opBT = setTimeout(() => OPS.forEach(opSend), 60); }
   setInterval(() => { if (ended || !OPS.size) return; OPS.forEach(opSend); }, 1000);
+  let opTp = -1; setInterval(() => { if (ended || !OPS.size) return; const k = SW.tpos.toFixed(3) + SW.base; if (k === String(opTp)) return; opTp = k; const p = { type: 'opT', tpos: SW.tpos, base: SW.base }; OPS.forEach(o => { try { o.conn.open && o.conn.send(p); } catch {} }); }, 100);
   setInterval(() => {   // 音量表 10 次／秒
     if (ended || !OPS.size) return;
     const p = { type: 'opLv', pgm: Math.round(LV.pgm.v), aux: LV.aux.map(x => Math.round(x.v)), in: Object.fromEntries(order.map(id => [id, Math.round(LV.in[id]?.v ?? -90)])) };
@@ -7345,7 +7401,9 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     }
     const AUDK = ['fader', 'mute', 'solo', 'afv', 'bus', 'dly', 'asnap'], SWK = ['pvw', 'cut', 'auto', 'ftb', 'take', 'auxpvw', 'auxtake', 'ov', 'still', 'scene', 'laytake'];
     const need = OPNEED[d.type] || (AUDK.includes(d.type) ? 'audio' : SWK.includes(d.type) ? 'sw' : null);
-    if (need && !OPCAPS[o.r]?.[need]) return o.conn.send({ type: 'deny2', error: `${ROLE_NAME[o.r]}沒有「${OPCAP_KEYS.find(x => x[0] === need)[1]}」權限` });
+    if (need && !opEff(o.r)[need]) return o.conn.send({ type: 'deny2', error: OPCAPS[o.r]?.[need] || o.r === 'dir' ? `導播台登入的帳號沒有「${OPCAP_KEYS.find(x => x[0] === need)[1]}」權限，遠端也不能用` : `${ROLE_NAME[o.r]}沒有「${OPCAP_KEYS.find(x => x[0] === need)[1]}」權限` });
+    if (d.type === 'rec' && !opsLocalAllowed('localRecord')) return o.conn.send({ type: 'deny2', error: '導播台登入的帳號沒有錄影權限' });
+    if (d.type === 'stream' && !opsLocalAllowed('streamControl')) return o.conn.send({ type: 'deny2', error: '導播台登入的帳號沒有推流權限' });
     if (d.type === 'cue') { const text = String(d.text || '').trim().slice(0, 60); if (!text) return; CUELOG.unshift({ t: Date.now(), r: o.r, name: o.name, text }); CUELOG.length = Math.min(CUELOG.length, 30); toast(`📣 ${ROLE_NAME[o.r]}「${o.name}」：${text}`); softRender('ops'); return; }
     const x = inputs.get(d.id);
     ROLE.bypass = true;
@@ -7368,8 +7426,13 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
         case 'ov': if (OVK.includes(d.k)) toggleOV(d.k); break;
         case 'still': toggleStill(+d.n); break;
         case 'scene': recallPreset(+d.i, !!d.auto); break;
+        case 'tbar': if (UI.sw && SW.type !== 'stinger' && SW.type !== 'cut' && (SW.pvw == null || inputs.has(SW.pvw))) { SW.anim = null; setTpos(+d.v || 0); } break;
+        case 'trans': if (TRANS.some(t => t[0] === d.k)) { SW.type = d.k; store('wc_trans', SW.type); const tt = $('#ttype'); if (tt) tt.value = SW.type; renderTdir(); } break;
+        case 'tdur': SW.dur = clamp(Math.round(+d.v || 800), 100, 5000); store('wc_dur', SW.dur); break;
+        case 'rec': toggleRec(); break;
+        case 'stream': { const s2 = STREAMS.find(x => x.id === d.id); if (s2) { if (d.v) { s2.want = true; s2.t0 = 0; whipStart(s2); } else whipStop(s2); } break; }
       }
-      if (['pvw', 'take', 'cut', 'auto', 'ftb', 'auxtake', 'ov', 'still', 'scene'].includes(d.type)) toast(`👤 ${ROLE_NAME[o.r]}「${o.name}」：${{ pvw: 'PVW', take: 'TAKE', cut: 'CUT', auto: 'AUTO', ftb: 'FTB', auxtake: 'AUX TAKE', ov: '圖層', still: '圖庫', scene: '場景' }[d.type]}`);
+      if (['pvw', 'take', 'cut', 'auto', 'ftb', 'auxtake', 'ov', 'still', 'scene', 'rec', 'stream'].includes(d.type)) toast(`👤 ${ROLE_NAME[o.r]}「${o.name}」：${{ pvw: 'PVW', take: 'TAKE', cut: 'CUT', auto: 'AUTO', ftb: 'FTB', auxtake: 'AUX TAKE', ov: '圖層', still: '圖庫', scene: '場景', rec: '錄影開關', stream: '推流開關' }[d.type]}`);
     } finally { ROLE.bypass = false; }
     opBroadcast();
   }
@@ -7378,16 +7441,18 @@ gl_FragColor=vec4(c.rgb*a,a);}`));
     const desc = { dir: '可以切換 PVW／PGM、CUT／AUTO、AUX TAKE、圖層、場景，也能調聲音', aud: '只能調推桿、MUTE、SOLO、AFV、母線分配、延遲、音頻快照；可以看 PGM 並聽節目聲音', view: '唯讀：只能看 MULTIVIEW／PGM／PVW／AUX，不能操作任何參數' };
     w.body.innerHTML = `<div class="wsec"><h4>這台導播台的權限（防誤觸鎖定）</h4><div class="row" style="flex-wrap:wrap">${OPROLES.map(r => `<button class="btn sm grow ${ROLE.local === r ? 'on' : ''}" data-lr="${r}">${ROLE_NAME[r]}</button>`).join('')}</div>
         <div class="note">${esc(ROLE.local === 'dir' ? desc.dir : roleCapText(ROLE.local))}。可用權限跟下方各角色勾選的一樣。例如導播暫時離開位置、交給音控同事時，鎖成「音控」就不會誤切畫面。</div></div>
-      <div class="wsec"><h4>遠端操作員連結 <span>對方用瀏覽器打開即可，不用帳號</span></h4>
-        ${OPROLES.map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><div class="row" style="flex-wrap:wrap;gap:4px 12px;margin:2px 0 4px">${r === 'dir' ? '<span class="note" style="margin:0">全部功能（固定）</span>' : OPCAP_KEYS.map(([k, n]) => `<label class="note" style="margin:0;display:inline-flex;gap:4px;align-items:center;cursor:pointer"><input type="checkbox" data-cap="${r}:${k}" ${OPCAPS[r][k] ? 'checked' : ''}>${n}</label>`).join('')}</div><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button></div></div>`).join('')}
+      <div class="wsec"><h4>遠端操作員連結 <span>對方用瀏覽器打開即可，不用帳號</span></h4>${ROLE.lock ? `<div class="note" style="color:var(--warn,#f5b84b)">你的帳號是「${ROLE_NAME[ROLE.lock]}」：遠端連結（含控制面板）最多只能用到你自己有的功能，也不能修改下面的勾選。</div>` : ''}
+        ${OPROLES.map(r => `<div class="opl"><b>${ROLE_NAME[r]}</b><div class="row" style="flex-wrap:wrap;gap:4px 12px;margin:2px 0 4px">${r === 'dir' ? '<span class="note" style="margin:0">全部功能（固定）</span>' : OPCAP_KEYS.map(([k, n]) => `<label class="note" style="margin:0;display:inline-flex;gap:4px;align-items:center;cursor:pointer"><input type="checkbox" data-cap="${r}:${k}" ${OPCAPS[r][k] ? 'checked' : ''}>${n}</label>`).join('')}</div><div class="linkbox"><input class="field sm mono" readonly value="${esc(opUrl(r))}"><button class="btn sm" data-ou="${r}">${ic('copy')}複製</button><button class="btn sm" data-oq="${r}">QR</button><button class="btn sm" data-pu="${r}" title="按鈕面板（像 vMix Panel）：手機、平板、另一台電腦都能用">🎛 面板</button><button class="btn sm" data-pq="${r}">面板 QR</button></div></div>`).join('')}
         <div class="row" style="margin-top:6px"><button class="btn sm danger" id="oprst">更換所有連結（含字幕控制、提詞控制；踢掉目前的操作員）</button></div>
         <div class="note">連結只有這次導播有效；重新開導播台或更換邀請代碼後，請重新複製。請只給信任的同事。</div></div>
       <div class="wsec"><h4>目前連線的操作員 <span>${OPS.size} 位</span></h4>${[...OPS].map(o => `<div class="row" style="margin:3px 0"><span class="tag ${o.r === 'dir' ? 'live' : o.r === 'aud' ? 'pvwt' : 'info'}">${ROLE_NAME[o.r]}</span><span class="grow">${esc(o.name)} <span class="note" style="margin:0">${fmtTime(o.t)} 連線${o.calls.size ? ' · 看 ' + [...o.calls.keys()].join(',').toUpperCase() : ''}</span></span><button class="btn sm danger" data-ok="${o.t}">中斷</button></div>`).join('') || '<div class="note">沒有</div>'}</div>
       <div class="wsec"><h4>操作員提示（Cue） <span>最近 ${CUELOG.length} 則</span></h4>${CUELOG.slice(0, 12).map(c => `<div class="row" style="margin:3px 0"><span class="mono note" style="margin:0">${fmtTime(c.t)}</span><span class="tag info">${esc(ROLE_NAME[c.r])}</span><span class="grow">${esc(c.name)}：<b>${esc(c.text)}</b></span></div>`).join('') || '<div class="note">FD／AD 等操作員按「提示導播」時會顯示在這裡，並跳出通知。</div>'}</div>`;
     const B = w.body;
-    $$('[data-cap]', B).forEach(c => c.onchange = () => { const [r, k] = c.dataset.cap.split(':'); OPCAPS[r][k] = c.checked; store('wc_opcaps', JSON.stringify(OPCAPS)); OPS.forEach(opSend); toast(`已更新${ROLE_NAME[r]}權限，立即生效`); });
+    $$('[data-cap]', B).forEach(c => c.onchange = () => { if (ROLE.lock) { c.checked = !c.checked; return toast(`你的帳號是「${ROLE_NAME[ROLE.lock]}」，不能修改操作員權限（請由導播帳號設定）`); } const [r, k] = c.dataset.cap.split(':'); OPCAPS[r][k] = c.checked; store('wc_opcaps', JSON.stringify(OPCAPS)); OPS.forEach(opSend); toast(`已更新${ROLE_NAME[r]}權限，立即生效`); });
     $$('[data-lr]', B).forEach(b => b.onclick = () => setLocalRole(b.dataset.lr));
     $$('[data-ou]', B).forEach(b => b.onclick = () => copyText(opUrl(b.dataset.ou), `已複製${ROLE_NAME[b.dataset.ou]}連結`));
+    $$('[data-pu]', B).forEach(b => b.onclick = () => copyText(opUrl(b.dataset.pu).replace('mode=op', 'mode=panel'), `已複製${ROLE_NAME[b.dataset.pu]}控制面板連結`));
+    $$('[data-pq]', B).forEach(b => b.onclick = () => uiModal(`<h2>${ROLE_NAME[b.dataset.pq]}控制面板</h2><p class="note">用手機或平板掃描，就能用按鈕面板控制這台導播台（權限跟${ROLE_NAME[b.dataset.pq]}一樣）。</p><div class="qr" id="pnqr" style="justify-self:center"></div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m => qr($('#pnqr', m), opUrl(b.dataset.pq).replace('mode=op', 'mode=panel'), 220)));
     $$('[data-oq]', B).forEach(b => b.onclick = () => uiModal(`<h2>${ROLE_NAME[b.dataset.oq]}連結</h2><div class="qr" id="opqr" style="justify-self:center"></div><div class="acts"><button class="btn ghost" data-close>關閉</button></div>`, m => qr($('#opqr', m), opUrl(b.dataset.oq), 220)));
     $('#oprst', B).onclick = async () => { if (!(await uiConfirm('更換操作員連結', '目前連線的操作員都會被中斷，舊連結會失效。', '更換'))) return; [...OPROLES, 'cg', 'pr'].forEach(k => OPTOK[k] = rnd(14)); sstore('wc_optok', JSON.stringify(OPTOK)); OPS.forEach(o => { try { o.conn.send({ type: 'deny', error: '導播已更換操作員連結' }); o.conn.close(); } catch {} }); CGC.forEach(c => { if (c.kind !== 'out') try { c.conn.send({ type: 'deny', error: '導播已更換字幕／提詞控制連結' }); c.conn.close(); } catch {} }); renderOps(); try { titleUi?.refresh(); } catch {} toast('已更換操作員、字幕控制、提詞控制連結'); };
     $$('[data-ok]', B).forEach(b => b.onclick = () => { const o = [...OPS].find(x => String(x.t) === b.dataset.ok); if (o) { try { o.conn.send({ type: 'deny', error: '導播中斷了你的連線' }); o.conn.close(); } catch {} } });
@@ -9284,12 +9349,14 @@ function Home(msg){
       <label class="note" style="display:block;margin:8px 0 0"><input type="checkbox" id="lrm" ${store('wc_rmoff') === '1' ? '' : 'checked'}> 保持登入（這台電腦 30 天內不用再輸入密碼）</label>
       <button class="btn primary" id="lgo" style="width:100%;margin-top:10px;height:40px">${ic('lock')}登入</button>
       <div class="err" id="herr">${esc(msg || '')}</div>
+      <div style="text-align:right;margin-top:6px"><button type="button" class="btn sm" id="lfg" style="background:none;border:0;color:var(--dim);text-decoration:underline;cursor:pointer">忘記密碼？</button></div>
     </form>
     <div class="card">
       <span class="lbl">來賓 · 輸入邀請代碼</span>
       <div class="row"><input class="field mono" id="gk" placeholder="例：K7QX2M 或貼上連結" autocomplete="off" style="letter-spacing:.08em"><button class="btn" id="ggo">加入</button></div>
     </div>
   </div></div>`;
+  $('#lfg').onclick = () => hostForgot($('#la').value.trim());
   $('#lf').onsubmit = async e => {
     e.preventDefault();
     const a = $('#la').value.trim(), pw = $('#lp').value; $('#herr').textContent = '';
@@ -9301,6 +9368,8 @@ function Home(msg){
       let r = await apiCall({ action: 'login', account: a, password: pw, remember: rm, client: window.wcShell ? 'EXE 導播台' : '網頁導播台' });
       if (!r.ok) throw new Error(r.error || '登入失敗');
       if (r.need2fa) r = await hostTfa(r);   // 這個帳號要 LINE 驗證碼
+      if (r.needBind) r = await hostBind(r); // 第一次登入：先綁定自己的 LINE
+      if (r.me && r.me.mustChangePw) { await hostChangePw(r.token, pw); r.me.mustChangePw = false; }   // 臨時密碼：先改成自己的
       store('wc_acc', a); sstore('wc_tok', r.token); sstore('wc_me', JSON.stringify(r.me));
       if (rm) { store('wc_rtok', r.token); store('wc_rme', JSON.stringify(r.me)); } else { store('wc_rtok', null); store('wc_rme', null); }
       HostSetup(r.token, r.me);
@@ -9313,6 +9382,53 @@ function Home(msg){
     location.href = `${baseUrl()}?mode=guest&k=${encodeURIComponent(code)}`;
   };
   $('#ggo').onclick = gg; onEnter($('#gk'), gg);
+}
+// 第一次登入綁定 LINE：顯示綁定碼，綁好就自動完成登入
+function hostBind(r0){
+  return new Promise((resolve, reject) => {
+    const f = $('#lf'); [...f.children].forEach(el => { el.dataset.bdHide = el.style.display || '-'; el.style.display = 'none'; });
+    const box = document.createElement('div'); box.className = 'tfa-box'; let r = r0, timer = 0, done = false;
+    const restore = () => { clearInterval(timer); box.remove(); [...f.children].forEach(el => { if (el.dataset.bdHide) { el.style.display = el.dataset.bdHide === '-' ? '' : el.dataset.bdHide; delete el.dataset.bdHide; } }); };
+    const paint = () => { box.innerHTML = `<h3 style="margin:0 0 6px">綁定你的 LINE</h3><p class="note" style="margin:0 0 8px">所有帳號都要綁定自己的 LINE（登入驗證、忘記密碼都用它）。① 用手機 LINE 加入官方帳號 ${r.addUrl ? `<a href="${esc(r.addUrl)}" target="_blank" rel="noopener"><b>${esc(r.botId)}</b></a>` : ''} ② 傳下面的 6 位數綁定碼：</p>
+      <div class="mono" style="font-size:34px;letter-spacing:.3em;text-align:center;padding:8px;border:1px dashed var(--line,#445);border-radius:10px;user-select:all">${esc(r.code)}</div>
+      <p class="note" id="bdst" style="text-align:center;margin:8px 0">等待綁定中…（10 分鐘內有效）</p>
+      <div class="row" style="gap:8px"><button type="button" class="btn" id="bdx">取消</button><button type="button" class="btn grow" id="bdn">換一組綁定碼</button></div><div class="err" id="bde" style="color:var(--bad,#ff6b6b)"></div>`;
+      $('#bdx').onclick = () => { done = true; restore(); reject(new Error('已取消綁定')); };
+      $('#bdn').onclick = async () => { try { const x = await apiCall({ action: 'loginBindRenew', ticket: r.ticket }); if (!x.ok) throw new Error(x.error); r = x; paint(); } catch (e) { $('#bde').textContent = e.message; } }; };
+    f.appendChild(box); paint();
+    timer = setInterval(async () => { if (done) return; try { const x = await apiCall({ action: 'loginBindStatus', ticket: r.ticket }); if (!x.ok) throw new Error(x.error); if (x.token) { done = true; restore(); toast('✅ LINE 綁定完成'); resolve(x); } else { const st = $('#bdst'); if (st) st.textContent = `等待綁定中…（還有 ${Math.ceil((x.left || 0) / 60)} 分鐘）`; } } catch (e) { const er = $('#bde'); if (er) er.textContent = e.message; if (/過期/.test(e.message)) { done = true; setTimeout(() => { restore(); reject(e); }, 1500); } } }, 3000);
+  });
+}
+// 管理員建立或重置的臨時密碼：登入後先改成自己的
+function hostChangePw(token, oldPw){
+  return new Promise((resolve, reject) => {
+    const f = $('#lf'); [...f.children].forEach(el => { el.dataset.cpHide = el.style.display || '-'; el.style.display = 'none'; });
+    const box = document.createElement('div'); box.className = 'tfa-box';
+    const restore = () => { box.remove(); [...f.children].forEach(el => { if (el.dataset.cpHide) { el.style.display = el.dataset.cpHide === '-' ? '' : el.dataset.cpHide; delete el.dataset.cpHide; } }); };
+    box.innerHTML = `<h3 style="margin:0 0 6px">請先設定你自己的密碼</h3><p class="note" style="margin:0 0 8px">這是管理員給你的臨時密碼，請改成只有你知道的密碼。</p>
+      <input class="field full" id="cpn" type="password" placeholder="新密碼（至少 8 碼）" autocomplete="new-password"><input class="field full" id="cpn2" type="password" placeholder="再輸入一次" style="margin-top:8px" autocomplete="new-password">
+      <div class="row" style="gap:8px;margin-top:8px"><button type="button" class="btn" id="cpx">取消</button><button type="button" class="btn primary grow" id="cpo">儲存並登入</button></div><div class="err" id="cpe" style="color:var(--bad,#ff6b6b)"></div>`;
+    f.appendChild(box); $('#cpn').focus();
+    $('#cpx').onclick = () => { restore(); apiCall({ action: 'logout', token }).catch(() => {}); reject(new Error('要先改密碼才能使用')); };
+    $('#cpo').onclick = async () => { $('#cpe').textContent = ''; const n = $('#cpn').value; if (n !== $('#cpn2').value) return $('#cpe').textContent = '兩次輸入的新密碼不一樣'; if (n === oldPw) return $('#cpe').textContent = '新密碼不能跟臨時密碼一樣';
+      try { const x = await apiCall({ action: 'changePassword', token, old: oldPw, pw: n }); if (!x.ok) throw new Error(x.error); restore(); toast('✅ 密碼已更新'); resolve(); } catch (e) { $('#cpe').textContent = e.message; } };
+  });
+}
+// 忘記密碼：驗證碼傳到綁定的 LINE；沒綁定或 LINE 不見了請找管理員重置
+function hostForgot(acc0){
+  const f = $('#lf'); [...f.children].forEach(el => { el.dataset.fgHide = el.style.display || '-'; el.style.display = 'none'; });
+  const box = document.createElement('div'); box.className = 'tfa-box';
+  const restore = msg => { box.remove(); [...f.children].forEach(el => { if (el.dataset.fgHide) { el.style.display = el.dataset.fgHide === '-' ? '' : el.dataset.fgHide; delete el.dataset.fgHide; } }); if (msg) $('#herr').textContent = msg; };
+  box.innerHTML = `<h3 style="margin:0 0 6px">忘記密碼</h3><p class="note" style="margin:0 0 8px">驗證碼會傳到你綁定的 LINE。沒有綁定 LINE（或 LINE 不見了）請聯絡你的管理員或系統管理員重置密碼。</p>
+    <div id="fg1"><input class="field full" id="fga" placeholder="帳號" value="${esc(acc0 || '')}" autocapitalize="off"><div class="row" style="gap:8px;margin-top:8px"><button type="button" class="btn" id="fgx">返回</button><button type="button" class="btn primary grow" id="fgs">傳送驗證碼到 LINE</button></div></div>
+    <div id="fg2" style="display:none"><input class="field full mono" id="fgc" inputmode="numeric" maxlength="6" placeholder="6 位數驗證碼" style="letter-spacing:.3em;text-align:center"><input class="field full" id="fgp" type="password" placeholder="新密碼（至少 8 碼）" style="margin-top:8px" autocomplete="new-password"><input class="field full" id="fgp2" type="password" placeholder="再輸入一次新密碼" style="margin-top:8px" autocomplete="new-password">
+      <div class="row" style="gap:8px;margin-top:8px"><button type="button" class="btn" id="fgx2">返回</button><button type="button" class="btn primary grow" id="fgr">重設密碼</button></div></div>
+    <div class="err" id="fge" style="color:var(--bad,#ff6b6b)"></div>`;
+  f.appendChild(box); let ticket = '';
+  $('#fgx').onclick = () => restore(); $('#fgx2').onclick = () => restore();
+  $('#fgs').onclick = async () => { $('#fge').textContent = ''; try { const x = await apiCall({ action: 'pwForgot', account: $('#fga').value.trim() }); if (!x.ok) throw new Error(x.error); ticket = x.ticket; $('#fg1').style.display = 'none'; $('#fg2').style.display = ''; $('#fgc').focus(); } catch (e) { $('#fge').textContent = e.message; } };
+  $('#fgr').onclick = async () => { $('#fge').textContent = ''; if ($('#fgp').value !== $('#fgp2').value) return $('#fge').textContent = '兩次輸入的新密碼不一樣';
+    try { const x = await apiCall({ action: 'pwForgotReset', ticket, code: $('#fgc').value, password: $('#fgp').value }); if (!x.ok) throw new Error(x.error); $('#la').value = $('#fga').value.trim(); $('#lp').value = ''; restore('✅ 密碼已重設，請用新密碼登入'); } catch (e) { $('#fge').textContent = e.message; } };
 }
 // LINE 兩步驟驗證：在登入框下方要驗證碼，驗證成功才回傳登入結果
 function hostTfa(r0){
@@ -9453,6 +9569,240 @@ function Output(){
 }
 
 /* ===================== 遠端操作員（導播／音控／監看員） ===================== */
+/* ===================================================================================
+ * 遠端控制面板（像 vMix Panel Builder）：手機、平板、另一台電腦都能控制導播台
+ * 連線與權限跟「遠端操作員連結」相同；面板配置存在這台裝置，可以自己排版、加自訂按鈕、匯出匯入
+ * =================================================================================== */
+function Panel(){
+  const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), R = ['dir', 'td', 'ad', 'fd', 'ae', 'aud', 'view'].includes(Q.get('r')) ? Q.get('r') : 'view', tok = Q.get('t') || '';
+  const RN = { dir: '導播', td: 'TD 技術導播', ad: 'AD 助理導播', fd: 'FD 現場指導', ae: 'AE 助理工程', aud: '音控', view: '監看員' };
+  const BT = { mon: '監看畫面', ov: '圖層／圖庫', pgm: 'PROGRAM 節目', pvw: 'PREVIEW 預備', trans: '轉場（T-Bar／CUT／AUTO）', trig: '錄影／推流', scene: '場景', aux: 'AUX 母線', audio: '聲音推桿', cue: '提示導播（Cue）', timer: '節目計時器', clock: '時鐘', custom: '自訂按鈕' };
+  const NEED = { pgm: 'sw', pvw: 'pvw', trans: 'sw', ov: 'gfx', scene: 'scene', aux: 'aux', audio: 'audio', trig: 'rec', cue: 'cue' };
+  const COLORS = { gray: '#3a4250', purple: '#6b2fa3', green: '#2e7d32', blue: '#1e4f9c', orange: '#b35a12', red: '#a32020', teal: '#0f6e70', yellow: '#9a8a12' };
+  const LKEY = 'wc_panel_v1';
+  const defLayout = () => ({ v: 1, pages: [
+    { name: '主控', blocks: [{ t: 'ov', w: 2, c: 'purple' }, { t: 'timer', w: 1, c: 'purple' }, { t: 'trig', w: 1, c: 'orange' },
+      { t: 'pgm', w: 3, c: 'gray' }, { t: 'trans', w: 1, h: 2, c: 'gray' }, { t: 'pvw', w: 3, c: 'gray' },
+      { t: 'audio', w: 3, c: 'gray' }, { t: 'scene', w: 1, c: 'green' }] },
+    { name: '監看＋聲音', blocks: [{ t: 'mon', w: 2, c: 'gray' }, { t: 'audio', w: 2, c: 'gray' }, { t: 'cue', w: 4, c: 'teal' }] },
+    { name: '自訂', blocks: [{ t: 'custom', w: 4, c: 'blue', title: '我的按鈕', buttons: [
+      { label: 'CAM 1 上', act: 'take', n: 1, color: 'red' }, { label: 'CAM 2 上', act: 'take', n: 2, color: 'red' }, { label: 'CUT', act: 'cut', color: 'gray' }, { label: 'AUTO', act: 'auto', color: 'gray' },
+      { label: '字幕條', act: 'ov', k: 'lt', color: 'purple' }, { label: '台標', act: 'ov', k: 'bug', color: 'purple' }, { label: '開始/停止錄影', act: 'rec', color: 'orange' }, { label: 'Stand by', act: 'cue', text: 'Stand by 就緒', color: 'teal' }] }] }] });
+  let L; try { L = JSON.parse(localStorage.getItem(LKEY) || 'null'); } catch {} if (!L?.pages?.length) L = defLayout();
+  const save = () => { try { localStorage.setItem(LKEY, JSON.stringify(L)); } catch {} };
+  let page = Math.min(+(store('wc_panel_pg') || 0), L.pages.length - 1), edit = false;
+  let peer, conn, retryT, S = null, LVL = { in: {}, pgm: -90, aux: [] }, denied = false, watching = '', sig = '';
+  const TM = { run: false, t0: 0, acc: 0, down: 0 };   // 節目計時器（只在這台裝置）
+  document.body.className = 'pnb';
+  app.innerHTML = `<div class="pn"><header class="pnh">${brand()}<span class="pill oprole r-${R}">${RN[R]}</span><b id="pnl" class="grow"></b>
+      <span class="pill" id="pns"><span class="dot wait"></span>連線中</span><input class="field sm" id="pnn" placeholder="你的名字" value="${esc(store('wc_opname') || '')}" style="width:110px">
+      <button class="btn sm" id="pne">✏️ 編輯面板</button><button class="btn sm" id="pnf" title="全螢幕">⛶</button></header>
+    <nav class="pnt" id="pnt"></nav><div class="pnbar hidden" id="pnbar"></div><main class="png" id="png"></main></div>`;
+  const G = $('#png');
+  const send = d => { if (conn?.open) { conn.send(d); try { navigator.vibrate?.(8); } catch {} } };
+  const st = (c, t) => { $('#pns').innerHTML = `<span class="dot ${c}"></span>${esc(t)}`; };
+  const caps = () => S?.caps || {};
+  const can = k => !k || !!caps()[k];   // 導播台送來的是「實際可用」的權限（已扣掉導播台帳號沒有的功能）
+  const inByN = n => S?.inputs.find(x => x.n === +n);
+  const lvPct = d => clamp((d + 60) / 60, 0, 1) * 100;
+  let wake = null; addEventListener('pointerdown', async () => { try { if (!wake && navigator.wakeLock) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => wake = null); } } catch {} }, { passive: true });
+  $('#pnn').onchange = e => { store('wc_opname', e.target.value.trim()); dial(); };
+  $('#pnf').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.().catch(() => {}); };
+  $('#pne').onclick = () => { edit = !edit; $('#pne').classList.toggle('on', edit); $('#pne').textContent = edit ? '✅ 完成編輯' : '✏️ 編輯面板'; sig = ''; renderAll(); };
+
+  /* ---------- 動作（自訂按鈕也用這套） ---------- */
+  const ACTS = [['take', '切上 PGM（來源號碼）', 'sw'], ['pvw', '設為 PVW（來源號碼）', 'pvw'], ['cut', 'CUT', 'sw'], ['auto', 'AUTO', 'sw'], ['ftb', 'FTB 淡出黑畫面', 'sw'], ['ov', '圖層開關', 'gfx'], ['still', '圖庫 S1～S8', 'gfx'], ['scene', '場景 F1～F12', 'scene'], ['mute', '來源靜音開關（來源號碼）', 'audio'], ['rec', '錄影開關', 'rec'], ['stream', '推流開關（第幾組）', 'rec'], ['trans', '轉場效果', 'sw'], ['cue', '提示導播（文字）', 'cue'], ['page', '切換面板分頁', '']];
+  const OVN = { lt: '字幕條', tk: '跑馬燈', bn: '突發', bug: '台標', cc: 'CC', tm: '倒數' };
+  function runAct(b){
+    const a = b.act;
+    if (a === 'page') { const i = clamp((+b.n || 1) - 1, 0, L.pages.length - 1); page = i; store('wc_panel_pg', i); sig = ''; return renderAll(); }
+    const need = (ACTS.find(x => x[0] === a) || [])[2]; if (!can(need)) return toast(`${RN[R]}沒有這個權限`);
+    if (a === 'take' || a === 'pvw') { const x = inByN(b.n); if (!x && +b.n) return toast(`沒有第 ${b.n} 號來源`); return send({ type: a, id: x ? x.id : null }); }
+    if (a === 'mute') { const x = inByN(b.n); if (!x) return toast(`沒有第 ${b.n} 號來源`); return send({ type: 'mute', id: x.id, v: !x.mute }); }
+    if (a === 'ov') return send({ type: 'ov', k: b.k });
+    if (a === 'still') return send({ type: 'still', n: +b.n || 1 });
+    if (a === 'scene') return send({ type: 'scene', i: (+b.n || 1) - 1, auto: true });
+    if (a === 'stream') { const s2 = S?.streams?.[(+b.n || 1) - 1]; if (!s2) return toast(`沒有第 ${b.n} 組推流`); return send({ type: 'stream', id: s2.id, v: !s2.want }); }
+    if (a === 'trans') return send({ type: 'trans', k: b.k });
+    if (a === 'cue') { if (!b.text) return; send({ type: 'cue', text: b.text }); return toast('已提示導播：' + b.text); }
+    send({ type: a });
+  }
+  const actOn = b => { if (!S) return false; const a = b.act;
+    if (a === 'take') { const x = inByN(b.n); return x ? x.tally === 'live' : !S.pgm; }
+    if (a === 'pvw') { const x = inByN(b.n); return x ? S.pvw === x.id : !S.pvw; }
+    if (a === 'ov') return !!S.ov?.[b.k]; if (a === 'still') return !!S.stills.find(x => x.n === +b.n)?.on;
+    if (a === 'mute') return !!inByN(b.n)?.mute; if (a === 'rec') return !!S.rec; if (a === 'stream') return !!S.streams?.[(+b.n || 1) - 1]?.want;
+    if (a === 'ftb') return !!S.ftb; if (a === 'trans') return S.ttype === b.k; if (a === 'page') return page === (+b.n || 1) - 1; return false; };
+  // 鍵盤快速鍵（自訂按鈕可設）
+  addEventListener('keydown', e => { if (edit || e.target.matches('input,select,textarea') || e.repeat) return; const k = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+    for (const pg of L.pages) for (const bl of pg.blocks) if (bl.t === 'custom') for (const b of bl.buttons || []) if (b.key && b.key.toUpperCase() === k) { e.preventDefault(); runAct(b); flash(b); return; } });
+  const flash = b => { const el = G.querySelector(`[data-cb="${CSS.escape(b._id || '')}"]`); if (el) { el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 180); } };
+
+  /* ---------- 繪製 ---------- */
+  function renderTabs(){
+    $('#pnt').innerHTML = L.pages.map((p, i) => `<button class="${i === page ? 'on' : ''}" data-pg="${i}">${esc(p.name)}</button>`).join('') + (edit ? '<button data-pgadd="1">＋ 分頁</button>' : '');
+    $$('[data-pg]', $('#pnt')).forEach(b => b.onclick = () => { page = +b.dataset.pg; store('wc_panel_pg', page); sig = ''; renderAll(); });
+    const add = $('[data-pgadd]', $('#pnt')); if (add) add.onclick = () => { const n = prompt('新分頁名稱', '分頁 ' + (L.pages.length + 1)); if (!n) return; L.pages.push({ name: n.slice(0, 20), blocks: [] }); page = L.pages.length - 1; save(); sig = ''; renderAll(); };
+    const bar = $('#pnbar'); bar.classList.toggle('hidden', !edit);
+    if (edit) {
+      bar.innerHTML = `<select class="field sm" id="pnadd"><option value="">＋ 新增區塊…</option>${Object.entries(BT).map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select>
+        <button class="btn sm" id="pnren">改分頁名稱</button><button class="btn sm" id="pnpdel">刪除這個分頁</button><span class="grow"></span>
+        <button class="btn sm" id="pnexp">匯出面板</button><button class="btn sm" id="pnimp">匯入面板</button><button class="btn sm danger" id="pnrst">恢復預設</button>`;
+      $('#pnadd').onchange = e => { const t = e.target.value; if (!t) return; const bl = { t, w: ['pgm', 'pvw', 'audio', 'custom'].includes(t) ? 4 : 1, c: t === 'ov' || t === 'timer' ? 'purple' : t === 'trig' ? 'orange' : t === 'scene' ? 'green' : t === 'custom' ? 'blue' : 'gray' }; if (t === 'custom') { bl.title = '自訂按鈕'; bl.buttons = []; } L.pages[page].blocks.push(bl); save(); sig = ''; renderAll(); if (t === 'custom') editCustom(bl); };
+      $('#pnren').onclick = () => { const n = prompt('分頁名稱', L.pages[page].name); if (n) { L.pages[page].name = n.slice(0, 20); save(); renderTabs(); } };
+      $('#pnpdel').onclick = () => { if (L.pages.length <= 1) return toast('至少要留一個分頁'); if (!confirm(`刪除分頁「${L.pages[page].name}」？`)) return; L.pages.splice(page, 1); page = 0; save(); sig = ''; renderAll(); };
+      $('#pnexp').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(L, null, 1)], { type: 'application/json' })); a.download = 'WebCall控制面板.json'; a.click(); };
+      $('#pnimp').onclick = () => { const i = document.createElement('input'); i.type = 'file'; i.accept = '.json'; i.onchange = async () => { try { const x = JSON.parse(await i.files[0].text()); if (!x.pages?.length) throw 0; L = x; page = 0; save(); sig = ''; renderAll(); toast('已匯入面板'); } catch { toast('檔案格式不對'); } }; i.click(); };
+      $('#pnrst').onclick = () => { if (!confirm('把面板恢復成預設配置？（自訂按鈕會清除）')) return; L = defLayout(); page = 0; save(); sig = ''; renderAll(); };
+    }
+  }
+  const keyRow = (bus) => { const IN = S?.inputs || []; return `<div class="pnkeys">${[{ id: '', n: 'BLK', name: '黑畫面' }, ...IN].map(x => `<button class="pnk" data-${bus}="${esc(x.id)}"><b>${esc(String(x.n))}</b><small>${esc(x.name)}</small></button>`).join('')}</div>`; };
+  function blockBody(bl, i){
+    const IN = S?.inputs || [];
+    switch (bl.t) {
+      case 'mon': return `<div class="row" style="margin-bottom:6px"><select class="field sm" data-watch>${[['mv', 'MULTIVIEW'], ['pgm', 'PGM'], ['pvw', 'PREVIEW'], ['clean', 'CLEAN'], ['aux1', 'AUX 1'], ['aux2', 'AUX 2']].map(([k, n]) => `<option value="${k}" ${k === (bl.what || 'pgm') ? 'selected' : ''}>${n}</option>`).join('')}</select><label class="note" style="margin:0"><input type="checkbox" data-snd> 聽聲音</label></div><div class="pnvid"><video data-v autoplay playsinline muted></video></div>`;
+      case 'ov': return `<div class="pnbtns">${Object.entries(OVN).map(([k, n]) => `<button class="pnb2" data-ov="${k}"><i class="led"></i>${n}</button>`).join('')}${(S?.stills || []).filter(x => x.has).map(x => `<button class="pnb2" data-st="${x.n}"><i class="led"></i>S${x.n}${x.name ? ' ' + esc(x.name).slice(0, 6) : ''}</button>`).join('')}</div>`;
+      case 'pgm': return keyRow('pg');
+      case 'pvw': return keyRow('pv');
+      case 'trans': return `<div class="pntr"><div class="pntb" data-tbar><div class="pntbs"></div><div class="pntbh" data-th></div></div><div class="pntrb">
+          <button class="pnb2 big" data-c="cut">CUT</button><button class="pnb2 big" data-c="auto">AUTO</button><button class="pnb2" data-c="ftb">FTB</button>
+          <select class="field sm" data-tt>${(S?.transList || [['mix', 'MIX']]).map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('')}</select>
+          <label class="note" style="margin:0">時間 <input type="number" class="field sm" data-td min="100" max="5000" step="100" style="width:70px"> ms</label></div></div>`;
+      case 'trig': return `<div class="pnbtns"><button class="pnb2 rec" data-rec><i class="led"></i>錄影</button>${(S?.streams || []).map((x, k) => `<button class="pnb2" data-sm="${k}"><i class="led"></i>推流：${esc(x.name || '第 ' + (k + 1) + ' 組')}</button>`).join('') || '<span class="note" style="margin:0">導播台還沒設定推流</span>'}</div>`;
+      case 'scene': return `<div class="pnbtns">${Array.from({ length: 12 }, (_, k) => `<button class="pnb2 sq" data-sc="${k}">F${k + 1}</button>`).join('')}</div>`;
+      case 'aux': return (S?.aux || []).map((a, k) => `<div class="row" style="margin:4px 0"><b style="min-width:64px">AUX ${k + 1}</b>${a.mode === 'src' ? `<select class="field sm grow" data-ap="${k}"><option value="">黑畫面</option>${IN.map(x => `<option value="${x.id}">${x.n}. ${esc(x.name)}</option>`).join('')}</select><button class="pnb2" data-at="${k}">TAKE</button>` : `<span class="note" style="margin:0">${esc(a.name)}（跟隨模式）</span>`}</div>`).join('') || '<div class="note">沒有 AUX</div>';
+      case 'audio': return `<div class="pnmix">${IN.map(x => `<div class="pnch" data-ch="${x.id}"><div class="pnfw"><div class="pnvu"><i data-lv></i></div><input type="range" min="0" max="150" data-f orient="vertical"></div><span class="note" data-db style="margin:0"></span><button class="pnb2 sm" data-m>MUTE</button><b class="pnchn">${x.n}. ${esc(x.name)}</b></div>`).join('')}<div class="pnch pgmch"><div class="pnfw"><div class="pnvu"><i data-lvp></i></div></div><b class="pnchn">PGM</b></div></div>`;
+      case 'cue': return `<div class="pnbtns">${['Stand by 就緒', '現場 OK', '主持人準備好', '需要更多時間', '準備收尾', '有狀況，請等一下'].map(t => `<button class="pnb2" data-cue="${esc(t)}">${esc(t)}</button>`).join('')}</div><div class="row" style="margin-top:6px"><input class="field sm grow" data-cuet maxlength="60" placeholder="自訂提示，按 Enter 送出"></div>`;
+      case 'timer': return `<div class="pntm" data-tmv>00:00</div><div class="pnbtns"><button class="pnb2" data-tm="go">▶ / ⏸</button><button class="pnb2" data-tm="rst">重設</button>${[1, 5, 10, 15].map(m => `<button class="pnb2 sm" data-tmd="${m}">倒數 ${m} 分</button>`).join('')}<button class="pnb2 sm" data-tmd="0">正數</button></div>`;
+      case 'clock': return `<div class="pntm" data-clk></div>`;
+      case 'custom': return `<div class="pnbtns">${(bl.buttons || []).map((b, k) => { b._id = i + '-' + k; return `<button class="pnb2 cust" data-cb="${b._id}" style="--bc:${COLORS[b.color] || COLORS.gray}"><i class="led"></i>${esc(b.label || '按鈕')}${b.key ? `<kbd>${esc(b.key)}</kbd>` : ''}</button>`; }).join('') || '<span class="note" style="margin:0">還沒有按鈕，按「✏️ 編輯面板」→ 區塊上的 ✎ 新增</span>'}</div>`;
+    }
+    return '';
+  }
+  function renderAll(){
+    renderTabs();
+    const pg = L.pages[page] || L.pages[0];
+    G.innerHTML = pg.blocks.map((bl, i) => { const need = NEED[bl.t], dis = S && need && !can(need);
+      return `<section class="pnblk ${dis ? 'dis' : ''}" data-bi="${i}" style="--sp:${bl.w || 1};--rs:${bl.h || 1};--bc:${COLORS[bl.c] || COLORS.gray}"><h4><span>${esc(bl.t === 'custom' ? bl.title || BT.custom : BT[bl.t])}</span>${dis ? '<small>（沒有權限）</small>' : ''}
+        ${edit ? `<span class="pned"><button data-e="l" title="往前">◀</button><button data-e="r" title="往後">▶</button><button data-e="n" title="變窄">－</button><button data-e="w" title="變寬">＋</button><button data-e="h" title="高度：一格／兩格">↕</button><select data-e="c">${Object.keys(COLORS).map(c => `<option value="${c}" ${bl.c === c ? 'selected' : ''}>${{ gray: '灰', purple: '紫', green: '綠', blue: '藍', orange: '橘', red: '紅', teal: '青', yellow: '黃' }[c]}</option>`).join('')}</select>${bl.t === 'custom' ? '<button data-e="e" title="編輯按鈕">✎</button>' : ''}<button data-e="x" title="刪除">🗑</button></span>` : ''}</h4>
+        <div class="pnbd">${S ? blockBody(bl, i) : '<div class="note">等待導播台…</div>'}</div></section>`; }).join('') || `<div class="note" style="padding:20px">這個分頁還沒有區塊，按「✏️ 編輯面板」新增。</div>`;
+    bind(); patch();
+    const want = pg.blocks.find(b => b.t === 'mon') ? (pg.blocks.find(b => b.t === 'mon').what || 'pgm') : '';
+    if (want !== watching) { watching = want; send({ type: 'watch', what: want }); }
+    if (curStream) { const v = G.querySelector('[data-v]'); if (v && v.srcObject !== curStream) { v.srcObject = curStream; v.play().catch(() => {}); } }
+  }
+  function bind(){
+    $$('.pnblk', G).forEach(sec => {
+      const i = +sec.dataset.bi, bl = L.pages[page].blocks[i], arr = L.pages[page].blocks;
+      $$('[data-e]', sec).forEach(b => { const ev = b.tagName === 'SELECT' ? 'onchange' : 'onclick'; b[ev] = () => { const e = b.dataset.e;
+        if (e === 'l' && i > 0) [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; if (e === 'r' && i < arr.length - 1) [arr[i + 1], arr[i]] = [arr[i], arr[i + 1]];
+        if (e === 'h') bl.h = (bl.h || 1) === 1 ? 2 : 1; if (e === 'n') bl.w = Math.max(1, (bl.w || 1) - 1); if (e === 'w') bl.w = Math.min(4, (bl.w || 1) + 1); if (e === 'c') bl.c = b.value;
+        if (e === 'x') { if (!confirm('刪除這個區塊？')) return; arr.splice(i, 1); } if (e === 'e') return editCustom(bl);
+        save(); sig = ''; renderAll(); }; });
+      if (edit) return;
+      $$('[data-pg]', sec).forEach(b => b.onclick = () => send({ type: 'take', id: b.dataset.pg || null }));
+      $$('[data-pv]', sec).forEach(b => b.onclick = () => send({ type: 'pvw', id: b.dataset.pv || null }));
+      $$('[data-c]', sec).forEach(b => b.onclick = () => send({ type: b.dataset.c }));
+      $$('[data-ov]', sec).forEach(b => b.onclick = () => send({ type: 'ov', k: b.dataset.ov }));
+      $$('[data-st]', sec).forEach(b => b.onclick = () => send({ type: 'still', n: +b.dataset.st }));
+      $$('[data-sc]', sec).forEach(b => b.onclick = () => send({ type: 'scene', i: +b.dataset.sc, auto: true }));
+      $$('[data-ap]', sec).forEach(s2 => s2.onchange = () => send({ type: 'auxpvw', i: +s2.dataset.ap, id: s2.value || null }));
+      $$('[data-at]', sec).forEach(b => b.onclick = () => send({ type: 'auxtake', i: +b.dataset.at }));
+      const rec = $('[data-rec]', sec); if (rec) rec.onclick = () => { if (S.rec && !confirm('停止導播台的錄影？')) return; send({ type: 'rec' }); };
+      $$('[data-sm]', sec).forEach(b => b.onclick = () => { const s2 = S.streams[+b.dataset.sm]; if (!s2) return; if (s2.want && !confirm(`停止推流「${s2.name}」？觀眾會看到直播中斷。`)) return; send({ type: 'stream', id: s2.id, v: !s2.want }); });
+      const tt = $('[data-tt]', sec); if (tt) tt.onchange = () => send({ type: 'trans', k: tt.value });
+      const td = $('[data-td]', sec); if (td) td.onchange = () => send({ type: 'tdur', v: +td.value });
+      const tb = $('[data-tbar]', sec); if (tb) { let drag = false; const pos = e => { const r = tb.getBoundingClientRect(); return clamp((e.clientY - r.top - 14) / Math.max(1, r.height - 28), 0, 1); };
+        let lastSend = 0; const mv = e => { if (!drag) return; const p = pos(e); S.tpos = p; paintT(); const n = performance.now(); if (n - lastSend > 40) { lastSend = n; send({ type: 'tbar', v: p }); } };
+        tb.onpointerdown = e => { if (!can('sw')) return toast('沒有切換權限'); drag = true; tb.setPointerCapture(e.pointerId); mv(e); };
+        tb.onpointermove = mv; tb.onpointerup = e => { if (!drag) return; drag = false; send({ type: 'tbar', v: pos(e) }); }; }
+      $$('[data-ch]', sec).forEach(ch => { const id = ch.dataset.ch, X = () => S.inputs.find(x => x.id === id);
+        $('[data-f]', ch).oninput = e => { send({ type: 'fader', id, v: e.target.value / 100 }); $('[data-db]', ch).textContent = e.target.value + '%'; };
+        $('[data-m]', ch).onclick = () => send({ type: 'mute', id, v: !X()?.mute }); });
+      $$('[data-cue]', sec).forEach(b => b.onclick = () => { send({ type: 'cue', text: b.dataset.cue }); toast('已提示導播：' + b.dataset.cue); });
+      const ct = $('[data-cuet]', sec); if (ct) ct.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing && ct.value.trim()) { send({ type: 'cue', text: ct.value.trim() }); ct.value = ''; toast('已提示導播'); } };
+      const w = $('[data-watch]', sec); if (w) w.onchange = () => { bl.what = w.value; save(); watching = ''; renderAll(); };
+      const snd = $('[data-snd]', sec); if (snd) snd.onchange = () => { const v = $('[data-v]', sec); v.muted = !snd.checked; v.play().catch(() => {}); };
+      $$('[data-tm]', sec).forEach(b => b.onclick = () => { if (b.dataset.tm === 'go') { if (TM.run) { TM.acc += Date.now() - TM.t0; TM.run = false; } else { TM.t0 = Date.now(); TM.run = true; } } else { TM.run = false; TM.acc = 0; } paintTimer(); });
+      $$('[data-tmd]', sec).forEach(b => b.onclick = () => { TM.down = +b.dataset.tmd * 60000; TM.run = false; TM.acc = 0; paintTimer(); });
+      $$('[data-cb]', sec).forEach(el => el.onclick = () => { const [bi, k] = el.dataset.cb.split('-').map(Number); const b = L.pages[page].blocks[bi]?.buttons?.[k]; if (b) runAct(b); });
+    });
+  }
+  function paintT(){ $$('[data-th]', G).forEach(h => { const tb = h.parentElement, H = tb.clientHeight - 28; h.style.top = (14 + H * clamp(S?.tpos || 0, 0, 1) - 14) + 'px'; }); }
+  function paintTimer(){ const ms = TM.acc + (TM.run ? Date.now() - TM.t0 : 0), v = TM.down ? Math.max(0, TM.down - ms) : ms, s = Math.ceil(v / 1000), txt = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    $$('[data-tmv]', G).forEach(el => { el.textContent = txt; el.classList.toggle('warn', !!TM.down && v <= 60000); el.classList.toggle('over', !!TM.down && v === 0); }); }
+  setInterval(() => { paintTimer(); const t = new Date(); $$('[data-clk]', G).forEach(el => el.textContent = t.toLocaleTimeString('zh-TW', { hour12: false })); }, 250);
+  function patch(){
+    if (!S) return; const ae = document.activeElement;
+    $$('[data-pg]', G).forEach(b => { const x = S.inputs.find(y => y.id === b.dataset.pg); b.classList.toggle('live', b.dataset.pg ? x?.tally === 'live' : !S.pgm); });
+    $$('[data-pv]', G).forEach(b => b.classList.toggle('next', (S.pvw || '') === b.dataset.pv));
+    $$('[data-ov]', G).forEach(b => b.classList.toggle('on', !!S.ov?.[b.dataset.ov]));
+    $$('[data-st]', G).forEach(b => b.classList.toggle('on', !!S.stills.find(x => x.n === +b.dataset.st)?.on));
+    $$('[data-c="ftb"]', G).forEach(b => b.classList.toggle('live', !!S.ftb));
+    $$('[data-rec]', G).forEach(b => { b.classList.toggle('live', !!S.rec); b.innerHTML = `<i class="led"></i>${S.finalizing ? '存檔中…' : S.rec ? '錄影中' : '錄影'}`; });
+    $$('[data-sm]', G).forEach(b => { const x = S.streams[+b.dataset.sm]; b.classList.toggle('live', !!x?.on); b.classList.toggle('on', !!x?.want && !x?.on); });
+    $$('[data-tt]', G).forEach(s2 => { if (ae !== s2) s2.value = S.ttype; }); $$('[data-td]', G).forEach(s2 => { if (ae !== s2) s2.value = S.tdur; });
+    $$('[data-ap]', G).forEach(s2 => { if (ae !== s2) s2.value = S.aux[+s2.dataset.ap]?.pvw || ''; });
+    $$('[data-ch]', G).forEach(ch => { const x = S.inputs.find(y => y.id === ch.dataset.ch); if (!x) return; const f = $('[data-f]', ch); if (ae !== f) { f.value = Math.round(x.fader * 100); $('[data-db]', ch).textContent = Math.round(x.fader * 100) + '%'; } $('[data-m]', ch).classList.toggle('live', x.mute); ch.classList.toggle('onair', x.tally === 'live'); });
+    $$('[data-cb]', G).forEach(el => { const [bi, k] = el.dataset.cb.split('-').map(Number); const b = L.pages[page].blocks[bi]?.buttons?.[k]; el.classList.toggle('on', !!b && actOn(b)); });
+    paintT();
+    const pv = S.inputs.find(x => x.id === S.pvw), pg = S.inputs.find(x => x.id === S.pgm);
+    $('#pnl').textContent = `PGM：${pg ? pg.n + '. ' + pg.name : '黑畫面'}　PVW：${pv ? pv.n + '. ' + pv.name : '—'}`;
+  }
+  function paintLv(){ $$('[data-ch]', G).forEach(ch => { const i = $('[data-lv]', ch); if (i) i.style.height = lvPct(LVL.in?.[ch.dataset.ch] ?? -90) + '%'; }); $$('[data-lvp]', G).forEach(i => i.style.height = lvPct(LVL.pgm ?? -90) + '%'); }
+
+  /* ---------- 自訂按鈕編輯 ---------- */
+  function editCustom(bl){
+    const row = (b, k) => `<div class="pncrow" data-k="${k}"><input class="field sm" data-f="label" value="${esc(b.label || '')}" placeholder="按鈕文字" style="width:120px">
+      <select class="field sm" data-f="act">${ACTS.map(([a, n]) => `<option value="${a}" ${b.act === a ? 'selected' : ''}>${n}</option>`).join('')}</select>
+      <input class="field sm" data-f="n" type="number" min="0" max="64" value="${esc(b.n ?? '')}" placeholder="號碼" style="width:64px" title="來源號碼／圖庫／場景／推流第幾組／分頁（0＝黑畫面）">
+      <select class="field sm" data-f="k">${[['', '（圖層或轉場）'], ...Object.entries(OVN).map(([x, n]) => ['' + x, '圖層：' + n]), ...(S?.transList || []).map(([x, n]) => ['' + x, '轉場：' + n])].map(([x, n]) => `<option value="${esc(x)}" ${b.k === x ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+      <input class="field sm" data-f="text" value="${esc(b.text || '')}" placeholder="提示文字" style="width:110px">
+      <select class="field sm" data-f="color">${Object.keys(COLORS).map(c => `<option value="${c}" ${b.color === c ? 'selected' : ''}>${{ gray: '灰', purple: '紫', green: '綠', blue: '藍', orange: '橘', red: '紅', teal: '青', yellow: '黃' }[c]}</option>`).join('')}</select>
+      <input class="field sm" data-f="key" value="${esc(b.key || '')}" maxlength="3" placeholder="快速鍵" style="width:58px" title="電腦鍵盤快速鍵，例如 1、Q、F1">
+      <button class="btn sm" data-up>↑</button><button class="btn sm danger" data-del>✕</button></div>`;
+    const list = JSON.parse(JSON.stringify(bl.buttons || []));
+    uiModal(`<h2>編輯自訂按鈕</h2><div class="row"><span>區塊名稱</span><input class="field sm grow" id="pnct" value="${esc(bl.title || '')}"></div>
+      <div id="pncl" style="display:grid;gap:6px;margin-top:10px;max-height:55vh;overflow:auto"></div>
+      <div class="row" style="margin-top:8px"><button class="btn sm" id="pncadd">＋ 新增按鈕</button><span class="note" style="margin:0">「號碼」：來源號碼（0＝黑畫面）、圖庫 S 幾、場景 F 幾、推流第幾組、分頁第幾頁</span></div>
+      <div class="acts"><button class="btn ghost" data-close>取消</button><button class="btn primary" id="pncok">儲存</button></div>`, (m, close) => {
+      const paintL = () => { $('#pncl', m).innerHTML = list.map(row).join('') || '<div class="note">還沒有按鈕</div>';
+        $$('.pncrow', m).forEach(r => { const k = +r.dataset.k; $$('[data-f]', r).forEach(f => f.oninput = f.onchange = () => { list[k][f.dataset.f] = f.type === 'number' ? (f.value === '' ? '' : +f.value) : f.value; });
+          $('[data-del]', r).onclick = () => { list.splice(k, 1); paintL(); }; $('[data-up]', r).onclick = () => { if (k) { [list[k - 1], list[k]] = [list[k], list[k - 1]]; paintL(); } }; }); };
+      paintL();
+      $('#pncadd', m).onclick = () => { list.push({ label: '新按鈕', act: 'take', n: 1, color: 'gray' }); paintL(); };
+      $('#pncok', m).onclick = () => { bl.title = $('#pnct', m).value.trim().slice(0, 30) || '自訂按鈕'; bl.buttons = list.map(b => { const o = { ...b }; delete o._id; return o; }); save(); close?.(); m.querySelector('[data-close]')?.click(); sig = ''; renderAll(); };
+    });
+  }
+
+  /* ---------- 連線（跟遠端操作員同一套） ---------- */
+  let curStream = null;
+  function retry(){ clearTimeout(retryT); if (!denied) retryT = setTimeout(dial, 3000); }
+  function dial(){
+    clearTimeout(retryT); if (!peer?.open || denied) return;
+    try { conn?.close(); } catch {}
+    conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'op', r: R, t: tok, name: ($('#pnn').value.trim() || RN[R]) + '（面板）' }, ...CONN_OPTS });
+    conn.on('open', () => { st('ok', '已連線'); watching = '__'; renderAll(); });
+    conn.on('data', d => {
+      if (!d) return;
+      if (d.type === 'deny') { denied = true; st('bad', '無法連線'); G.innerHTML = `<div class="wsec" style="padding:20px"><h4>無法連線</h4><div>${esc(d.error || '')}</div></div>`; return; }
+      if (d.type === 'deny2') return toast(d.error);
+      if (d.type === 'opHello') { $('#pnl').textContent = `${d.label || '導播台'}${d.director ? ' · 導播 ' + d.director : ''}`; }
+      if (d.type === 'opState') { const first = !S; S = d; const ns = JSON.stringify([S.caps, S.inputs.map(x => x.id + x.name), S.stills.map(x => x.has), S.streams.map(x => x.id + x.name), S.aux.map(a => a.mode), S.transList?.length]); if (first || ns !== sig) { sig = ns; if (!edit || first) renderAll(); } else patch(); }
+      if (d.type === 'opT' && S) { S.tpos = d.tpos; S.base = d.base; paintT(); }
+      if (d.type === 'opLv') { LVL = d; paintLv(); }
+    });
+    conn.on('close', () => { if (!denied) { st('wait', '導播台離線，重試中…'); retry(); } });
+    conn.on('error', retry);
+  }
+  peer = new Peer(PREFIX + roomKey + '-op-' + rnd(8), PEER_OPTS);
+  peer.on('open', dial);
+  peer.on('call', call => { call.answer(); call.on('stream', s => { curStream = s; const v = G.querySelector('[data-v]'); if (v) { v.srcObject = s; v.play().catch(() => {}); } }); });
+  peer.on('disconnected', () => !peer.destroyed && setTimeout(() => peer.reconnect(), 2000));
+  peer.on('error', e => { st('bad', peerErrText(e)); if (['peer-unavailable', 'network'].includes(e.type)) retry(); });
+  renderAll();
+}
+
 function Operator(){
   const roomKey = (Q.get('o') || '').toLowerCase().replace(/[^0-9a-f]/g, ''), R = ['dir', 'td', 'ad', 'fd', 'ae', 'aud', 'view'].includes(Q.get('r')) ? Q.get('r') : 'view', tok = Q.get('t') || '';
   const RN = { dir: '導播', td: 'TD 技術導播', ad: 'AD 助理導播', fd: 'FD 現場指導', ae: 'AE 助理工程', aud: '音控', view: '監看員' };
@@ -9596,7 +9946,7 @@ function Operator(){
 /* ===================== 自動更新（系統管理員在派發平台發布） =====================
  * 打開時先用這台裝置已經下載好的版本（不用等網路）；背景檢查有沒有新版本
  * 一般更新：下載好，下次打開自動套用；強制更新：沒在連線的人立刻套用，正在導播／連線的人結束後才套用 */
-const wcBusy = () => !!window.__WC_BUSY || ['out', 'op'].includes(Q.get('mode'));
+const wcBusy = () => !!window.__WC_BUSY || ['out', 'op', 'panel'].includes(Q.get('mode'));
 let updPending = null;
 function updBanner(a, forced){
   let b = $('#updbar');
@@ -9649,6 +9999,7 @@ function route(){
   if (mode === 'guest') Guest();
   else if (mode === 'out') Output();
   else if (mode === 'op') Operator();
+  else if (mode === 'panel') Panel();
   else if (mode === 'cgctl') TitleRemote();
   else if (mode === 'cgout') TitleOutput();
   else if (mode === 'prompter') TitlePrompter();
