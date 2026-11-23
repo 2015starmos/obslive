@@ -9886,7 +9886,7 @@ function Panel(){
     clearTimeout(retryT); if (!peer?.open || denied) return;
     try { conn?.close(); } catch {}
     conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'op', r: R, t: tok, name: ($('#pnn').value.trim() || RN[R]) + '（面板）' }, ...CONN_OPTS });
-    { const c0 = conn; st('wait', '尋找導播台…'); setTimeout(() => { if (conn === c0 && !c0.open && !denied) { st('bad', '找到導播台但資料通道打不開（行動網路可能擋住），重試中…'); retry(); } }, 15000); }
+    { const c0 = conn; st('wait', '尋找導播台…'); setTimeout(() => { if (conn === c0 && !c0.open && !denied) { st('bad', CONFIG.ICE_SERVERS.some(x => [].concat(x.urls).some(v => /^turns?:/.test(v))) ? '找到導播台但資料通道打不開，重試中…' : '找到導播台但連不進去：行動網路擋住了，需要系統管理員設定「連線中繼（TURN）」'); retry(); } }, 15000); }
     conn.on('open', () => { st('ok', '已連線'); watching = '__'; renderAll(); });
     conn.on('data', d => onMsg(d));
     conn.on('data_unused', d => {
@@ -10026,7 +10026,7 @@ function Operator(){
     clearTimeout(retryT); if (!peer?.open || denied) return;
     try { conn?.close(); } catch {}
     conn = peer.connect(hostPeerId(roomKey), { metadata: { role: 'op', r: R, t: tok, name: $('#opn').value.trim() || RN[R] }, ...CONN_OPTS });
-    { const c0 = conn; st('wait', '尋找導播台…'); setTimeout(() => { if (conn === c0 && !c0.open && !denied) { st('bad', '找到導播台但資料通道打不開（行動網路可能擋住），重試中…'); retry(); } }, 15000); }
+    { const c0 = conn; st('wait', '尋找導播台…'); setTimeout(() => { if (conn === c0 && !c0.open && !denied) { st('bad', CONFIG.ICE_SERVERS.some(x => [].concat(x.urls).some(v => /^turns?:/.test(v))) ? '找到導播台但資料通道打不開，重試中…' : '找到導播台但連不進去：行動網路擋住了，需要系統管理員設定「連線中繼（TURN）」'); retry(); } }, 15000); }
     conn.on('open', () => { st('ok', '已連線'); send({ type: 'watch', what: $('#opw').value }); });
     conn.on('data', d => {
       if (!d) return;
@@ -10087,12 +10087,21 @@ function wcIdle(){ window.__WC_BUSY = false; if (updPending?.force) setTimeout((
 /* 精簡固定版：停用返回前景時的遠端版本檢查 */
 
 /* ===================== 路由 ===================== */
+/* 連線中繼（TURN）：從代碼平台拿系統管理員設定的中繼伺服器，加到 CONFIG.ICE_SERVERS（先用上次存的，背景更新） */
+function applyIce(list){ if (!Array.isArray(list)) return; list.forEach(x => { if (x && x.urls && !CONFIG.ICE_SERVERS.some(y => JSON.stringify(y.urls) === JSON.stringify(x.urls) && y.username === x.username)) CONFIG.ICE_SERVERS.push(x); }); }
+function loadIce(){
+  let cached = null; try { cached = JSON.parse(localStorage.getItem('wc_ice') || 'null'); } catch {}
+  if (cached && cached.exp > Date.now()) applyIce(cached.list);
+  const fresh = CONFIG.API_URL ? apiCall({ action: 'ice' }).then(r => { const list = (r && r.iceServers) || []; if (list.length) { applyIce(list); try { localStorage.setItem('wc_ice', JSON.stringify({ exp: Date.now() + 5 * 3600e3, list })); } catch {} } }).catch(() => {}) : Promise.resolve();
+  return cached && cached.exp > Date.now() ? Promise.resolve() : Promise.race([fresh, new Promise(r => setTimeout(r, 3500))]);
+}
 function route(){
   window.__WC_OK = true;
   if (!window.Peer) {
     app.innerHTML = `<div class="home"><div class="box">${brand()}<h1>載入失敗</h1><p>PeerJS 函式庫沒有載入，請確認網路可連到 cdnjs.cloudflare.com 或 unpkg.com，然後重新整理。</p></div></div>`;
     return;
   }
+  if (!window.__WC_ICE_DONE) { window.__WC_ICE_DONE = true; app.innerHTML = app.innerHTML || '<div class="home"><div class="box"><p class="note">連線準備中…</p></div></div>'; loadIce().finally(route); return; }
   const mode = Q.get('mode');
   // 來賓端只提供視訊功能；不初始化或顯示任何實體控制器介面。
   if (['guest', 'cgout', 'cgctl', 'prompter', 'clock'].includes(mode)) {
