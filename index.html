@@ -3379,7 +3379,130 @@ function TitleClock(){
   titleViewer(roomKey, 'clk', s => { S = s; }, t => { $('#cst').textContent = t; });
 }
 
+/* ---------- 導播台開場動畫（光環＋字母飛入，約 2.8 秒，點一下或按任意鍵跳過） ---------- */
+function wcIntro(opt){
+  /* 開場動畫「訊號鎖定」：Tally 燈亮 → 拉成訊號線 → 波形震盪 → 訊號粒子掃描組成字標 → 時間碼／ON AIR → 鏡頭光圈打開進入導播台 */
+  opt = opt || {};
+  let off = false; try { off = localStorage.getItem('wc_intro') === '0' || matchMedia('(prefers-reduced-motion: reduce)').matches; } catch {}
+  if (off && !opt.force) return Promise.resolve();
+  return new Promise(done => {
+    const text = opt.text || 'WebCall', sub = opt.sub || '連 線 導 播 台', DUR = 3000, OUT = 760;
+    const FONTF = '"Noto Sans TC", "PingFang TC", system-ui, sans-serif';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483000;cursor:pointer;background:#000';
+    const cv = document.createElement('canvas'); cv.style.cssText = 'width:100%;height:100%;display:block';
+    const skip = document.createElement('div');
+    skip.style.cssText = 'position:absolute;right:18px;bottom:16px;font:12px system-ui,sans-serif;color:#ffffff59;user-select:none;letter-spacing:.04em';
+    skip.innerHTML = '點一下略過　·　<u data-never style="cursor:pointer">不要再播放</u>';
+    wrap.append(cv, skip); document.body.appendChild(wrap);
+    const g = cv.getContext('2d'); let W = 0, H = 0, dpr = 1, P = [], fs = 0;
+    const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), eo = t => 1 - Math.pow(1 - t, 3), eio = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const rnd = (i, k) => { const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); };
+    // 字標取樣成粒子目標點
+    function build(){
+      dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr;
+      fs = Math.max(30, Math.min(W * .13, H * .16));
+      const o = document.createElement('canvas'), ox = o.getContext('2d'); ox.font = `800 ${fs}px ${FONTF}`;
+      const tw = Math.ceil(ox.measureText(text).width) + 8, th = Math.ceil(fs * 1.25); o.width = tw; o.height = th;
+      ox.font = `800 ${fs}px ${FONTF}`; ox.textBaseline = 'middle'; ox.fillStyle = '#fff'; ox.fillText(text, 4, th / 2);
+      const d = ox.getImageData(0, 0, tw, th).data, step = Math.max(2, Math.round(fs / 26)), pts = [];
+      for (let y = 0; y < th; y += step) for (let x = 0; x < tw; x += step) if (d[(y * tw + x) * 4 + 3] > 140) pts.push([x, y]);
+      const keep = Math.min(1, 2400 / pts.length), cx = W / 2 - tw / 2, cy = H / 2 - th / 2 - fs * .08;
+      P = pts.filter((_, i) => rnd(i, 9) < keep).map((q, i) => ({ tx: cx + q[0], ty: cy + q[1], u: q[0] / tw, s: rnd(i, 1), w: rnd(i, 2), sz: step * (.55 + rnd(i, 3) * .35) }));
+    }
+    build(); addEventListener('resize', build);
+    const t0 = performance.now(); let ended = false, tEnd = 0;
+    const cleanup = () => { removeEventListener('resize', build); removeEventListener('keydown', key, true); wrap.remove(); done(); };
+    const finish = () => { if (ended) return; ended = true; tEnd = performance.now(); wrap.style.cursor = 'default'; wrap.style.pointerEvents = 'none'; wrap.style.background = 'transparent'; skip.remove(); setTimeout(cleanup, OUT + 60); };
+    const key = e => { if (ended) return; e.preventDefault(); e.stopPropagation(); finish(); };
+    wrap.onclick = e => { if (e.target.dataset.never != null) { try { localStorage.setItem('wc_intro', '0'); } catch {} } finish(); };
+    addEventListener('keydown', key, true);
+    const lineY = () => H / 2 + fs * .95, wave = (x, t, amp) => { const L = W * .34, k = (x - W / 2) / L, env = Math.max(0, 1 - k * k); return Math.sin(x * .028 - t * .014) * Math.sin(x * .0061 + t * .004) * amp * env; };
+    function scene(t, p){
+      const cx = W / 2, cy = H / 2, ly = lineY(), base = Math.min(W, H);
+      // 背景：極淡暗角＋底片顆粒
+      const vg = g.createRadialGradient(cx, cy, base * .1, cx, cy, Math.hypot(W, H) * .6); vg.addColorStop(0, '#0d1420'); vg.addColorStop(1, '#000'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
+      g.fillStyle = 'rgba(255,255,255,.035)'; for (let i = 0; i < 140; i++) g.fillRect(rnd(i, t | 0) * W, rnd(i + 7, t | 0) * H, 1.2, 1.2);
+      // 安全框角標
+      const fq = eo(cl((p - .06) / .25)); if (fq > 0) { const bw = Math.min(W * .62, fs * 6.2), bh = fs * 2.9, m = fs * .35; g.save(); g.globalAlpha = .35 * fq; g.strokeStyle = '#9fb7d8'; g.lineWidth = 1.2;
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => { const x = cx + sx * bw / 2 * (1.25 - .25 * fq), y = cy + fs * .25 + sy * bh / 2 * (1.25 - .25 * fq); g.beginPath(); g.moveTo(x - sx * m, y); g.lineTo(x, y); g.lineTo(x, y - sy * m); g.stroke(); });
+        g.restore(); }
+      // 1. Tally 燈：兩下閃爍
+      const blink = p < .05 ? 0 : p < .08 ? 1 : p < .1 ? .25 : p < .2 ? 1 : 1;
+      const stretch = eio(cl((p - .17) / .16));                                   // 2. 拉成水平訊號線
+      const amp = fs * .55 * Math.sin(Math.PI * cl((p - .3) / .3));               // 3. 波形震盪後歸零
+      const lineA = 1 - cl((p - .72) / .12);
+      if (p > .04 && lineA > 0) {
+        const half = 5 + stretch * W * .36, red = 1 - cl((p - .2) / .12);
+        g.save(); g.globalCompositeOperation = 'lighter';
+        if (stretch < .02) { const r = Math.max(5, base * .012); const gg = g.createRadialGradient(cx, ly, 0, cx, ly, r * 6); gg.addColorStop(0, `rgba(255,50,40,${.9 * blink})`); gg.addColorStop(1, 'rgba(255,40,30,0)'); g.fillStyle = gg; g.fillRect(cx - r * 6, ly - r * 6, r * 12, r * 12);
+          g.fillStyle = `rgba(255,${120 + 100 * blink | 0},${110 + 90 * blink | 0},${blink})`; g.beginPath(); g.arc(cx, ly, r, 0, 7); g.fill(); }
+        else {
+          [[16, .18], [6, .45], [1.6, 1]].forEach(([lw, a]) => { g.lineWidth = lw; g.globalAlpha = a * lineA;
+            g.strokeStyle = red > 0 ? `rgb(255,${60 + 195 * (1 - red) | 0},${50 + 205 * (1 - red) | 0})` : lw > 2 ? '#46b4ff' : '#eaf6ff';
+            g.beginPath(); for (let x = cx - half; x <= cx + half; x += 3) { const y = ly + wave(x, t, amp); x === cx - half ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke(); });
+          // 波形上的取樣點
+          g.globalAlpha = .7 * lineA * cl(amp / (fs * .2)); g.fillStyle = '#bfe6ff'; for (let x = cx - half; x <= cx + half; x += 22) g.fillRect(x - 1, ly + wave(x, t, amp) - 1, 2, 2);
+        }
+        g.restore();
+      }
+      // 4. 訊號粒子：從波形線出發，跟著由左到右的掃描線就位
+      const scan = cl((p - .45) / .3), sx = W / 2 - fs * 3.2 + scan * fs * 6.4;
+      if (p > .42) {
+        g.save(); g.globalCompositeOperation = 'lighter';
+        for (const q of P) {
+          const st = .44 + q.u * .26 + q.s * .05, k = eio(cl((p - st) / .17)); if (k <= 0) continue;
+          const ox = q.tx + (q.w - .5) * fs * 1.4, oy = ly + wave(ox, t, amp);
+          const x = ox + (q.tx - ox) * k + Math.sin(t * .01 + q.s * 9) * (1 - k) * fs * .25, y = oy + (q.ty - oy) * k - Math.sin(k * Math.PI) * fs * (.4 + q.s * .5);
+          const settle = k >= 1; g.globalAlpha = settle ? .95 : .35 + .6 * k;
+          g.fillStyle = settle ? '#ffffff' : k > .7 ? '#a8dcff' : '#3aa6ff';
+          g.fillRect(x - q.sz / 2, y - q.sz / 2, q.sz, q.sz);
+        }
+        g.restore();
+        if (scan > 0 && scan < 1) { g.globalAlpha = Math.sin(scan * Math.PI); const gr = g.createLinearGradient(sx - 60, 0, sx + 4, 0); gr.addColorStop(0, 'rgba(70,180,255,0)'); gr.addColorStop(1, 'rgba(160,220,255,.55)'); g.fillStyle = gr; g.fillRect(sx - 60, cy - fs * .9, 64, fs * 1.8); g.fillStyle = '#e8f6ff'; g.fillRect(sx, cy - fs * .9, 1.5, fs * 1.8); g.globalAlpha = 1; }
+      }
+      // 字標鎖定：實心字淡入取代粒子，一道光澤掠過
+      const lock = cl((p - .8) / .08);
+      if (lock > 0) { g.save(); g.font = `800 ${fs}px ${FONTF}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.globalAlpha = lock; g.fillStyle = '#fff'; g.fillText(text, cx, cy - fs * .08);
+        const sh = cl((p - .84) / .14); if (sh > 0 && sh < 1) { const x = cx - fs * 3.5 + sh * fs * 7, lg = g.createLinearGradient(x - fs * .6, 0, x + fs * .6, 0); lg.addColorStop(0, 'rgba(120,200,255,0)'); lg.addColorStop(.5, 'rgba(120,200,255,1)'); lg.addColorStop(1, 'rgba(120,200,255,0)'); g.fillStyle = lg; g.fillText(text, cx, cy - fs * .08); }
+        g.restore(); }
+      // 5. 副標、時間碼、ON AIR
+      const sq = eo(cl((p - .78) / .16));
+      if (sq > 0) {
+        g.save(); g.textAlign = 'center'; g.textBaseline = 'middle'; g.globalAlpha = sq * .8; g.fillStyle = '#cfe0f5'; g.font = `500 ${Math.max(12, fs * .2)}px ${FONTF}`;
+        g.fillText(sub, cx, cy + fs * .62 + (1 - sq) * 10);
+        const fr = Math.floor(t / (1000 / 30)), tc = [0, 0, Math.floor(fr / 30) % 60, fr % 30].map(n => String(n).padStart(2, '0')).join(':');
+        g.globalAlpha = sq * .55; g.font = `500 ${Math.max(11, fs * .15)}px ui-monospace, Menlo, Consolas, monospace`; g.fillStyle = '#8fb3d9'; g.fillText('TC ' + tc, cx - fs * .9, ly + fs * .2);
+        const on = p > .88, ox = cx + fs * .95, oy = ly + fs * .2, bw = fs * 1.05, bh = fs * .27;
+        g.globalAlpha = sq; g.fillStyle = on ? '#e01e2b' : 'rgba(255,255,255,.08)'; g.beginPath(); g.roundRect ? g.roundRect(ox - bw / 2, oy - bh / 2, bw, bh, bh / 2) : g.rect(ox - bw / 2, oy - bh / 2, bw, bh); g.fill();
+        if (on) { g.shadowColor = '#ff2a2a'; g.shadowBlur = 16; }
+        g.fillStyle = on ? '#fff' : '#ffffff55'; g.font = `700 ${Math.max(10, fs * .14)}px ${FONTF}`; g.fillText('● ON AIR', ox, oy + 1);
+        g.restore();
+      }
+    }
+    // 結尾：鏡頭光圈（7 片葉片）旋轉打開，露出導播台
+    function iris(q){
+      const cx = W / 2, cy = H / 2, far = Math.hypot(W, H) / 2 + 30, R = far * eio(q) * 1.08, n = 7, rot = q * 1.6;
+      g.save(); g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000'; g.globalAlpha = 1; g.beginPath();
+      for (let i = 0; i <= n; i++) { const a = rot + i / n * Math.PI * 2, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+      g.fill(); g.restore();
+      g.save(); g.strokeStyle = `rgba(150,200,255,${.5 * (1 - q)})`; g.lineWidth = 1.5;
+      for (let i = 0; i < n; i++) { const a = rot + i / n * Math.PI * 2, b = rot + (i + 1) / n * Math.PI * 2, x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R, dx = Math.cos(b) * R - Math.cos(a) * R, dy = Math.sin(b) * R - Math.sin(a) * R, L = Math.hypot(dx, dy) || 1;
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x - dx / L * far, y - dy / L * far); g.stroke(); }
+      g.restore();
+    }
+    function frame(now){
+      const t = now - t0, p = Math.min(1, t / DUR); if (p >= 1 && !ended) finish();
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (ended) { const q = cl((now - tEnd) / OUT); g.clearRect(0, 0, W, H); g.globalAlpha = 1 - q * .35; scene(t, Math.max(p, .9)); g.globalAlpha = 1; iris(q); if (q < 1) requestAnimationFrame(frame); return; }
+      scene(t, p); requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
 function Host(sess){
+  wcIntro();
   const info = sess.info, LINES = clamp(info.lines || 1, 1, CONFIG.MAX_LINES);
   let invite = sess.invite, roomKey = sess.key;
   let guestUrl = `${shareBase()}?mode=guest&k=${encodeURIComponent(invite)}&openExternalBrowser=1&v=${BUILD}`;
@@ -3640,7 +3763,7 @@ function Host(sess){
   const mvStream = new MediaStream([mvCanvas.captureStream(10).getVideoTracks()[0]]);
   const VIEW0 = { fit: 'contain', cl: 0, cr: 0, ct: 0, cb: 0, br: 0, co: 0, sa: 0, freeze: false, z: 1, px: 0, py: 0, op: 1, key: 'none' };
   /* ---------- 字幕圖層（DSK） ---------- */
-  const OVK = ['lt', 'tk', 'bug', 'cc', 'tm', 'bn'];
+  const OVK = ['lt', 'tk', 'bug', 'cc', 'tm', 'bn', 'el'];
   const OV = (() => {
     const d = { fade: 400,
       bn: { on: false, a: 0, tie: false, label: 'BREAKING NEWS', sub: '突發新聞', text: '', style: 'red' },
@@ -3648,12 +3771,13 @@ function Host(sess){
       tk: { on: false, a: 0, tie: false, label: '快訊', text: '', speed: 110, x: 0, style: 'red' },
       bug: { on: false, a: 0, tie: false, live: true, liveText: 'LIVE', clock: true, place: '', logoUrl: '', logo: null, size: .1 },
       cc: { on: false, a: 0, size: 1 },
-      tm: { on: false, a: 0 } };
+      tm: { on: false, a: 0 },
+      el: { on: false, a: 0, tie: false, api: '', e: '', d: '', mode: 'lower', top: 3, refresh: 15, title: '', pos: 'r' } };
     try { const sv = JSON.parse(store('wc_ov') || '{}'); OVK.forEach(k => { if (sv[k]) { Object.assign(d[k], sv[k]); d[k].on = false; d[k].a = 0; } }); if (sv.fade) d.fade = sv.fade; } catch {}
     if (d.bug.logoUrl) { const im = new Image(); im.onload = () => d.bug.logo = im; im.src = d.bug.logoUrl; }
     return d;
   })();
-  const saveOV = () => { const o = { fade: OV.fade }; OVK.forEach(k => { o[k] = { ...OV[k] }; delete o[k].on; delete o[k].a; delete o[k].logo; delete o[k].x; }); try { store('wc_ov', JSON.stringify(o)); } catch { toast('台標圖片太大，無法儲存到這台電腦'); } };
+  const saveOV = () => { const o = { fade: OV.fade }; OVK.forEach(k => { o[k] = { ...OV[k] }; delete o[k].on; delete o[k].a; delete o[k].logo; delete o[k].x; delete o[k].data; delete o[k].err; delete o[k].els; delete o[k].dists; delete o[k].pt; delete o[k].at; delete o[k]._tried; }); try { store('wc_ov', JSON.stringify(o)); } catch { toast('台標圖片太大，無法儲存到這台電腦'); } };
   /* ---------- 斷線備援畫面 ---------- */
   const SLATE = { img: null, canvas: null };
   (() => { const u = store('wc_slate'); if (u) { const im = new Image(); im.onload = () => SLATE.img = im; im.src = u; } })();
@@ -4569,9 +4693,81 @@ function Host(sess){
     }
     g.restore();
   }
+  /* ---------- 選舉票數圖層（讀選舉即時報票系統的公開 API） ---------- */
+  function elDefUrl(){ try { return JSON.parse(store('wc_lme') || '{}').electionUrl || ''; } catch { return ''; } }
+  function elGet(q){
+    const base = (OV.el.api || elDefUrl()).replace(/\?.*$/, ''); if (!base) return Promise.reject(new Error('沒有報票系統網址'));
+    const url = base + '?' + q + '&t=' + Date.now();
+    return fetch(url).then(r => r.json()).catch(() => new Promise((ok, no) => {   // 被擋 CORS 時改用 JSONP
+      const cb = 'wcEl' + Math.random().toString(36).slice(2), sc = document.createElement('script');
+      const done = v => { delete window[cb]; sc.remove(); clearTimeout(to); v instanceof Error ? no(v) : ok(v); };
+      const to = setTimeout(() => done(new Error('報票系統沒有回應')), 12000);
+      window[cb] = done; sc.onerror = () => done(new Error('連不到報票系統')); sc.src = url + '&callback=' + cb; document.head.appendChild(sc);
+    })).then(r => { if (r && r.error) throw new Error(r.error); return r; });
+  }
+  function elPoll(){
+    const L = OV.el; clearTimeout(L.pt);
+    if (!L.e) { L.err = '還沒選擇選舉'; return; }
+    const st = t => { const n = document.getElementById('gelst'); if (n) n.textContent = t; };
+    elGet(`api=results&e=${encodeURIComponent(L.e)}${L.d ? '&d=' + encodeURIComponent(L.d) : ''}&top=${L.top || 3}`)
+      .then(r => { L.data = r; L.err = ''; L.at = Date.now(); st('已更新 ' + fmtTime(L.at)); })
+      .catch(e => { L.err = e.message; st('⚠ ' + e.message); })
+      .finally(() => { if (L.on || WIN.gfx?.open) L.pt = setTimeout(elPoll, Math.max(5, +L.refresh || 15) * 1000); });
+  }
+  const elNum = v => (+v || 0).toLocaleString('zh-TW');
+  function elDist(r){
+    const ds = (r && (r.districts || (r.candidates ? [r] : []))) || [];
+    return (OV.el.d && ds.find(x => String(x.districtId ?? x.id) === String(OV.el.d))) || ds[0] || null;
+  }
+  function elProg(d, r){
+    let v = d.progress ?? d.reportedPct ?? (d.stations ? (d.reported ?? d.done ?? 0) / d.stations * 100 : null) ?? r?.total?.progress;
+    if (v == null || isNaN(+v)) return ''; v = +v; if (v > 0 && v <= 1 && !(d.stations)) v *= 100; return v.toFixed(1) + '%';
+  }
+  function drawElection(g, W, H){
+    const L = OV.el; if (!(L.a > 0)) return; const d = elDist(L.data); if (!d) return;
+    const s = W / 1920, cs = (d.candidates || []).slice(0, Math.max(1, +L.top || 3)), prog = elProg(d, L.data);
+    const title = String(L.title || d.name || d.districtName || L.data?.name || '開票結果');
+    const pc = c => c.color || '#666', tw = (t, f) => { g.font = f; return g.measureText(t).width; };
+    const stamp = (x, y, w, h, fs) => { g.fillStyle = '#d4101f'; roundRect(g, x, y, w, h, 6 * s); g.fill(); g.fillStyle = '#fff'; g.font = `800 ${fs}px ${FONT}`; g.fillText('當選', x + (w - tw('當選', g.font)) / 2, y + h * .72); };
+    g.save(); g.globalAlpha = L.a;
+    if (L.mode === 'side') {
+      const bw = 520 * s, rh = 92 * s, hh = 74 * s, x = L.pos === 'l' ? 40 * s : W - bw - 40 * s, y = 120 * s;
+      g.fillStyle = '#0b1220ee'; roundRect(g, x, y, bw, hh + rh * cs.length + 10 * s, 14 * s); g.fill();
+      g.fillStyle = '#d4101f'; roundRect(g, x, y, bw, hh, 14 * s); g.fill();
+      g.fillStyle = '#fff'; g.font = `800 ${32 * s}px ${FONT}`; g.fillText(title.slice(0, 12), x + 22 * s, y + hh * .64);
+      if (prog) { const f = `600 ${22 * s}px ${FONT}`, t = '開票 ' + prog; const w = tw(t, f); g.fillStyle = '#fff'; g.fillText(t, x + bw - w - 20 * s, y + hh * .63); }
+      cs.forEach((c, i) => {
+        const yy = y + hh + 5 * s + i * rh, nm = (c.no ? c.no + ' ' : '') + (c.name || '');
+        g.fillStyle = pc(c); g.fillRect(x + 14 * s, yy + 12 * s, 10 * s, rh - 24 * s);
+        const nf = `800 ${34 * s}px ${FONT}`, nw = tw(nm, nf); g.fillStyle = '#fff'; g.fillText(nm, x + 40 * s, yy + 44 * s);
+        g.font = `500 ${20 * s}px ${FONT}`; g.fillStyle = '#c9d3e6'; g.fillText(c.party || '', x + 40 * s, yy + 74 * s);
+        const vf = `800 ${36 * s}px ${FONT}`, vt = elNum(c.votes), vw = tw(vt, vf); g.fillStyle = '#fff'; g.fillText(vt, x + bw - vw - 22 * s, yy + 46 * s);
+        if (c.pct != null) { const f = `600 ${22 * s}px ${FONT}`, pt = (+c.pct).toFixed(2) + '%', w = tw(pt, f); g.fillStyle = '#c9d3e6'; g.fillText(pt, x + bw - w - 22 * s, yy + 76 * s); }
+        if (c.elected) stamp(x + 48 * s + nw, yy + 16 * s, 66 * s, 36 * s, 22 * s);
+      });
+    } else {
+      const bh = 120 * s, y = H - bh - 120 * s, x0 = 60 * s, bw = W - 120 * s, hw = 300 * s;
+      g.fillStyle = '#0b1220ee'; roundRect(g, x0, y, bw, bh, 12 * s); g.fill();
+      g.fillStyle = '#d4101f'; roundRect(g, x0, y, hw, bh, 12 * s); g.fill();
+      g.fillStyle = '#fff'; g.font = `800 ${30 * s}px ${FONT}`; g.fillText(title.slice(0, 9), x0 + 20 * s, y + 54 * s);
+      g.font = `600 ${22 * s}px ${FONT}`; g.fillText(prog ? '開票率 ' + prog : '即時開票', x0 + 20 * s, y + 92 * s);
+      const cw = (bw - hw) / Math.max(1, cs.length);
+      cs.forEach((c, i) => {
+        const x = x0 + hw + i * cw, nm = String(c.name || '').slice(0, 6);
+        g.fillStyle = pc(c); g.fillRect(x + 14 * s, y + 18 * s, 10 * s, bh - 36 * s);
+        const nw = tw(nm, `800 ${32 * s}px ${FONT}`); g.fillStyle = '#fff'; g.fillText(nm, x + 36 * s, y + 52 * s);
+        g.font = `500 ${18 * s}px ${FONT}`; g.fillStyle = '#c9d3e6'; g.fillText(String(c.party || '').slice(0, 8), x + 36 * s, y + 92 * s);
+        const vt = elNum(c.votes), vw = tw(vt, `800 ${34 * s}px ${FONT}`); g.fillStyle = '#ffd34d'; g.fillText(vt, x + cw - vw - 20 * s, y + 52 * s);
+        if (c.pct != null) { const pt = (+c.pct).toFixed(2) + '%', w = tw(pt, `600 ${22 * s}px ${FONT}`); g.fillStyle = '#fff'; g.fillText(pt, x + cw - w - 20 * s, y + 92 * s); }
+        if (c.elected) stamp(x + 46 * s + nw, y + 22 * s, 62 * s, 34 * s, 22 * s);
+      });
+    }
+    g.restore();
+  }
   function drawOverlays(g, W, H, dt, pgmId){
     const s = W / 1920, tkH = 70 * s;
     drawStills(g, W, H);
+    drawElection(g, W, H);
     // 跑馬燈
     const T = OV.tk;
     if (T.a > 0 && T.text) {
@@ -4780,12 +4976,14 @@ function Host(sess){
   function logMsg(e){ msgs.push(e); if (msgs.length > 300) msgs.shift(); if (!WIN.msg?.open) { unread++; const b = $('#mbdg'); b.textContent = unread; b.classList.remove('hidden'); } renderMsgs(); }
 
   /* =============== 字幕圖層快速鍵（DSK） =============== */
-  const DSKS = [['lt', '字幕條', 'Y'], ['tk', '跑馬燈', 'U'], ['bn', '突發', ''], ['bug', '台標', 'H'], ['cc', 'CC 字幕', 'V'], ['tm', '倒數', '']];
+  const DSKS = [['lt', '字幕條', 'Y'], ['tk', '跑馬燈', 'U'], ['bn', '突發', ''], ['bug', '台標', 'H'], ['cc', 'CC 字幕', 'V'], ['tm', '倒數', ''], ['el', '選舉票數', '']];
   function toggleOV(k, on){
     const L = OV[k]; L.on = on ?? !L.on; L.fadeMs = 0;
     if (k === 'tk' && L.on && !L.text) { L.on = false; toast('先在「字幕圖層」輸入跑馬燈內容'); openWin('gfx'); }
     if (k === 'bn' && L.on && !L.text) { L.on = false; toast('先在「字幕圖層」輸入突發新聞標題'); openWin('gfx'); }
     if (k === 'lt' && L.on && !L.l1 && !L.l2) { const p = inputs.get(SW.pgm); if (p?.title?.l1) { L.l1 = p.title.l1; L.l2 = p.title.l2; } else { L.on = false; toast('先在「字幕圖層」輸入字幕條內容'); openWin('gfx'); } }
+    if (k === 'el' && L.on && !((L.api || elDefUrl()) && L.e)) { L.on = false; toast('先在「字幕圖層 → 選舉票數」選好報票系統的選舉'); openWin('gfx'); }
+    if (k === 'el' && L.on) elPoll();
     if (k === 'tm' && L.on && !TM.target && !TM.run) { L.on = false; toast('先在「計時倒數」設定節目時間'); openWin('timer'); }
     if (k === 'lt' && L.on && L.hold > 0 && !L.tie) { clearTimeout(L.holdT); L.holdT = setTimeout(() => { L.on = false; renderDsk(); }, L.hold * 1000); }
     renderDsk(); softRender('gfx');
@@ -5116,6 +5314,15 @@ function Host(sess){
         <div class="note" style="margin:0 0 6px">在來賓手機上做語音辨識（中文），疊在畫面上的是目前 PGM 那一路說的話。需要 Chrome 或 Safari，辨識結果可能有錯字。</div>
         ${guests().filter(g => !g.lost).map(g => `<div class="row" style="margin-top:3px"><span class="grow">${numOf(g)}. ${esc(g.name)} ${g.cc && Date.now() - g.cc.t < 5000 ? `<span class="note" style="margin:0">「${esc(g.cc.text.slice(-24))}」</span>` : ''}</span><button class="btn sm ${g.ccOn ? 'on' : ''}" data-cc="${g.id}">${g.ccOn ? '辨識中' : '開始辨識'}</button></div>`).join('') || '<div class="note">還沒有來賓</div>'}
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0">字體</span><input type="range" min="70" max="150" value="${Math.round(OV.cc.size * 100)}" id="gccs" style="flex:1"></div></div>
+      <div class="wsec"><h4>選舉票數（接即時報票系統） <span class="grow"></span>${onb('el')}</h4>
+        <input class="field full" id="gelu" value="${esc(OV.el.api)}" placeholder="${esc(elDefUrl() ? '使用派發平台設定的報票系統（要換別套再貼網址）' : '報票系統 /exec 網址')}">
+        <div class="row" style="margin-top:6px;flex-wrap:wrap"><select class="field sm grow" id="gele"><option value="">— 選擇選舉 —</option>${(OV.el.els || []).map(x => `<option value="${esc(x.electionId)}" ${x.electionId === OV.el.e ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}${OV.el.e && !(OV.el.els || []).some(x => x.electionId === OV.el.e) ? `<option value="${esc(OV.el.e)}" selected>${esc(OV.el.e)}</option>` : ''}</select><button class="btn sm" id="gell">${ic('poll')}載入</button></div>
+        <div class="row" style="margin-top:6px;flex-wrap:wrap"><select class="field sm grow" id="geld"><option value="">（第一個選區）</option>${(OV.el.dists || []).map(x => `<option value="${esc(x.id)}" ${String(x.id) === String(OV.el.d) ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
+          <select class="field sm" id="gelm"><option value="lower" ${OV.el.mode !== 'side' ? 'selected' : ''}>下方橫條</option><option value="side" ${OV.el.mode === 'side' ? 'selected' : ''}>側邊排行</option></select>
+          <select class="field sm" id="gelp"><option value="r" ${OV.el.pos !== 'l' ? 'selected' : ''}>靠右</option><option value="l" ${OV.el.pos === 'l' ? 'selected' : ''}>靠左</option></select></div>
+        <div class="row" style="margin-top:6px;flex-wrap:wrap"><span class="note" style="margin:0">顯示前</span><select class="field sm" id="gelt">${[1, 2, 3, 4, 5, 6].map(n => `<option ${+OV.el.top === n ? 'selected' : ''}>${n}</option>`).join('')}</select><span class="note" style="margin:0">名，每</span><select class="field sm" id="gelr">${[5, 10, 15, 30, 60].map(n => `<option ${+OV.el.refresh === n ? 'selected' : ''}>${n}</option>`).join('')}</select><span class="note" style="margin:0">秒更新</span>
+          <input class="field sm grow" id="gelti" value="${esc(OV.el.title)}" placeholder="標題（空白＝選區名稱）"></div>
+        <div class="note" id="gelst">${OV.el.err ? '⚠ ' + esc(OV.el.err) : OV.el.at ? '已更新 ' + fmtTime(OV.el.at) : '選好選舉、選區後按 ON AIR 就會疊到 PGM；也可以在 DSK 列或手機面板直接開關。'}</div></div>
       <div class="wsec"><h4>淡入淡出時間</h4><div class="row"><input type="range" min="0" max="1500" step="50" value="${OV.fade}" id="gfd" style="flex:1"><span class="mono" id="gfdv">${OV.fade}ms</span></div>
         <div class="note">鍵盤：Y 字幕條、U 跑馬燈、H 台標、V CC 字幕。勾 TIE 的圖層會跟著下一次 CUT／AUTO 一起切換。</div></div>`;
     const B2 = w.body;
@@ -5139,6 +5346,17 @@ function Host(sess){
     const lx = $('#gblx', B2); if (lx) lx.onclick = () => { B.logo = null; B.logoUrl = ''; saveOV(); renderGfx(); };
     $$('[data-cc]', B2).forEach(b => b.onclick = () => { const g = inputs.get(b.dataset.cc); if (!g) return; g.ccOn = !g.ccOn; g.conn?.open && g.conn.send({ type: 'ctl', cc: g.ccOn }); updateTile(g); renderGfx(); toast(g.ccOn ? `已請「${g.name}」的手機開始語音辨識` : '已停止語音辨識'); });
     $('#gccs', B2).oninput = e => { OV.cc.size = e.target.value / 100; saveOV(); };
+    const E = OV.el;
+    const elLoad = () => elGet('api=elections').then(r => { E.els = (Array.isArray(r) ? r : r.elections || []).map(x => ({ electionId: String(x.electionId ?? x.id), name: x.name || x.electionId })); if (!E.e && E.els[0]) E.e = E.els[0].electionId; saveOV(); return E.e ? elGet('api=results&e=' + encodeURIComponent(E.e)) : null; })
+      .then(r => { if (r) { E.dists = (r.districts || []).map(x => ({ id: String(x.districtId ?? x.id), name: x.name || x.districtName || x.districtId })); E.data = r; E.err = ''; E.at = Date.now(); } renderGfx(); elPoll(); }).catch(er => { E.err = er.message; renderGfx(); });
+    $('#gelu', B2).onchange = e => { E.api = e.target.value.trim(); E.els = []; E.dists = []; saveOV(); elLoad(); };
+    $('#gell', B2).onclick = elLoad;
+    $('#gele', B2).onchange = e => { E.e = e.target.value; E.d = ''; E.dists = []; saveOV(); elLoad(); };
+    $('#geld', B2).onchange = e => { E.d = e.target.value; saveOV(); elPoll(); };
+    $('#gelm', B2).onchange = e => { E.mode = e.target.value; saveOV(); }; $('#gelp', B2).onchange = e => { E.pos = e.target.value; saveOV(); };
+    $('#gelt', B2).onchange = e => { E.top = +e.target.value; saveOV(); elPoll(); }; $('#gelr', B2).onchange = e => { E.refresh = +e.target.value; saveOV(); };
+    $('#gelti', B2).oninput = e => { E.title = e.target.value; saveOV(); };
+    if ((E.api || elDefUrl()) && !(E.els || []).length && !E._tried) { E._tried = 1; elLoad(); }
     $('#gfd', B2).oninput = e => { OV.fade = +e.target.value; $('#gfdv', B2).textContent = OV.fade + 'ms'; saveOV(); };
   }
   function renderScene(){
@@ -5203,7 +5421,8 @@ function Host(sess){
   function toggleRec(){ if(FINALIZING.size)return toast('錄影存檔收尾中');if (REC.size) stopRec(); else { const ks = ['pgm', 'pvw', 'clean', 'aux1', 'aux2', 'aux3', 'aux4', ...order].filter(k => store('wc_rec_' + k) === '1' && recStreamOf(k)); startRec(ks.length ? ks : ['pgm'], +(store('wc_reckb') || 8000)); } }
   function renderSet(){
     const w = WIN.set; if (!w?.open) return;
-    w.body.innerHTML = `<div class="wsec"><h4>轉場</h4>
+    setTimeout(() => { const c = w.body.querySelector('#sintro'), b = w.body.querySelector('#sintrop'); if (c) c.onchange = () => { try { localStorage.setItem('wc_intro', c.checked ? '1' : '0'); } catch {} }; if (b) b.onclick = () => wcIntro({ force: true }); });
+    w.body.innerHTML = `<div class="wsec"><h4>開場動畫</h4><div class="row"><label class="note" style="margin:0"><input type="checkbox" id="sintro" ${(() => { try { return localStorage.getItem('wc_intro') !== '0'; } catch { return true; } })() ? 'checked' : ''}> 開啟導播台時播放開場動畫</label><span class="grow"></span><button class="btn sm" id="sintrop">預覽</button></div></div><div class="wsec"><h4>轉場</h4>
         <div class="row" style="flex-wrap:wrap">${TRANS.map(([k, n]) => `<button class="btn sm ${SW.type === k ? 'on' : ''}" data-tt="${k}">${n}</button>`).join('')}</div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">DIP 過場色</span><input type="color" id="sdc" value="${SW.dipColor}"><span class="note" style="margin:0">劃變邊框</span><input type="range" min="0" max="20" value="${SW.border}" id="swb" style="width:90px"><input type="color" id="swc" value="${SW.borderColor}"></div>
         <div class="row" style="margin-top:6px"><span class="note" style="margin:0;width:90px">FTB 時間</span><select class="field sm" id="sfd">${[300, 600, 1000, 1500, 2000, 3000].map(v => `<option value="${v}" ${SW.ftbDur === v ? 'selected' : ''}>${v / 1000}s</option>`).join('')}</select></div></div>
@@ -9644,7 +9863,7 @@ function Panel(){
 
   /* ---------- 動作（自訂按鈕也用這套） ---------- */
   const ACTS = [['take', '切上 PGM（來源號碼）', 'sw'], ['pvw', '設為 PVW（來源號碼）', 'pvw'], ['cut', 'CUT', 'sw'], ['auto', 'AUTO', 'sw'], ['ftb', 'FTB 淡出黑畫面', 'sw'], ['ov', '圖層開關', 'gfx'], ['still', '圖庫 S1～S8', 'gfx'], ['scene', '場景 F1～F12', 'scene'], ['mute', '來源靜音開關（來源號碼）', 'audio'], ['rec', '錄影開關', 'rec'], ['stream', '推流開關（第幾組）', 'rec'], ['trans', '轉場效果', 'sw'], ['cue', '提示導播（文字）', 'cue'], ['page', '切換面板分頁', '']];
-  const OVN = { lt: '字幕條', tk: '跑馬燈', bn: '突發', bug: '台標', cc: 'CC', tm: '倒數' };
+  const OVN = { lt: '字幕條', tk: '跑馬燈', bn: '突發', bug: '台標', cc: 'CC', tm: '倒數', el: '票數' };
   function runAct(b){
     const a = b.act;
     if (a === 'page') { const i = clamp((+b.n || 1) - 1, 0, L.pages.length - 1); page = i; store('wc_panel_pg', i); sig = ''; return renderAll(); }
